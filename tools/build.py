@@ -95,7 +95,7 @@ def page(path, title, desc, body, active=''):
 <meta property="og:description" content="{E(desc)}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Roboto:wght@300;400;500;700&display=swap">
 <link rel="stylesheet" href="{up}assets/style.css">
 <link rel="icon" href="{up}assets/favicon.svg" type="image/svg+xml">
 <script type="application/ld+json">{json.dumps(ld)}</script>
@@ -217,21 +217,29 @@ def build():
     # ---------- Home ----------
     featured_models = SITE['featured']
     featured = [p for m in featured_models for p in products if p['model'] == m]
+    hero_slides = [p for p in featured if p['slug'] in PHOTOS][:5]
+    slides_html = ''.join(
+        f'<figure class="slide{" is-on" if i == 0 else ""}"><div class="slide-stage">{picture(p, "", lazy=False)}</div>'
+        f'<figcaption><span class="scene">Scene {i + 1:02d}</span><span class="slide-model">Canon {E(p["model"])}</span>'
+        f'<span class="slide-cat">{E(p["cat_label"])}</span></figcaption></figure>'
+        for i, p in enumerate(hero_slides))
     tiles = ''.join(f'''<a class="tile" href="products/index.html#{c[0]}">{cat_picture(c[0], '')}<span class="tile-name">{c[2]}</span><span class="tile-count">{len(by_cat[c[0]])} models</span><span class="tile-cta">View Products</span></a>'''
                     for c in CATEGORIES if by_cat[c[0]])
     home = f'''
-<section class="hero"><div class="wrap hero-grid">
-  <div class="hero-copy">
+<section class="cine-hero" aria-label="Featured Canon products">
+  <div class="slides">{slides_html}</div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="wrap cine-copy">
     <p class="eyebrow">{E(SITE['badge'])}</p>
-    <h1>Canon printers, copiers and scanners for the Andaman &amp; Nicobar Islands</h1>
-    <p class="lede">Sales, installation, genuine consumables and on-site service from a local Canon partner in Sri Vijaya Puram. Offices, departments, schools and homes across the islands buy from us.</p>
+    <h1>Every page.<br>Every print.<br><span>Perfectly in frame.</span></h1>
+    <p class="lede">Canon copiers, printers and scanners for the Andaman &amp; Nicobar Islands, with sales, installation and on-site service from Sri Vijaya Puram.</p>
     <div class="hero-actions">
-      <a class="btn" href="products/index.html">View Products</a>
+      <a class="btn" href="products/index.html">Explore the Range</a>
       <a class="btn btn-ghost" href="contact.html#quote">Get a Quotation</a>
     </div>
   </div>
-  <div class="hero-visual">{cat_picture('office', '')}</div>
-</div></section>
+  <div class="wrap reel" aria-hidden="true">{''.join(f'<span class="reel-tick{" is-on" if i == 0 else ""}"><i></i></span>' for i in range(len(hero_slides)))}</div>
+</section>
 <section class="why"><div class="wrap">
   <div class="hero-panel">
     <p class="panel-title">Why buy from AIM</p>
@@ -244,17 +252,17 @@ def build():
   </div>
 </div></section>
 
-<section class="section"><div class="wrap">
+<section class="section reveal"><div class="wrap">
   <div class="section-head"><h2>Product Range</h2><a href="products/index.html">View all {len(products)} products</a></div>
   <div class="tiles">{tiles}</div>
 </div></section>
 
-<section class="section band"><div class="wrap">
+<section class="section band reveal"><div class="wrap">
   <div class="section-head"><h2>Featured Products</h2><a href="products/index.html">See full range</a></div>
   <div class="grid">{''.join(card(p, '') for p in featured)}</div>
 </div></section>
 
-<section class="section"><div class="wrap services">
+<section class="section reveal"><div class="wrap services">
   <div><h2>More than a dealer</h2><p>Buying a copier is the start. We look after it for its whole life, so your office never stops printing.</p><a class="btn btn-ghost" href="service.html">Service &amp; AMC plans</a></div>
   <ul class="service-list">
     <li><b>Installation &amp; training</b><span>Set-up, network printing and scanning to email, done on site.</span></li>
@@ -328,7 +336,7 @@ def build():
       <p class="small">Full specifications and brochure: <a href="{E(p['canon_url'])}" target="_blank" rel="noopener">Canon India product page</a></p>
     </div>
   </section>
-  {'<section class="section"><h2>Similar models</h2><div class="grid">' + ''.join(card(r, '../') for r in related) + '</div></section>' if related else ''}
+  {'<section class="section reveal"><h2>Similar models</h2><div class="grid">' + ''.join(card(r, '../') for r in related) + '</div></section>' if related else ''}
 </div>
 '''
         price_txt = f"MRP ₹{rupees(p['mrp'])} incl. GST. " if p['mrp'] else ''

@@ -9,6 +9,33 @@
     });
   }
 
+  var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Hero: crossfade through featured products like scenes in a reel
+  var slides = document.querySelectorAll('.cine-hero .slide');
+  var ticks = document.querySelectorAll('.cine-hero .reel-tick');
+  if (slides.length > 1 && !still) {
+    var cur = 0;
+    var show = function (n) {
+      slides[cur].classList.remove('is-on');
+      if (ticks[cur]) ticks[cur].classList.remove('is-on');
+      cur = n % slides.length;
+      // restart the CSS animations on the incoming slide and tick
+      [slides[cur], ticks[cur]].forEach(function (el) { if (el) { void el.offsetWidth; el.classList.add('is-on'); } });
+    };
+    setInterval(function () { if (!document.hidden) show(cur + 1); }, 6000);
+  }
+
+  // Sections below the fold rise in as they enter view; anything already on screen stays put
+  if ('IntersectionObserver' in window && !still) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.remove('pre'); io.unobserve(en.target); } });
+    }, { rootMargin: '0px 0px -8% 0px' });
+    document.querySelectorAll('.reveal').forEach(function (el) {
+      if (el.getBoundingClientRect().top > window.innerHeight) { el.classList.add('pre'); io.observe(el); }
+    });
+  }
+
   // Desktop mega menu under "Products"
   var header = document.querySelector('.site-header');
   var prodLink = nav && nav.querySelector('a[href$="products/index.html"]');
