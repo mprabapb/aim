@@ -98,7 +98,7 @@ def page(path, title, desc, body, active=''):
 <meta property="og:description" content="{E(desc)}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Figtree:wght@400;500&display=swap">
 <link rel="stylesheet" href="{up}assets/style.css">
 <link rel="icon" href="{up}assets/favicon.svg" type="image/svg+xml">
 <script type="application/ld+json">{json.dumps(ld)}</script>
