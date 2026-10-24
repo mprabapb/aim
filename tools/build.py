@@ -95,28 +95,31 @@ def page(path, title, desc, body, active=''):
 <meta property="og:description" content="{E(desc)}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="{up}assets/style.css">
 <link rel="icon" href="{up}assets/favicon.svg" type="image/svg+xml">
 <script type="application/ld+json">{json.dumps(ld)}</script>
 </head>
 <body data-wa="{SITE['whatsapp']}" data-email="{SITE['email']}">
 <div class="topbar"><div class="wrap">
-  <span>{E(SITE['badge'])}</span>
-  <span class="topbar-contact"><a href="tel:{SITE['phone_tel']}">{E(SITE['phone_display'])}</a> · <a href="mailto:{SITE['email']}">{E(SITE['email'])}</a></span>
+  <span class="topbar-badge">{E(SITE['badge'])}</span>
+  <span class="topbar-links"><a href="{up}contact.html">Where to Buy</a><a href="{up}service.html">Service Network</a><a href="{up}service.html#book">Book a Service</a><a href="{up}government.html">GeM Orders</a><a href="tel:{SITE['phone_tel']}">{E(SITE['phone_display'])}</a></span>
 </div></div>
 <header class="site-header"><div class="wrap">
-  <a class="brand" href="{up}index.html"><img src="{up}assets/logo.svg" alt="" width="40" height="40"><span><b>AIM</b> Enterprises</span></a>
+  <a class="brand" href="{up}index.html"><img src="{up}assets/logo.svg" alt="AIM Enterprises" width="96" height="32"></a>
   <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
   <nav id="nav">{nav}</nav>
-  <a class="btn btn-wa header-wa" href="{wa_link('Hello AIM Enterprises, I have an enquiry.')}" target="_blank" rel="noopener">WhatsApp</a>
-</div></header>
+  <a class="search-link" href="{up}products/index.html#search" aria-label="Search products"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2"/></svg></a>
+</div>
+<div class="megamenu"><div class="wrap">{''.join(f'<a href="{up}products/index.html#{c[0]}">{icon(c[0])}<span>{c[2]}</span></a>' for c in CATEGORIES)}</div></div>
+</header>
 <main>
 {body}
 </main>
 <footer class="site-footer"><div class="wrap footer-grid">
   <div>
-    <p class="footer-brand"><b>AIM</b> Enterprises</p>
+    <img src="{up}assets/logo.svg" alt="AIM Enterprises" width="96" height="32">
+    <p class="partner-badge">{E(SITE['badge'])}</p>
     <p>{E(SITE['tagline'])}</p>
     <p class="small">GSTIN {E(SITE['gstin'])} · GeM Seller ID {E(SITE['gem_id'])}</p>
   </div>
@@ -169,19 +172,18 @@ def icon(cat):
 
 def price_html(p):
     if p['mrp']:
-        return f'<p class="price"><span class="price-label">MRP</span> ₹{rupees(p["mrp"])}<span class="price-note">incl. of all taxes</span></p>'
+        return f'<p class="price">MRP Rs. {rupees(p["mrp"])}.00/U<span class="price-note">inclusive of all taxes</span></p>'
     return '<p class="price price-ask">Price on request</p>'
 
 
 def card(p, up):
     return f'''<article class="card" data-cat="{p['cat']}" data-name="{E(p['model'].lower())}">
   <a href="{up}products/{p['slug']}.html" class="card-pic">{icon(p['cat'])}</a>
-  <p class="card-cat">{E(p['cat_label'])}</p>
   <h3><a href="{up}products/{p['slug']}.html">{E(p['model'])}</a></h3>
   {price_html(p)}
   <div class="card-actions">
-    <a class="btn btn-small" href="{up}contact.html?model={E(p['model'])}#quote">Get best price</a>
-    <a class="btn btn-small btn-ghost" href="{wa_link(f"Hello AIM Enterprises, please share your best price for Canon {p['model']}.")}" target="_blank" rel="noopener">WhatsApp</a>
+    <a class="btn btn-block" href="{up}contact.html?model={E(p['model'])}#quote">Enquire Now</a>
+    <a class="text-link" href="{wa_link(f"Hello AIM Enterprises, please share your best price for Canon {p['model']}.")}" target="_blank" rel="noopener">Ask on WhatsApp ›</a>
   </div>
 </article>'''
 
@@ -193,7 +195,7 @@ def build():
     # ---------- Home ----------
     featured_models = SITE['featured']
     featured = [p for m in featured_models for p in products if p['model'] == m]
-    tiles = ''.join(f'''<a class="tile" href="products/index.html#{c[0]}">{icon(c[0])}<span class="tile-name">{c[2]}</span><span class="tile-count">{len(by_cat[c[0]])} models</span></a>'''
+    tiles = ''.join(f'''<a class="tile" href="products/index.html#{c[0]}">{icon(c[0])}<span class="tile-name">{c[2]}</span><span class="tile-count">{len(by_cat[c[0]])} models</span><span class="tile-cta">View Products</span></a>'''
                     for c in CATEGORIES if by_cat[c[0]])
     home = f'''
 <section class="hero"><div class="wrap hero-grid">
@@ -202,11 +204,13 @@ def build():
     <h1>Canon printers, copiers and scanners for the Andaman &amp; Nicobar Islands</h1>
     <p class="lede">Sales, installation, genuine consumables and on-site service from a local Canon partner in Sri Vijaya Puram. Offices, departments, schools and homes across the islands buy from us.</p>
     <div class="hero-actions">
-      <a class="btn" href="contact.html#quote">Get a quotation</a>
-      <a class="btn btn-wa" href="{wa_link('Hello AIM Enterprises, I would like a quotation.')}" target="_blank" rel="noopener">WhatsApp us</a>
-      <a class="btn btn-ghost" href="tel:{SITE['phone_tel']}">Call {E(SITE['phone_display'])}</a>
+      <a class="btn" href="products/index.html">View Products</a>
+      <a class="btn btn-ghost" href="contact.html#quote">Get a Quotation</a>
     </div>
   </div>
+  <div class="hero-visual">{icon('office')}</div>
+</div></section>
+<section class="why"><div class="wrap">
   <div class="hero-panel">
     <p class="panel-title">Why buy from AIM</p>
     <ul class="checks">
@@ -219,12 +223,12 @@ def build():
 </div></section>
 
 <section class="section"><div class="wrap">
-  <div class="section-head"><h2>Shop by category</h2><a href="products/index.html">View all {len(products)} products</a></div>
+  <div class="section-head"><h2>Product Range</h2><a href="products/index.html">View all {len(products)} products</a></div>
   <div class="tiles">{tiles}</div>
 </div></section>
 
 <section class="section band"><div class="wrap">
-  <div class="section-head"><h2>Popular models</h2><a href="products/index.html">See full range</a></div>
+  <div class="section-head"><h2>Featured Products</h2><a href="products/index.html">See full range</a></div>
   <div class="grid">{''.join(card(p, '') for p in featured)}</div>
 </div></section>
 
@@ -281,7 +285,8 @@ def build():
         body = f'''
 <div class="wrap">
   <nav class="crumbs"><a href="../index.html">Home</a> / <a href="index.html">Products</a> / <a href="index.html#{p['cat']}">{E(p['cat_label'])}</a> / {E(p['model'])}</nav>
-  <section class="product">
+  <nav class="tabbar"><a href="#overview" class="on">Overview</a><a href="#features">Key Features</a><a href="{E(p['canon_url'])}" target="_blank" rel="noopener">Specifications</a><a href="../contact.html?model={E(p['model'])}#quote">Where to Buy</a><a href="../service.html">Get Support</a></nav>
+  <section class="product" id="overview">
     <div class="product-pic">{icon(p['cat'])}</div>
     <div class="product-info">
       <p class="card-cat">Canon · {E(cat[1])}</p>
@@ -289,10 +294,10 @@ def build():
       <p class="lede">{E(p['desc'])}</p>
       {price_html(p)}
       <div class="hero-actions">
-        <a class="btn" href="../contact.html?model={E(p['model'])}#quote">Request quotation</a>
+        <a class="btn" href="../contact.html?model={E(p['model'])}#quote">Enquire Now</a>
         <a class="btn btn-wa" href="{wa_link(f"Hello AIM Enterprises, please share your best price and availability for Canon {p['model']}.")}" target="_blank" rel="noopener">Ask on WhatsApp</a>
       </div>
-      <ul class="checks small-checks">
+      <ul class="checks small-checks" id="features">
         <li>Genuine Canon product with manufacturer warranty</li>
         <li>Delivery and installation in Sri Vijaya Puram</li>
         <li>AMC and consumables available from AIM</li>
@@ -330,7 +335,7 @@ def build():
         <li>Network printing, scan-to-email and scan-to-folder set-up</li>
       </ul>
     </div>
-    <form class="form" id="service-form" data-kind="service">
+    <form class="form" id="book" data-kind="service">
       <h2>Book a service visit</h2>
       <label>Name<input name="name" required autocomplete="name"></label>
       <label>Office or organisation<input name="org"></label>

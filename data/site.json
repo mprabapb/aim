@@ -1,7 +1,7 @@
 {
   "name": "AIM Enterprises",
   "tagline": "Canon sales, service and genuine consumables in the Andaman & Nicobar Islands.",
-  "badge": "Authorised Canon Business Partner, Sri Vijaya Puram",
+  "badge": "Canon Authorised Business Partner & Service Provider",
   "proprietor": "M. Prabaharan",
   "url": "https://aimenterprises.net/",
   "phone_display": "+91 94342 82223",
@@ -12,9 +12,23 @@
   "street": "Shop No. 3, No. 112 Middle Point, MG Road, opp. BJP Bhawan",
   "city": "Sri Vijaya Puram (Port Blair)",
   "pin": "744101",
-  "address_lines": ["Shop No. 3, No. 112 Middle Point", "MG Road, opp. BJP Bhawan", "Sri Vijaya Puram (Port Blair) 744101", "Andaman & Nicobar Islands"],
+  "address_lines": [
+    "Shop No. 3, No. 112 Middle Point",
+    "MG Road, opp. BJP Bhawan",
+    "Sri Vijaya Puram (Port Blair) 744101",
+    "Andaman & Nicobar Islands"
+  ],
   "maps_url": "https://www.google.com/maps/search/?api=1&query=Middle+Point+MG+Road+Sri+Vijaya+Puram+744101",
   "gstin": "35AKEPP1123F1ZM",
   "gem_id": "F634180000090965",
-  "featured": ["imageRUNNER 2425", "imageRUNNER 2224N/2224", "imageCLASS MF3010", "imageCLASS MF289dw", "imageCLASS LBP6030B", "PIXMA G3010", "PIXMA G4780", "imageFORMULA DR-C240"]
+  "featured": [
+    "imageRUNNER 2425",
+    "imageRUNNER 2224N/2224",
+    "imageCLASS MF3010",
+    "imageCLASS MF289dw",
+    "imageCLASS LBP6030B",
+    "PIXMA G3010",
+    "PIXMA G4780",
+    "imageFORMULA DR-C240"
+  ]
 }

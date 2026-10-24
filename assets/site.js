@@ -9,6 +9,17 @@
     });
   }
 
+  // Desktop mega menu under "Products"
+  var header = document.querySelector('.site-header');
+  var prodLink = nav && nav.querySelector('a[href$="products/index.html"]');
+  if (header && prodLink) {
+    var openMega = function () { header.classList.add('mega-open'); };
+    prodLink.addEventListener('mouseenter', openMega);
+    prodLink.addEventListener('focus', openMega);
+    header.addEventListener('mouseleave', function () { header.classList.remove('mega-open'); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') header.classList.remove('mega-open'); });
+  }
+
   // Catalogue: category chips + search box
   var q = document.getElementById('q');
   var chips = document.querySelectorAll('.chip');
@@ -43,6 +54,7 @@
     });
     q.addEventListener('input', apply);
     var hash = location.hash.slice(1);
+    if (hash === 'search') q.focus();
     if (hash && document.querySelector('.chip[data-filter="' + hash + '"]')) select(hash);
   }
 
