@@ -1,0 +1,34 @@
+# Downloads product photos from Canon India (which this repo's build machine can't reach)
+# and commits them with the regenerated pages. Run it from the Actions tab, or it runs
+# when the product list or the image script changes.
+name: Fetch product photos
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - data/products.csv
+      - tools/fetch_images.py
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download photos
+        run: python3 tools/fetch_images.py
+      - name: Rebuild pages
+        run: python3 tools/build.py
+      - name: Commit new photos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/products *.html products sitemap.xml
+          git diff --cached --quiet || git commit -m "Add product photos from Canon India"
+          git push

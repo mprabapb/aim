@@ -111,7 +111,7 @@ def page(path, title, desc, body, active=''):
   <nav id="nav">{nav}</nav>
   <a class="search-link" href="{up}products/index.html#search" aria-label="Search products"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2"/></svg></a>
 </div>
-<div class="megamenu"><div class="wrap">{''.join(f'<a href="{up}products/index.html#{c[0]}">{icon(c[0])}<span>{c[2]}</span></a>' for c in CATEGORIES)}</div></div>
+<div class="megamenu"><div class="wrap">{''.join(f'<a href="{up}products/index.html#{c[0]}">{cat_picture(c[0], up)}<span>{c[2]}</span></a>' for c in CATEGORIES)}</div></div>
 </header>
 <main>
 {body}
@@ -138,7 +138,7 @@ def page(path, title, desc, body, active=''):
     <a href="mailto:{SITE['email']}">{E(SITE['email'])}</a>
   </div>
 </div>
-<div class="wrap legal">© {date.today().year} AIM Enterprises, Sri Vijaya Puram. Canon, imageRUNNER, imageFORCE, imageCLASS, PIXMA, MAXIFY, imagePROGRAF and imageFORMULA are trademarks of Canon Inc. MRPs are as published by Canon India and may change without notice.</div>
+<div class="wrap legal">© {date.today().year} AIM Enterprises, Sri Vijaya Puram. Product photos © Canon India. Canon, imageRUNNER, imageFORCE, imageCLASS, PIXMA, MAXIFY, imagePROGRAF and imageFORMULA are trademarks of Canon Inc. MRPs are as published by Canon India and may change without notice.</div>
 </footer>
 <a class="wa-float" href="{wa_link('Hello AIM Enterprises, I have an enquiry.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">{WA_ICON}</a>
 <script src="{up}assets/site.js" defer></script>
@@ -170,6 +170,26 @@ def icon(cat):
     return f'<svg class="pic" viewBox="0 0 100 100" aria-hidden="true">{CAT_ICON[cat]}</svg>'
 
 
+PHOTO_DIR = os.path.join(ROOT, 'assets', 'products')
+PHOTOS = {os.path.splitext(f)[0]: f for f in os.listdir(PHOTO_DIR)} if os.path.isdir(PHOTO_DIR) else {}
+
+
+def picture(p, up, lazy=True):
+    """Canon's product photo when we have it, else the category drawing."""
+    f = PHOTOS.get(p['slug'])
+    if not f:
+        return icon(p['cat'])
+    return f'<img class="photo" src="{up}assets/products/{f}" alt="Canon {E(p["model"])}"{" loading=\"lazy\"" if lazy else ""}>'
+
+
+CAT_PHOTO = {}  # category -> product whose photo stands for the category
+
+
+def cat_picture(cat, up):
+    p = CAT_PHOTO.get(cat)
+    return picture(p, up) if p else icon(cat)
+
+
 def price_html(p):
     if p['mrp']:
         return f'<p class="price">MRP Rs. {rupees(p["mrp"])}.00/U<span class="price-note">inclusive of all taxes</span></p>'
@@ -178,7 +198,7 @@ def price_html(p):
 
 def card(p, up):
     return f'''<article class="card" data-cat="{p['cat']}" data-name="{E(p['model'].lower())}">
-  <a href="{up}products/{p['slug']}.html" class="card-pic">{icon(p['cat'])}</a>
+  <a href="{up}products/{p['slug']}.html" class="card-pic">{picture(p, up)}</a>
   <h3><a href="{up}products/{p['slug']}.html">{E(p['model'])}</a></h3>
   {price_html(p)}
   <div class="card-actions">
@@ -191,11 +211,13 @@ def card(p, up):
 def build():
     products = load_products()
     by_cat = {c[0]: [p for p in products if p['cat'] == c[0]] for c in CATEGORIES}
+    for c in CATEGORIES:
+        CAT_PHOTO[c[0]] = next((p for p in by_cat[c[0]] if p['slug'] in PHOTOS), None)
 
     # ---------- Home ----------
     featured_models = SITE['featured']
     featured = [p for m in featured_models for p in products if p['model'] == m]
-    tiles = ''.join(f'''<a class="tile" href="products/index.html#{c[0]}">{icon(c[0])}<span class="tile-name">{c[2]}</span><span class="tile-count">{len(by_cat[c[0]])} models</span><span class="tile-cta">View Products</span></a>'''
+    tiles = ''.join(f'''<a class="tile" href="products/index.html#{c[0]}">{cat_picture(c[0], '')}<span class="tile-name">{c[2]}</span><span class="tile-count">{len(by_cat[c[0]])} models</span><span class="tile-cta">View Products</span></a>'''
                     for c in CATEGORIES if by_cat[c[0]])
     home = f'''
 <section class="hero"><div class="wrap hero-grid">
@@ -208,7 +230,7 @@ def build():
       <a class="btn btn-ghost" href="contact.html#quote">Get a Quotation</a>
     </div>
   </div>
-  <div class="hero-visual">{icon('office')}</div>
+  <div class="hero-visual">{cat_picture('office', '')}</div>
 </div></section>
 <section class="why"><div class="wrap">
   <div class="hero-panel">
@@ -287,7 +309,7 @@ def build():
   <nav class="crumbs"><a href="../index.html">Home</a> / <a href="index.html">Products</a> / <a href="index.html#{p['cat']}">{E(p['cat_label'])}</a> / {E(p['model'])}</nav>
   <nav class="tabbar"><a href="#overview" class="on">Overview</a><a href="#features">Key Features</a><a href="{E(p['canon_url'])}" target="_blank" rel="noopener">Specifications</a><a href="../contact.html?model={E(p['model'])}#quote">Where to Buy</a><a href="../service.html">Get Support</a></nav>
   <section class="product" id="overview">
-    <div class="product-pic">{icon(p['cat'])}</div>
+    <div class="product-pic">{picture(p, '../', lazy=False)}</div>
     <div class="product-info">
       <p class="card-cat">Canon · {E(cat[1])}</p>
       <h1>Canon {E(p['model'])}</h1>
