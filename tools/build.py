@@ -228,27 +228,41 @@ def build():
     # ---------- Home ----------
     featured_models = SITE['featured']
     featured = [p for m in featured_models for p in products if p['model'] == m]
-    hero_slides = [p for p in featured if p['slug'] in PHOTOS][:5]
+    by_model = {p['model']: p for p in products}
+
+    def shots(*models):
+        return ''.join(f'<div class="bshot">{picture(by_model[m], "", lazy=False)}</div>' for m in models if m in by_model)
+
+    def btns(buttons):
+        return ''.join(f'<a class="btn{cls}" href="{href}">{label}</a>' for href, label, cls in buttons)
+
+    # Three themed banners, rotating like Canon India's home carousel (artwork made in Canva can replace the photos later)
+    banners = [
+        ('light', 'h1', E(SITE['badge']), 'Canon printing, copying and scanning for the Islands',
+         'Canon copiers, printers and scanners for the Andaman &amp; Nicobar Islands, with sales, installation and on-site service from Sri Vijaya Puram.',
+         [('products/index.html', 'Discover More', ''), ('contact.html#quote', 'Get a Quotation', ' btn-ghost')],
+         shots('imageRUNNER 2425')),
+        ('dark', 'h2', 'Service &amp; AMC', 'On-site service you can count on',
+         'Installation, annual maintenance contracts and genuine Canon consumables, delivered by our own engineers across the Islands.',
+         [('service.html#book', 'Book a Service', ''), ('service.html', 'AMC Plans', ' btn-ghost')],
+         shots('imageCLASS MF289dw') + '<p class="bbadge"><b>On-site</b>service</p>'),
+        ('grey', 'h2', 'Government buyers', 'Supplying government offices through GeM',
+         f'Registered GeM seller (ID {E(SITE["gem_id"])}). Copiers, printers and scanners with tender documents ready.',
+         [('government.html', 'Government Orders', ''), ('contact.html#quote', 'Request a Quote', ' btn-ghost')],
+         shots('imageFORMULA DR-C240', 'imageCLASS LBP6030B', 'PIXMA G3010')),
+    ]
     slides_html = ''.join(
-        f'<figure class="slide{" is-on" if i == 0 else ""}"><div class="slide-stage">{picture(p, "", lazy=False)}</div>'
-        f'<figcaption><span class="slide-model">Canon {E(p["model"])}</span>'
-        f'<span class="slide-cat">{E(p["cat_label"])}</span></figcaption></figure>'
-        for i, p in enumerate(hero_slides))
+        f'<article class="slide bslide bslide-{tone}{" is-on" if i == 0 else ""}" aria-roledescription="slide" aria-label="{i + 1} of {len(banners)}"><div class="wrap bslide-inner">'
+        f'<div class="bcopy"><p class="eyebrow">{eyebrow}</p><{tag} class="btitle">{title}</{tag}><p class="lede">{lede}</p>'
+        f'<div class="hero-actions">{btns(buttons)}</div></div>'
+        f'<div class="bpic">{pics}</div></div></article>'
+        for i, (tone, tag, eyebrow, title, lede, buttons, pics) in enumerate(banners))
     tiles = ''.join(f'''<a class="tile" href="products/index.html#{c[0]}">{cat_picture(c[0], '')}<span class="tile-name">{c[2]}</span><span class="tile-count">{len(by_cat[c[0]])} models</span><span class="tile-cta">View Products</span></a>'''
                     for c in CATEGORIES if by_cat[c[0]])
     home = f'''
-<section class="cine-hero" aria-label="Featured Canon products">
+<section class="banner" aria-roledescription="carousel" aria-label="Highlights">
   <div class="slides">{slides_html}</div>
-  <div class="wrap cine-copy">
-    <p class="eyebrow">{E(SITE['badge'])}</p>
-    <h1>Canon printing, copying and scanning for the Islands</h1>
-    <p class="lede">Canon copiers, printers and scanners for the Andaman &amp; Nicobar Islands, with sales, installation and on-site service from Sri Vijaya Puram.</p>
-    <div class="hero-actions">
-      <a class="btn" href="products/index.html">Discover More</a>
-      <a class="btn btn-ghost" href="contact.html#quote">Get a Quotation</a>
-    </div>
-  </div>
-  <div class="wrap reel" aria-hidden="true">{''.join(f'<span class="reel-tick{" is-on" if i == 0 else ""}"><i></i></span>' for i in range(len(hero_slides)))}</div>
+  <div class="reel">{''.join(f'<button class="reel-tick{" is-on" if i == 0 else ""}" aria-label="Show banner {i + 1}"><i></i></button>' for i in range(len(banners)))}</div>
 </section>
 <section class="why"><div class="wrap">
   <div class="hero-panel">

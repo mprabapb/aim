@@ -11,19 +11,22 @@
 
   var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Hero: crossfade through featured products like scenes in a reel
-  var slides = document.querySelectorAll('.cine-hero .slide');
-  var ticks = document.querySelectorAll('.cine-hero .reel-tick');
-  if (slides.length > 1 && !still) {
+  // Home banners: rotate every 6 seconds like Canon's carousel; the dots jump to a banner
+  var slides = document.querySelectorAll('.banner .slide');
+  var ticks = document.querySelectorAll('.banner .reel-tick');
+  if (slides.length > 1) {
     var cur = 0;
     var show = function (n) {
       slides[cur].classList.remove('is-on');
-      if (ticks[cur]) ticks[cur].classList.remove('is-on');
+      ticks[cur].classList.remove('is-on');
       cur = n % slides.length;
-      // restart the CSS animations on the incoming slide and tick
-      [slides[cur], ticks[cur]].forEach(function (el) { if (el) { void el.offsetWidth; el.classList.add('is-on'); } });
+      slides[cur].classList.add('is-on');
+      ticks[cur].classList.add('is-on');
     };
-    setInterval(function () { if (!document.hidden) show(cur + 1); }, 6000);
+    var timer = still ? null : setInterval(function () { if (!document.hidden) show(cur + 1); }, 6000);
+    ticks.forEach(function (t, i) {
+      t.addEventListener('click', function () { clearInterval(timer); show(i); });
+    });
   }
 
   // Sections below the fold rise in as they enter view; anything already on screen stays put
