@@ -65,16 +65,19 @@ def wa_link(text):
     return f"https://wa.me/{SITE['whatsapp']}?text={quote(text)}"
 
 
-NAV = [('index.html', 'Home'), ('products/index.html', 'Products'), ('service.html', 'Service & AMC'),
-       ('government.html', 'Government buyers'), ('about.html', 'About'), ('contact.html', 'Contact')]
+# Two-row header like Canon India: segments in the grey band, everyday links in the white row below
+SEGMENTS = [('products/index.html', 'Printers & Scanners'), ('service.html', 'Service & AMC'), ('government.html', 'Government (GeM)')]
+NAV = [('products/index.html', 'Products'), ('contact.html', 'Where to Buy'), ('service.html', 'Service Network'),
+       ('service.html#book', 'Book a Service'), ('government.html', 'GeM Orders'), ('about.html', 'About Us'), ('contact.html', 'Contact')]
+SEGMENT_FOR = {'Service & AMC': 'Service & AMC', 'Government buyers': 'Government (GeM)'}
 
 
 def page(path, title, desc, body, active=''):
     depth = path.count('/')
     up = '../' * depth
-    nav = ''.join(
-        f'<a href="{up}{href}"{" aria-current=\"page\"" if label == active else ""}>{label}</a>'
-        for href, label in NAV)
+    seg_on = SEGMENT_FOR.get(active, 'Printers & Scanners')
+    segments = ''.join(f'<a href="{up}{href}"{" class=\"on\"" if label == seg_on else ""}>{E(label)}</a>' for href, label in SEGMENTS)
+    nav = ''.join(f'<a href="{up}{href}">{E(label)}</a>' for href, label in NAV)
     ld = {
         '@context': 'https://schema.org', '@type': 'LocalBusiness', 'name': SITE['name'],
         'description': SITE['tagline'], 'telephone': SITE['phone_display'], 'email': SITE['email'],
@@ -101,16 +104,24 @@ def page(path, title, desc, body, active=''):
 <script type="application/ld+json">{json.dumps(ld)}</script>
 </head>
 <body data-wa="{SITE['whatsapp']}" data-email="{SITE['email']}">
-<div class="topbar"><div class="wrap">
-  <span class="topbar-badge">{E(SITE['badge'])}</span>
-  <span class="topbar-links"><a href="{up}contact.html">Where to Buy</a><a href="{up}service.html">Service Network</a><a href="{up}service.html#book">Book a Service</a><a href="{up}government.html">GeM Orders</a><a href="tel:{SITE['phone_tel']}">{E(SITE['phone_display'])}</a></span>
-</div></div>
-<header class="site-header"><div class="wrap">
-  <a class="brand" href="{up}index.html"><img src="{up}assets/logo.svg" alt="AIM Enterprises" width="96" height="32"></a>
+<header class="site-header">
+<div class="brandbar"><div class="wrap">
+  <a class="brand" href="{up}index.html"><img src="{up}assets/logo.svg" alt="AIM Enterprises, Canon Authorised Partner" width="170" height="44"></a>
+  <span class="brand-place">Andaman &amp; Nicobar</span>
+  <nav class="segments" aria-label="Sections">{segments}</nav>
+  <span class="bar-divider" aria-hidden="true"></span>
+  <a class="search-link" href="{up}products/index.html#search" aria-label="Search products"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M15.6 15.6 21 21" stroke="currentColor" stroke-width="1.4"/></svg></a>
+  <a class="bar-accent" href="tel:{SITE['phone_tel']}">Call Us</a>
   <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
-  <nav id="nav">{nav}</nav>
-  <a class="search-link" href="{up}products/index.html#search" aria-label="Search products"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2"/></svg></a>
-</div>
+</div></div>
+<div class="menubar"><div class="wrap">
+  <nav id="nav" aria-label="Main">{nav}</nav>
+  <div class="menu-right">
+    <a href="{up}service.html">AMC</a><a href="{up}contact.html">Support</a>
+    <span class="bar-divider" aria-hidden="true"></span>
+    <a class="quote-link" href="{up}contact.html#quote"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M2 3h3l2.6 12.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H6.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.4" fill="currentColor"/><circle cx="17.5" cy="20" r="1.4" fill="currentColor"/></svg>Get a Quote</a>
+  </div>
+</div></div>
 <div class="megamenu"><div class="wrap">{''.join(f'<a href="{up}products/index.html#{c[0]}">{cat_picture(c[0], up)}<span>{c[2]}</span></a>' for c in CATEGORIES)}</div></div>
 </header>
 <main>
@@ -118,7 +129,7 @@ def page(path, title, desc, body, active=''):
 </main>
 <footer class="site-footer"><div class="wrap footer-grid">
   <div>
-    <img src="{up}assets/logo.svg" alt="AIM Enterprises" width="96" height="32">
+    <img src="{up}assets/logo.svg" alt="AIM Enterprises" width="170" height="44">
     <p class="partner-badge">{E(SITE['badge'])}</p>
     <p>{E(SITE['tagline'])}</p>
     <p class="small">GSTIN {E(SITE['gstin'])} · GeM Seller ID {E(SITE['gem_id'])}</p>
