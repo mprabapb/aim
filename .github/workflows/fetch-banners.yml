@@ -1,0 +1,32 @@
+name: Fetch Canva banners
+# Downloads exported Canva images into assets/banners/ (this repo's build machine can reach Canva; the editing sandbox can't).
+on:
+  workflow_dispatch:
+    inputs:
+      files:
+        description: 'One "name.png URL" pair per line'
+        required: true
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download
+        env:
+          FILES: ${{ inputs.files }}
+        run: |
+          mkdir -p assets/banners
+          printf '%s\n' "$FILES" | while read -r name url; do
+            [ -z "$name" ] && continue
+            case "$name" in *[!A-Za-z0-9._-]*) echo "bad name $name"; exit 1;; esac
+            curl -fsSL -o "assets/banners/$name" "$url"
+            file "assets/banners/$name"
+          done
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/banners
+          git diff --cached --quiet || git commit -m "Add Canva banners" && git push
