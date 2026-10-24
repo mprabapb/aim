@@ -4,7 +4,7 @@
 Run from the repo root:  python3 tools/fetch_images.py
 Skips models that already have a photo. Uses the page's og:image (Canon's main product shot).
 """
-import csv, os, re, sys, time, urllib.request
+import csv, os, re, sys, time, urllib.parse, urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build import slugify  # noqa: E402
@@ -15,6 +15,7 @@ UA = {'User-Agent': 'Mozilla/5.0 (AIM Enterprises catalogue image sync)'}
 
 
 def get(url):
+    url = urllib.parse.quote(url, safe=':/%?=&#')  # Canon file names can contain spaces or brackets
     req = urllib.request.Request(url, headers=UA)
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.read()
