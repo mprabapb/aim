@@ -95,7 +95,7 @@ def page(path, title, desc, body, active=''):
 <meta property="og:description" content="{E(desc)}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Roboto:wght@300;400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@400;500&display=swap">
 <link rel="stylesheet" href="{up}assets/style.css">
 <link rel="icon" href="{up}assets/favicon.svg" type="image/svg+xml">
 <script type="application/ld+json">{json.dumps(ld)}</script>
@@ -220,7 +220,7 @@ def build():
     hero_slides = [p for p in featured if p['slug'] in PHOTOS][:5]
     slides_html = ''.join(
         f'<figure class="slide{" is-on" if i == 0 else ""}"><div class="slide-stage">{picture(p, "", lazy=False)}</div>'
-        f'<figcaption><span class="scene">Scene {i + 1:02d}</span><span class="slide-model">Canon {E(p["model"])}</span>'
+        f'<figcaption><span class="slide-model">Canon {E(p["model"])}</span>'
         f'<span class="slide-cat">{E(p["cat_label"])}</span></figcaption></figure>'
         for i, p in enumerate(hero_slides))
     tiles = ''.join(f'''<a class="tile" href="products/index.html#{c[0]}">{cat_picture(c[0], '')}<span class="tile-name">{c[2]}</span><span class="tile-count">{len(by_cat[c[0]])} models</span><span class="tile-cta">View Products</span></a>'''
@@ -228,13 +228,12 @@ def build():
     home = f'''
 <section class="cine-hero" aria-label="Featured Canon products">
   <div class="slides">{slides_html}</div>
-  <div class="grain" aria-hidden="true"></div>
   <div class="wrap cine-copy">
     <p class="eyebrow">{E(SITE['badge'])}</p>
-    <h1>Every page.<br>Every print.<br><span>Perfectly in frame.</span></h1>
+    <h1>Canon printing, copying and scanning for the Islands</h1>
     <p class="lede">Canon copiers, printers and scanners for the Andaman &amp; Nicobar Islands, with sales, installation and on-site service from Sri Vijaya Puram.</p>
     <div class="hero-actions">
-      <a class="btn" href="products/index.html">Explore the Range</a>
+      <a class="btn" href="products/index.html">Discover More</a>
       <a class="btn btn-ghost" href="contact.html#quote">Get a Quotation</a>
     </div>
   </div>
