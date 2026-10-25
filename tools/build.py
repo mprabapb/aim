@@ -396,6 +396,7 @@ def build():
         <li>Lenovo and Wipro desktop and laptop service support</li>
         <li>Network printing, scan-to-email and scan-to-folder set-up</li>
       </ul>
+      <p>Out of warranty? See Canon India's <a href="{SITE['labour_url']}" target="_blank" rel="noopener">service labour charges</a> before you book.</p>
       <h2>Register Your Canon Product</h2>
       <p>Register your new Canon machine with Canon India to activate warranty support and get service updates.</p>
       <p><a class="btn" href="{SITE['register_url']}" target="_blank" rel="noopener">Register on Canon India</a></p>

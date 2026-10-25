@@ -64,9 +64,15 @@
       "url": "https://in.canon/en/support/faq?searchType=topic"
     },
     {
+      "title": "Service Labour Charges",
+      "text": "Canon's published labour charges for out-of-warranty repairs.",
+      "url": "https://in.canon/en/consumer/web/labour-charges"
+    },
+    {
       "title": "Product Registration",
       "text": "Register your new Canon product to activate warranty support.",
       "url": "https://shop.in.canon/productregistration/"
     }
-  ]
+  ],
+  "labour_url": "https://in.canon/en/consumer/web/labour-charges"
 }
