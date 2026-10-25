@@ -257,7 +257,7 @@ def main():
         idx = max((i for i, o in enumerate(out) if o['Category'] == r['Category']), default=len(out) - 1)
         out.insert(idx + 1, r)
     with open(CSV_PATH, 'w', encoding='utf-8', newline='') as f:
-        w = csv.DictWriter(f, fieldnames=fields)
+        w = csv.DictWriter(f, fieldnames=fields, lineterminator='\n')
         w.writeheader()
         w.writerows(out)
 
