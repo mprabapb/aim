@@ -161,6 +161,7 @@ def page(path, title, desc, body, active=''):
     <a href="mailto:{SITE['email']}">{E(SITE['email'])}</a>
   </div>
 </div>
+<div class="wrap social-row"><span>Follow Canon India</span>{''.join(f'<a href="{E(l["url"])}" target="_blank" rel="noopener">{E(l["name"])}</a>' for l in SITE['canon_social'])}</div>
 <div class="wrap legal">© {date.today().year} AIM Enterprises, Sri Vijaya Puram. Product photos © Canon India. Canon, imageRUNNER, imageFORCE, imageCLASS, PIXMA, MAXIFY, imagePROGRAF and imageFORMULA are trademarks of Canon Inc. MRPs are as published by Canon India and may change without notice.</div>
 </footer>
 <a class="wa-float" href="{wa_link('Hello AIM Enterprises, I have an enquiry.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">{WA_ICON}</a>
@@ -437,6 +438,11 @@ def build():
     <div class="support-grid"><a class="support-card" href="{SITE['canon_listing_url']}" target="_blank" rel="noopener"><b>Canon Authorisation</b><span>Our official Canon Authorised Dealer listing on Canon India.</span><em>Verify on Canon India</em></a>{''.join(f'<a class="support-card" href="{E(l["url"])}" target="_blank" rel="noopener"><b>{E(l["title"])}</b><span>{E(l["text"])}</span><em>Open on Canon India</em></a>' for l in SITE['support_links'])}
       <a class="support-card" href="service.html#book"><b>Book a Service Visit</b><span>On-site repair and maintenance by AIM engineers in Sri Vijaya Puram.</span><em>Book with AIM</em></a>
     </div>
+  </section>
+  <section class="section">
+    <h2>Follow Canon India</h2>
+    <p>Product launches, tips and offers from Canon India's official social media accounts.</p>
+    <div class="social-row social-light">{''.join(f'<a href="{E(l["url"])}" target="_blank" rel="noopener">{E(l["name"])}</a>' for l in SITE['canon_social'])}</div>
   </section>
   <section class="section callout">
     <h2>Talk to Our Service Team</h2>
