@@ -1,0 +1,45 @@
+# Builds the Canon consumables price list (data/consumables.csv) from Canon India and republishes the pages.
+# Runs when the consumables script changes, or on demand from the Actions tab.
+# The daily "Sync products with Canon India" workflow refreshes it as well.
+name: Update consumables price list
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/aim-website]
+    paths:
+      - tools/sync_consumables.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: canon-sync
+  cancel-in-progress: false
+
+jobs:
+  consumables:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read consumables from Canon India
+        run: python3 tools/sync_consumables.py
+      - name: Rebuild pages
+        run: python3 tools/build.py
+      - name: Publish changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data/consumables.csv products ./*.html sitemap.xml
+          git diff --cached --quiet && { echo "No changes."; exit 0; }
+          git commit -q -m "Update Canon consumables price list from Canon India"
+          for i in 1 2 3; do
+            git pull -q --rebase origin "${GITHUB_REF_NAME}" || { git rebase --abort; exit 1; }
+            git push -q origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep 10
+          done
+          exit 1

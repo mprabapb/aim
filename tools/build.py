@@ -63,16 +63,48 @@ def load_products():
     return rows
 
 
+# Consumable groups in display order: (slug, name in data/consumables.csv, chip label)
+CONSUMABLE_GROUPS = [
+    ('toner', 'Toner Cartridges', 'Toner'),
+    ('drum', 'Drums', 'Drums'),
+    ('bottle', 'Ink Bottles', 'Ink Bottles'),
+    ('cartridge', 'Ink Cartridges', 'Ink Cartridges'),
+    ('head', 'Print Heads', 'Print Heads'),
+    ('maint', 'Maintenance Cartridges', 'Maintenance'),
+    ('paper', 'Photo Paper', 'Paper & Ribbons'),
+]
+
+
+def load_consumables():
+    path = os.path.join(ROOT, 'data', 'consumables.csv')
+    if not os.path.exists(path):
+        return []
+    slug_of = {g[1]: g[0] for g in CONSUMABLE_GROUPS}
+    rows = []
+    with open(path, encoding='utf-8') as f:
+        for r in csv.DictReader(f):
+            price = str(r['MRP (Rs, incl. GST)']).strip()
+            rows.append({
+                'name': r['Consumable'],
+                'group': slug_of.get(r['Group'], 'cartridge'),
+                'type': r['Type'],
+                'pages': r['Page Yield'],
+                'mrp': int(price) if price.isdigit() else None,
+                'fits': [m.strip() for m in r['Fits Printers'].split(';') if m.strip()],
+            })
+    return rows
+
+
 def wa_link(text):
     from urllib.parse import quote
     return f"https://wa.me/{SITE['whatsapp']}?text={quote(text)}"
 
 
 # Two-row header like Canon India: segments in the grey band, everyday links in the white row below
-SEGMENTS = [('products/index.html', 'Printers & Scanners'), ('service.html', 'Service & AMC'), ('government.html', 'Government (GeM)')]
-NAV = [('products/index.html', 'Products'), ('contact.html', 'Where to Buy'), ('service.html', 'Service Network'),
+SEGMENTS = [('products/index.html', 'Printers & Scanners'), ('consumables.html', 'Consumables'), ('service.html', 'Service & AMC'), ('government.html', 'Government (GeM)')]
+NAV = [('products/index.html', 'Products'), ('consumables.html', 'Consumables'), ('contact.html', 'Where to Buy'), ('service.html', 'Service Network'),
        ('service.html#book', 'Book a Service'), ('government.html', 'GeM Orders'), ('about.html', 'About Us'), ('contact.html', 'Contact'), ('support.html', 'Support')]
-SEGMENT_FOR = {'Service & AMC': 'Service & AMC', 'Support': 'Service & AMC', 'Government Buyers': 'Government (GeM)'}
+SEGMENT_FOR = {'Consumables': 'Consumables', 'Service & AMC': 'Service & AMC', 'Support': 'Service & AMC', 'Government Buyers': 'Government (GeM)'}
 
 
 # Brand icon paths (Simple Icons, CC0) for the Canon India social links
@@ -90,8 +122,8 @@ def page(path, title, desc, body, active=''):
     up = '../' * depth
     seg_on = SEGMENT_FOR.get(active, 'Printers & Scanners')
     segments = ''.join(f'<a href="{up}{href}"{" class=\"on\"" if label == seg_on else ""}>{E(label)}</a>' for href, label in SEGMENTS)
-    # Support sits in the right-hand links on desktop, so the main-row copy only shows in the phone menu
-    nav = ''.join(f'<a href="{up}{href}"{" class=\"nav-mobile\"" if href == "support.html" else ""}>{E(label)}</a>' for href, label in NAV)
+    # Support and Consumables sit in the bars above on desktop, so their main-row copies only show in the phone menu
+    nav = ''.join(f'<a href="{up}{href}"{" class=\"nav-mobile\"" if href in ("support.html", "consumables.html") else ""}>{E(label)}</a>' for href, label in NAV)
     ld = {
         '@context': 'https://schema.org', '@type': 'LocalBusiness', 'name': SITE['name'],
         'description': SITE['tagline'], 'telephone': [SITE['phone_display']] + [l['display'] for l in SITE['landlines']], 'email': SITE['email'],
@@ -157,7 +189,7 @@ def page(path, title, desc, body, active=''):
   </div>
   <div>
     <h3>Company</h3>
-    <a href="{up}service.html">Service &amp; AMC</a><a href="{up}government.html">Government Buyers</a><a href="{up}about.html">About Us</a><a href="{up}contact.html">Contact</a>
+    <a href="{up}consumables.html">Consumables Price List</a><a href="{up}service.html">Service &amp; AMC</a><a href="{up}government.html">Government Buyers</a><a href="{up}about.html">About Us</a><a href="{up}contact.html">Contact</a>
   </div>
   <div>
     <h3>Support</h3>
@@ -242,8 +274,36 @@ def card(p, up):
 </article>'''
 
 
+def ccard(c, up):
+    fits = ', '.join(c['fits'][:3]) + (f" and {len(c['fits']) - 3} more" if len(c['fits']) > 3 else '')
+    yld = f'<p class="cyield">Yield {rupees(int(c["pages"]))} pages</p>' if c['pages'].isdigit() else ''
+    return f'''<article class="card ccard" data-cat="{c['group']}" data-name="{E((c['name'] + ' ' + ' '.join(c['fits'])).lower())}">
+  <p class="card-cat">{E(c['type'] or 'Consumable')}</p>
+  <h3>Canon {E(c['name'])}</h3>
+  {yld}
+  <p class="cfits">For {E(fits)}</p>
+  {price_html(c)}
+  <div class="card-actions">
+    <a class="btn btn-block" href="{up}contact.html?model={E(c['name'])}#quote">Enquire Now</a>
+    <a class="text-link" href="{wa_link(f"Hello AIM Enterprises, please share your best price and availability for Canon {c['name']}.")}" target="_blank" rel="noopener">Ask on WhatsApp ›</a>
+  </div>
+</article>'''
+
+
+def consumables_table(items, up):
+    rows = ''.join(f'''<tr><th scope="row">{E(c['name'])}</th><td class="num">{'Rs. ' + rupees(c['mrp']) + '.00' if c['mrp'] else 'On request'}</td>'''
+                   f'''<td>{rupees(int(c['pages'])) + ' pages' if c['pages'].isdigit() else '-'}</td><td>{E(c['type'])}</td>'''
+                   f'''<td><a href="{wa_link(f"Hello AIM Enterprises, please share your best price for Canon {c['name']}.")}" target="_blank" rel="noopener">Ask Price</a></td></tr>''' for c in items)
+    return f'''<div class="ctable-wrap"><table class="ctable"><thead><tr><th>Consumable</th><th class="num">MRP (incl. GST)</th><th>Page Yield</th><th>Type</th><th></th></tr></thead><tbody>{rows}</tbody></table></div>'''
+
+
 def build():
     products = load_products()
+    consumables = load_consumables()
+    fits_map = {}
+    for c in consumables:
+        for m in c['fits']:
+            fits_map.setdefault(m, []).append(c)
     by_cat = {c[0]: [p for p in products if p['cat'] == c[0]] for c in CATEGORIES}
     for c in CATEGORIES:
         CAT_PHOTO[c[0]] = next((p for p in by_cat[c[0]] if p['slug'] in PHOTOS), None)
@@ -362,7 +422,7 @@ def build():
         body = f'''
 <div class="wrap">
   <nav class="crumbs"><a href="../index.html">Home</a> / <a href="index.html">Products</a> / <a href="index.html#{p['cat']}">{E(p['cat_label'])}</a> / {E(p['model'])}</nav>
-  <nav class="tabbar"><a href="#overview" class="on">Overview</a><a href="#features">Key Features</a><a href="{E(p['canon_url'])}" target="_blank" rel="noopener">Specifications</a><a href="../contact.html?model={E(p['model'])}#quote">Where to Buy</a><a href="../support.html">Get Support</a></nav>
+  <nav class="tabbar"><a href="#overview" class="on">Overview</a><a href="#features">Key Features</a><a href="{E(p['canon_url'])}" target="_blank" rel="noopener">Specifications</a><a href="../contact.html?model={E(p['model'])}#quote">Where to Buy</a>{'<a href="#consumables">Consumables</a>' if fits_map.get(p['model']) else ''}<a href="../support.html">Get Support</a></nav>
   <section class="product" id="overview">
     <div class="product-pic">{picture(p, '../', lazy=False)}</div>
     <div class="product-info">
@@ -384,6 +444,7 @@ def build():
       <p class="small">Bought this model? <a href="{SITE['register_url']}" target="_blank" rel="noopener">Register your Canon product</a> for warranty support. Drivers, manuals and FAQ are on our <a href="../support.html">Support page</a>.</p>
     </div>
   </section>
+  {'<section class="section reveal" id="consumables"><h2>Genuine Consumables</h2><p>Canon India MRPs, inclusive of all taxes. We keep genuine Canon supplies in stock in Sri Vijaya Puram. <a href="../consumables.html">Full consumables price list</a></p>' + consumables_table(fits_map[p['model']], '../') + '</section>' if fits_map.get(p['model']) else ''}
   {'<section class="section reveal"><h2>Similar Models</h2><div class="grid">' + ''.join(card(r, '../') for r in related) + '</div></section>' if related else ''}
 </div>
 '''
@@ -391,6 +452,37 @@ def build():
         page(f"products/{p['slug']}.html", f"Canon {p['model']} | Price in Port Blair | AIM Enterprises",
              f"Canon {p['model']}: {p['desc']} {price_txt}Buy from AIM Enterprises, Sri Vijaya Puram."[:300],
              body, 'Products')
+
+    # ---------- Consumables ----------
+    by_group = {g[0]: [c for c in consumables if c['group'] == g[0]] for g in CONSUMABLE_GROUPS}
+    for g in by_group.values():
+        g.sort(key=lambda c: c['name'].lower())
+    cchips = '<button class="chip" data-filter="all" aria-pressed="true">All</button>' + ''.join(
+        f'<button class="chip" data-filter="{g[0]}" aria-pressed="false">{g[2]} <span>{len(by_group[g[0]])}</span></button>'
+        for g in CONSUMABLE_GROUPS if by_group[g[0]])
+    csections = ''.join(f'''<section class="cat-block" id="{g[0]}" data-cat="{g[0]}">
+  <h2>{E(g[1])}</h2>
+  <div class="grid">{''.join(ccard(c, '') for c in by_group[g[0]])}</div>
+</section>''' for g in CONSUMABLE_GROUPS if by_group[g[0]])
+    cpage = f'''
+<section class="page-head"><div class="wrap">
+  <nav class="crumbs"><a href="index.html">Home</a> / Consumables</nav>
+  <h1>Canon Consumables Price List</h1>
+  <p>{len(consumables)} genuine Canon toners, ink bottles, ink cartridges, print heads and papers. Prices are Canon India MRPs including GST. Search by your printer model to find the right supply, and ask us for the best price.</p>
+</div></section>
+<div class="wrap catalogue">
+  <div class="filters">
+    <label class="search"><span class="sr">Search Consumables</span><input id="q" type="search" placeholder="Search a printer or supply, e.g. G3010, GI-71 or 925"></label>
+    <div class="chips">{cchips}</div>
+  </div>
+  {csections}
+  <p class="empty" hidden>No consumable matches that search. <a href="contact.html#quote">Ask Us</a> and we will source it for you.</p>
+  <p class="small">Copier toners (NPG series) and drums for imageRUNNER and imageFORCE machines are supplied on request. Call us with your machine model.</p>
+</div>
+'''
+    page('consumables.html', 'Canon Ink, Toner & Consumables Price List | AIM Enterprises',
+         'Genuine Canon ink bottles, toner cartridges, print heads and photo paper with Canon India MRP. In stock at AIM Enterprises, Sri Vijaya Puram (Port Blair).',
+         cpage, 'Consumables')
 
     # ---------- Service ----------
     service = f'''
@@ -603,14 +695,14 @@ def build():
 
     # ---------- Sitemap / robots / data for search ----------
     base = SITE['url'].rstrip('/')
-    urls = ['', 'products/', 'service.html', 'government.html', 'about.html', 'contact.html', 'support.html'] + [f"products/{p['slug']}.html" for p in products]
+    urls = ['', 'products/', 'consumables.html', 'service.html', 'government.html', 'about.html', 'contact.html', 'support.html'] + [f"products/{p['slug']}.html" for p in products]
     with open(os.path.join(ROOT, 'sitemap.xml'), 'w', encoding='utf-8') as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n')
         f.writelines(f'  <url><loc>{base}/{u}</loc></url>\n' for u in urls)
         f.write('</urlset>\n')
     with open(os.path.join(ROOT, 'robots.txt'), 'w') as f:
         f.write(f'User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n')
-    print(f'Built {len(products)} product pages + 7 site pages.')
+    print(f'Built {len(products)} product pages + 8 site pages ({len(consumables)} consumables).')
 
 
 if __name__ == '__main__':
