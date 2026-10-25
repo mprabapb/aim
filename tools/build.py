@@ -3,6 +3,8 @@
 
 Run from the repo root:  python3 tools/build.py
 Edit the CSV (prices, descriptions) or site.json (contact details), then run it again.
+MRPs in data/price_list.csv (from Canon's dealer price lists) win over the CSVs the daily
+Canon India sync writes, and its consumables not on Canon India's website are added.
 """
 import csv, hashlib, html, json, os, re
 from datetime import date
@@ -43,13 +45,37 @@ def rupees(n):
     return f'{head},{tail}'
 
 
+def norm(s):
+    return re.sub(r'[^a-z0-9]', '', s.lower())
+
+
+def load_price_list():
+    """{kind: {normalised name: row}} from data/price_list.csv (MRPs from Canon's price lists)."""
+    out = {'product': {}, 'consumable': {}}
+    path = os.path.join(ROOT, 'data', 'price_list.csv')
+    if os.path.exists(path):
+        with open(path, encoding='utf-8') as f:
+            for r in csv.DictReader(f):
+                if r['MRP (Rs, incl. GST)'].strip().isdigit():
+                    out[r['Kind'].strip()][norm(r['Name'])] = r
+    return out
+
+
+PRICE_LIST = load_price_list()
+
+
 def load_products():
     rows = []
     with open(os.path.join(ROOT, 'data', 'products.csv'), encoding='utf-8') as f:
         for r in csv.DictReader(f):
             cat = CAT_BY_NAME[r['Category']]
             price = r['MRP (Rs, incl. GST)'].strip()
+            pl = PRICE_LIST['product'].get(norm(r['Model']))
+            if pl:
+                price = pl['MRP (Rs, incl. GST)'].strip()
             rows.append({
+                'from': bool(pl and pl['From'].strip()),
+                'note': pl['Note'].strip() if pl else '',
                 'model': r['Model'],
                 'slug': slugify(r['Model']),
                 'cat': cat[0],
@@ -73,6 +99,7 @@ CONSUMABLE_GROUPS = [
     ('head', 'Print Heads', 'Print Heads'),
     ('maint', 'Maintenance Cartridges', 'Maintenance'),
     ('paper', 'Photo Paper', 'Paper & Ribbons'),
+    ('scanner', 'Scanner Parts', 'Scanner Rollers'),
 ]
 
 
@@ -81,18 +108,26 @@ def load_consumables():
     if not os.path.exists(path):
         return []
     slug_of = {g[1]: g[0] for g in CONSUMABLE_GROUPS}
-    rows = []
+    extra = dict(PRICE_LIST['consumable'])
     with open(path, encoding='utf-8') as f:
-        for r in csv.DictReader(f):
-            price = str(r['MRP (Rs, incl. GST)']).strip()
-            rows.append({
-                'name': r['Consumable'],
-                'group': slug_of.get(r['Group'], 'cartridge'),
-                'type': r['Type'],
-                'pages': r['Page Yield'],
-                'mrp': int(price) if price.isdigit() else None,
-                'fits': [m.strip() for m in r['Fits Printers'].split(';') if m.strip()],
-            })
+        canon = list(csv.DictReader(f))
+    for r in canon:  # price-list MRP wins over Canon India's
+        pl = extra.pop(norm(r['Consumable']), None)
+        if pl:
+            r['MRP (Rs, incl. GST)'] = pl['MRP (Rs, incl. GST)']
+    added = [{'Consumable': v['Name'], 'Group': v['Group'], 'Type': v['Type'], 'Page Yield': '',
+              'MRP (Rs, incl. GST)': v['MRP (Rs, incl. GST)'], 'Fits Printers': v['Fits Printers']} for v in extra.values()]
+    rows = []
+    for r in canon + added:
+        price = str(r['MRP (Rs, incl. GST)']).strip()
+        rows.append({
+            'name': r['Consumable'],
+            'group': slug_of.get(r['Group'], 'cartridge'),
+            'type': r['Type'],
+            'pages': r['Page Yield'],
+            'mrp': int(price) if price.isdigit() else None,
+            'fits': [m.strip() for m in r['Fits Printers'].split(';') if m.strip()],
+        })
     return rows
 
 
@@ -257,9 +292,10 @@ def cat_picture(cat, up):
     return picture(p, up) if p else icon(cat)
 
 
-def price_html(p):
+def price_html(p, note=False):
     if p['mrp']:
-        return f'<p class="price">MRP Rs. {rupees(p["mrp"])}.00/U<span class="price-note">inclusive of all taxes</span></p>'
+        extra = f'<span class="price-note">{E(p["note"])}</span>' if note and p.get('note') else ''
+        return f'<p class="price">MRP {"from " if p.get("from") else ""}Rs. {rupees(p["mrp"])}.00/U<span class="price-note">inclusive of all taxes</span>{extra}</p>'
     return '<p class="price price-ask">Price on request</p>'
 
 
@@ -430,7 +466,7 @@ def build():
       <p class="card-cat">Canon · {E(cat[1])}</p>
       <h1>Canon {E(p['model'])}</h1>
       <p class="lede">{E(p['desc'])}</p>
-      {price_html(p)}
+      {price_html(p, note=True)}
       <div class="hero-actions">
         <a class="btn" href="../contact.html?model={E(p['model'])}#quote">Enquire Now</a>
         <a class="btn btn-wa" href="{wa_link(f"Hello AIM Enterprises, please share your best price and availability for Canon {p['model']}.")}" target="_blank" rel="noopener">Ask on WhatsApp</a>
@@ -469,7 +505,7 @@ def build():
 <section class="page-head"><div class="wrap">
   <nav class="crumbs"><a href="index.html">Home</a> / Consumables</nav>
   <h1>Canon Consumables Price List</h1>
-  <p>{len(consumables)} genuine Canon toners, ink bottles, ink cartridges, plotter inks, print heads and maintenance cartridges. Prices are Canon India MRPs including GST. Search by your printer model to find the right supply, and ask us for the best price.</p>
+  <p>{len(consumables)} genuine Canon toners, copier drums, ink bottles, ink cartridges, plotter inks, print heads, maintenance cartridges and scanner rollers. Prices are Canon India MRPs including GST. Search by your printer model to find the right supply, and ask us for the best price.</p>
 </div></section>
 <div class="wrap catalogue">
   <div class="filters">
@@ -478,7 +514,7 @@ def build():
   </div>
   {csections}
   <p class="empty" hidden>No consumable matches that search. <a href="contact.html#quote">Ask Us</a> and we will source it for you.</p>
-  <p class="small">Copier toners (NPG series) and drums for imageRUNNER and imageFORCE machines are supplied on request. Call us with your machine model.</p>
+  <p class="small">Copier toners (NPG and T series) and drums for imageRUNNER and imageFORCE machines, and scanner roller kits, are listed at Canon's MRP. Call us with your machine model if you cannot find yours.</p>
 </div>
 '''
     page('consumables.html', 'Canon Ink, Toner & Consumables Price List | AIM Enterprises',
