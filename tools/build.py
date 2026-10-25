@@ -117,7 +117,7 @@ def page(path, title, desc, body, active=''):
 <div class="menubar"><div class="wrap">
   <nav id="nav" aria-label="Main">{nav}</nav>
   <div class="menu-right">
-    <a href="{up}service.html">AMC</a><a href="{up}contact.html">Support</a>
+    <a href="{up}service.html">AMC</a><a href="{up}contact.html">Support</a><a href="{SITE['register_url']}" target="_blank" rel="noopener">Register Product</a>
     <span class="bar-divider" aria-hidden="true"></span>
     <a class="quote-link" href="{up}contact.html#quote"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M2 3h3l2.6 12.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H6.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.4" fill="currentColor"/><circle cx="17.5" cy="20" r="1.4" fill="currentColor"/></svg>Get a Quote</a>
   </div>
@@ -140,7 +140,7 @@ def page(path, title, desc, body, active=''):
   </div>
   <div>
     <h3>Company</h3>
-    <a href="{up}service.html">Service &amp; AMC</a><a href="{up}government.html">Government Buyers</a><a href="{up}about.html">About Us</a><a href="{up}contact.html">Contact</a>
+    <a href="{up}service.html">Service &amp; AMC</a><a href="{up}government.html">Government Buyers</a><a href="{up}about.html">About Us</a><a href="{up}contact.html">Contact</a><a href="{SITE['register_url']}" target="_blank" rel="noopener">Register Your Canon Product</a>
   </div>
   <div>
     <h3>Visit Us</h3>
@@ -359,6 +359,7 @@ def build():
         <li>Available for GeM and tender orders</li>
       </ul>
       <p class="small">Full specifications and brochure: <a href="{E(p['canon_url'])}" target="_blank" rel="noopener">Canon India product page</a></p>
+      <p class="small">Bought this model? <a href="{SITE['register_url']}" target="_blank" rel="noopener">Register your Canon product</a> for warranty support.</p>
     </div>
   </section>
   {'<section class="section reveal"><h2>Similar Models</h2><div class="grid">' + ''.join(card(r, '../') for r in related) + '</div></section>' if related else ''}
@@ -390,6 +391,9 @@ def build():
         <li>Lenovo and Wipro desktop and laptop service support</li>
         <li>Network printing, scan-to-email and scan-to-folder set-up</li>
       </ul>
+      <h2>Register Your Canon Product</h2>
+      <p>Register your new Canon machine with Canon India to activate warranty support and get service updates.</p>
+      <p><a class="btn" href="{SITE['register_url']}" target="_blank" rel="noopener">Register on Canon India</a></p>
     </div>
     <form class="form" id="book" data-kind="service">
       <h2>Book a Service Visit</h2>
