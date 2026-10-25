@@ -240,6 +240,7 @@ address { font-style: normal; }
 .site-footer p { line-height: 20px; }
 .site-footer img { filter: brightness(0) invert(1); }
 .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr 1.2fr; gap: 32px; padding-bottom: 36px; }
+.verify-link { color: var(--white); font-size: 14px; text-decoration: underline; }
 .partner-badge { display: inline-block; border: 1px solid var(--grey); color: var(--white); font-size: 13px; border-radius: var(--radius); padding: 8px 12px; margin: 14px 0; }
 .legal { border-top: 1px solid var(--dark); padding-block: 18px 90px; font-size: 12px; color: var(--grey); }
 

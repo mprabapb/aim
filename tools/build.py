@@ -132,6 +132,7 @@ def page(path, title, desc, body, active=''):
   <div>
     <img src="{up}assets/logo.svg" alt="AIM Enterprises" width="170" height="44">
     <p class="partner-badge">{E(SITE['badge'])}</p>
+    <p><a class="verify-link" href="{SITE['canon_listing_url']}" target="_blank" rel="noopener">Verify on Canon India: Authorised Dealer Listing</a></p>
     <p>{E(SITE['tagline'])}</p>
     <p class="small">GSTIN {E(SITE['gstin'])} · PAN {E(SITE['pan'])} · GeM Seller ID {E(SITE['gem_id'])}</p>
   </div>
@@ -145,7 +146,7 @@ def page(path, title, desc, body, active=''):
   </div>
   <div>
     <h3>Support</h3>
-    <a href="{up}support.html">Support Home</a>{''.join(f'<a href="{E(l["url"])}" target="_blank" rel="noopener">{E(l["title"])}</a>' for l in SITE['support_links'])}
+    <a href="{up}support.html">Support Home</a><a href="{SITE['canon_listing_url']}" target="_blank" rel="noopener">Canon Authorised Dealer Certification</a>{''.join(f'<a href="{E(l["url"])}" target="_blank" rel="noopener">{E(l["title"])}</a>' for l in SITE['support_links'])}
   </div>
   <div>
     <h3>Visit Us</h3>
@@ -428,7 +429,7 @@ def build():
 <div class="wrap">
   <section class="section">
     <h2>Canon Online Support</h2>
-    <div class="support-grid">{''.join(f'<a class="support-card" href="{E(l["url"])}" target="_blank" rel="noopener"><b>{E(l["title"])}</b><span>{E(l["text"])}</span><em>Open on Canon India</em></a>' for l in SITE['support_links'])}
+    <div class="support-grid"><a class="support-card" href="{SITE['canon_listing_url']}" target="_blank" rel="noopener"><b>Canon Authorisation</b><span>Our official Canon Authorised Dealer listing on Canon India.</span><em>Verify on Canon India</em></a>{''.join(f'<a class="support-card" href="{E(l["url"])}" target="_blank" rel="noopener"><b>{E(l["title"])}</b><span>{E(l["text"])}</span><em>Open on Canon India</em></a>' for l in SITE['support_links'])}
       <a class="support-card" href="service.html#book"><b>Book a Service Visit</b><span>On-site repair and maintenance by AIM engineers in Sri Vijaya Puram.</span><em>Book with AIM</em></a>
     </div>
   </section>
@@ -501,6 +502,8 @@ def build():
         <li>Registered GeM seller</li>
         <li>Shop on MG Road, Middle Point</li>
       </ul>
+      <p><a class="btn" href="{SITE['canon_listing_url']}" target="_blank" rel="noopener">Verify Our Canon Authorisation</a></p>
+      <p class="small">Opens AIM Enterprises' official listing on Canon India's authorised dealer site.</p>
     </div>
   </section>
 </div>
