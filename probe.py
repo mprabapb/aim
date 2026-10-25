@@ -1,19 +1,23 @@
-import os, urllib.request, urllib.error
+import os, re, json, urllib.request, urllib.error
 os.makedirs('out', exist_ok=True)
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36'
-def raw(url, name, hdr={}):
+def get(url):
     try:
-        r = urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': UA, **hdr}), timeout=30)
-        open('out/'+name,'wb').write(f'{r.status} {r.geturl()}\n'.encode()+r.read())
-    except urllib.error.HTTPError as e:
-        open('out/'+name,'wb').write(f'HTTP {e.code} {e.geturl()}\n'.encode()+e.read()[:3000])
+        return urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': UA}), timeout=30).read().decode('utf-8','replace')
     except Exception as e:
-        open('out/'+name,'w').write('ERR '+str(e))
-B='https://in.canon/en/'
-raw(B+'consumer/products/search/json?category=printing&subCategory=inkjet-printers&max=30&page=1','inkjet1.json')
-raw(B+'consumer/products/search/json?category=printing&subCategory=inkjet-printers&max=30&page=2','inkjet2.json')
-raw(B+'consumer/products/search/json?category=printing&subCategory=inkjet-printers&max=100&page=1','inkjet100.json')
-raw(B+'business/products/search/json?category=printing&subCategory=multi-functional-devices&max=30&page=1','mfd1.json')
-raw(B+'consumer/products/search/json?category=printing&subCategory=inkjet-printers&max=30&page=1','inkjet1x.json',{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'})
-raw(B+'consumer/pixma-nonexistent-9999/main/product','missing.html')
-raw(B+'consumer/pixma-e3370/main/product','e3370-mainvariant.html')
+        return 'ERR '+str(e)
+B='https://in.canon/en/consumer/products/search/json?category=printing&subCategory=inkjet-printers'
+out=[]
+for q in ['&max=30&page=2','&page=2','&max=12&page=2','&max=30&page=3','&offset=12','&start=12','&p=2','&max=30&page=2&ajax=true','&max=30&offset=12','&pageNumber=2','&max=30&page=1&sort=name']:
+    s=get(B+q)
+    try:
+        d=json.loads(s); out.append(f"{q}: n={len(d['results'])} more={d.get('hasMore')} first={d['results'][0]['name'] if d['results'] else None}")
+    except Exception: out.append(f"{q}: {s[:200]}")
+page=get('https://in.canon/en/consumer/products/search?category=printing&subCategory=inkjet-printers')
+js=re.findall(r'src="(/assets/[^"]+\.js)"',page)
+out.append('JS: '+' '.join(js))
+for j in js:
+    s=get('https://in.canon'+j)
+    for m in re.finditer(r'load-more|loadMore|hasMore',s):
+        out.append(j+' :: '+s[max(0,m.start()-800):m.start()+800].replace('\n',' '))
+open('out/report.txt','w').write('\n\n'.join(out))
