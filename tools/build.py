@@ -461,7 +461,6 @@ def build():
     <div class="callout">
       <h2>At a Glance</h2>
       <ul class="checks">
-        <li>Proprietor: {E(SITE['proprietor'])}</li>
         <li>Canon sales, service and consumables</li>
         <li>Registered GeM seller</li>
         <li>Shop on MG Road, Middle Point</li>
