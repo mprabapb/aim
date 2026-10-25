@@ -41,5 +41,32 @@
     "PIXMA G4780",
     "imageFORMULA DR-C240"
   ],
-  "register_url": "https://shop.in.canon/productregistration/"
+  "register_url": "https://shop.in.canon/productregistration/",
+  "support_links": [
+    {
+      "title": "Drivers, Software & Firmware",
+      "text": "Download printer and scanner drivers, utilities and the latest firmware.",
+      "url": "https://in.canon/en/support/download"
+    },
+    {
+      "title": "Manuals",
+      "text": "User guides, set-up guides and reference manuals for your model.",
+      "url": "https://in.canon/en/support/manual"
+    },
+    {
+      "title": "Product Specification",
+      "text": "Full technical specifications for Canon products.",
+      "url": "https://in.canon/en/support/specification"
+    },
+    {
+      "title": "FAQ",
+      "text": "Answers to common questions, error codes and troubleshooting by topic.",
+      "url": "https://in.canon/en/support/faq?searchType=topic"
+    },
+    {
+      "title": "Product Registration",
+      "text": "Register your new Canon product to activate warranty support.",
+      "url": "https://shop.in.canon/productregistration/"
+    }
+  ]
 }

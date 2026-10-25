@@ -68,8 +68,8 @@ def wa_link(text):
 # Two-row header like Canon India: segments in the grey band, everyday links in the white row below
 SEGMENTS = [('products/index.html', 'Printers & Scanners'), ('service.html', 'Service & AMC'), ('government.html', 'Government (GeM)')]
 NAV = [('products/index.html', 'Products'), ('contact.html', 'Where to Buy'), ('service.html', 'Service Network'),
-       ('service.html#book', 'Book a Service'), ('government.html', 'GeM Orders'), ('about.html', 'About Us'), ('contact.html', 'Contact')]
-SEGMENT_FOR = {'Service & AMC': 'Service & AMC', 'Government Buyers': 'Government (GeM)'}
+       ('service.html#book', 'Book a Service'), ('government.html', 'GeM Orders'), ('about.html', 'About Us'), ('contact.html', 'Contact'), ('support.html', 'Support')]
+SEGMENT_FOR = {'Service & AMC': 'Service & AMC', 'Support': 'Service & AMC', 'Government Buyers': 'Government (GeM)'}
 
 
 def page(path, title, desc, body, active=''):
@@ -77,7 +77,8 @@ def page(path, title, desc, body, active=''):
     up = '../' * depth
     seg_on = SEGMENT_FOR.get(active, 'Printers & Scanners')
     segments = ''.join(f'<a href="{up}{href}"{" class=\"on\"" if label == seg_on else ""}>{E(label)}</a>' for href, label in SEGMENTS)
-    nav = ''.join(f'<a href="{up}{href}">{E(label)}</a>' for href, label in NAV)
+    # Support sits in the right-hand links on desktop, so the main-row copy only shows in the phone menu
+    nav = ''.join(f'<a href="{up}{href}"{" class=\"nav-mobile\"" if href == "support.html" else ""}>{E(label)}</a>' for href, label in NAV)
     ld = {
         '@context': 'https://schema.org', '@type': 'LocalBusiness', 'name': SITE['name'],
         'description': SITE['tagline'], 'telephone': [SITE['phone_display']] + [l['display'] for l in SITE['landlines']], 'email': SITE['email'],
@@ -117,7 +118,7 @@ def page(path, title, desc, body, active=''):
 <div class="menubar"><div class="wrap">
   <nav id="nav" aria-label="Main">{nav}</nav>
   <div class="menu-right">
-    <a href="{up}service.html">AMC</a><a href="{up}contact.html">Support</a><a href="{SITE['register_url']}" target="_blank" rel="noopener">Register Product</a>
+    <a href="{up}service.html">AMC</a><a href="{up}support.html">Support</a><a href="{SITE['register_url']}" target="_blank" rel="noopener">Register Product</a>
     <span class="bar-divider" aria-hidden="true"></span>
     <a class="quote-link" href="{up}contact.html#quote"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M2 3h3l2.6 12.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H6.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.4" fill="currentColor"/><circle cx="17.5" cy="20" r="1.4" fill="currentColor"/></svg>Get a Quote</a>
   </div>
@@ -140,7 +141,11 @@ def page(path, title, desc, body, active=''):
   </div>
   <div>
     <h3>Company</h3>
-    <a href="{up}service.html">Service &amp; AMC</a><a href="{up}government.html">Government Buyers</a><a href="{up}about.html">About Us</a><a href="{up}contact.html">Contact</a><a href="{SITE['register_url']}" target="_blank" rel="noopener">Register Your Canon Product</a>
+    <a href="{up}service.html">Service &amp; AMC</a><a href="{up}government.html">Government Buyers</a><a href="{up}about.html">About Us</a><a href="{up}contact.html">Contact</a>
+  </div>
+  <div>
+    <h3>Support</h3>
+    <a href="{up}support.html">Support Home</a>{''.join(f'<a href="{E(l["url"])}" target="_blank" rel="noopener">{E(l["title"])}</a>' for l in SITE['support_links'])}
   </div>
   <div>
     <h3>Visit Us</h3>
@@ -340,7 +345,7 @@ def build():
         body = f'''
 <div class="wrap">
   <nav class="crumbs"><a href="../index.html">Home</a> / <a href="index.html">Products</a> / <a href="index.html#{p['cat']}">{E(p['cat_label'])}</a> / {E(p['model'])}</nav>
-  <nav class="tabbar"><a href="#overview" class="on">Overview</a><a href="#features">Key Features</a><a href="{E(p['canon_url'])}" target="_blank" rel="noopener">Specifications</a><a href="../contact.html?model={E(p['model'])}#quote">Where to Buy</a><a href="../service.html">Get Support</a></nav>
+  <nav class="tabbar"><a href="#overview" class="on">Overview</a><a href="#features">Key Features</a><a href="{E(p['canon_url'])}" target="_blank" rel="noopener">Specifications</a><a href="../contact.html?model={E(p['model'])}#quote">Where to Buy</a><a href="../support.html">Get Support</a></nav>
   <section class="product" id="overview">
     <div class="product-pic">{picture(p, '../', lazy=False)}</div>
     <div class="product-info">
@@ -359,7 +364,7 @@ def build():
         <li>Available for GeM and tender orders</li>
       </ul>
       <p class="small">Full specifications and brochure: <a href="{E(p['canon_url'])}" target="_blank" rel="noopener">Canon India product page</a></p>
-      <p class="small">Bought this model? <a href="{SITE['register_url']}" target="_blank" rel="noopener">Register your Canon product</a> for warranty support.</p>
+      <p class="small">Bought this model? <a href="{SITE['register_url']}" target="_blank" rel="noopener">Register your Canon product</a> for warranty support. Drivers, manuals and FAQ are on our <a href="../support.html">Support page</a>.</p>
     </div>
   </section>
   {'<section class="section reveal"><h2>Similar Models</h2><div class="grid">' + ''.join(card(r, '../') for r in related) + '</div></section>' if related else ''}
@@ -410,6 +415,32 @@ def build():
     page('service.html', 'Canon Copier Service & AMC in Port Blair | AIM Enterprises',
          'Canon copier and printer service, AMC plans, genuine toner and warranty repairs in Sri Vijaya Puram (Port Blair), Andaman & Nicobar Islands.',
          service, 'Service & AMC')
+
+    # ---------- Support ----------
+    support = f'''
+<section class="page-head"><div class="wrap">
+  <nav class="crumbs"><a href="index.html">Home</a> / Support</nav>
+  <p class="eyebrow">Canon Service Edge (CSP) Provider</p>
+  <h1>Product Support</h1>
+  <p>Drivers, manuals, specifications and answers for your Canon product, straight from Canon India. Need a technician? Our engineers are a call away.</p>
+</div></section>
+<div class="wrap">
+  <section class="section">
+    <h2>Canon Online Support</h2>
+    <div class="support-grid">{''.join(f'<a class="support-card" href="{E(l["url"])}" target="_blank" rel="noopener"><b>{E(l["title"])}</b><span>{E(l["text"])}</span><em>Open on Canon India</em></a>' for l in SITE['support_links'])}
+      <a class="support-card" href="service.html#book"><b>Book a Service Visit</b><span>On-site repair and maintenance by AIM engineers in Sri Vijaya Puram.</span><em>Book with AIM</em></a>
+    </div>
+  </section>
+  <section class="section callout">
+    <h2>Talk to Our Service Team</h2>
+    <p>Mobile: <a href="tel:{SITE['phone_tel']}">{E(SITE['phone_display'])}</a><br>Landline: {' / '.join(f'<a href="tel:{l["tel"]}">{E(l["display"])}</a>' for l in SITE['landlines'])}</p>
+    <p><a href="{wa_link('Hello AIM Enterprises, I need support for my Canon product.')}" target="_blank" rel="noopener">Chat on WhatsApp</a></p>
+  </section>
+</div>
+'''
+    page('support.html', 'Canon Product Support | Drivers, Manuals, FAQ | AIM Enterprises',
+         'Canon drivers, manuals, specifications, FAQ and product registration, plus on-site service from AIM Enterprises in Sri Vijaya Puram (Port Blair).',
+         support, 'Support')
 
     # ---------- Government ----------
     gov = f'''
@@ -513,14 +544,14 @@ def build():
 
     # ---------- Sitemap / robots / data for search ----------
     base = SITE['url'].rstrip('/')
-    urls = ['', 'products/', 'service.html', 'government.html', 'about.html', 'contact.html'] + [f"products/{p['slug']}.html" for p in products]
+    urls = ['', 'products/', 'service.html', 'government.html', 'about.html', 'contact.html', 'support.html'] + [f"products/{p['slug']}.html" for p in products]
     with open(os.path.join(ROOT, 'sitemap.xml'), 'w', encoding='utf-8') as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n')
         f.writelines(f'  <url><loc>{base}/{u}</loc></url>\n' for u in urls)
         f.write('</urlset>\n')
     with open(os.path.join(ROOT, 'robots.txt'), 'w') as f:
         f.write(f'User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n')
-    print(f'Built {len(products)} product pages + 6 site pages.')
+    print(f'Built {len(products)} product pages + 7 site pages.')
 
 
 if __name__ == '__main__':
