@@ -47,19 +47,21 @@ jobs:
         run: python3 tools/sync_canon.py
       - name: Check Canon India consumables
         run: python3 tools/sync_consumables.py || true
-      - name: Rebuild pages
-        run: python3 tools/build.py
       - name: Publish changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A data assets/products products ./*.html sitemap.xml
+          git add -A data assets/products
           if git diff --cached --quiet -- data/products.csv data/consumables.csv assets/products; then
             echo "No product changes on Canon India today."; exit 0
           fi
           git commit -q -F .sync-message
+          # Pages are rebuilt after catching up with the branch, so edits pushed meanwhile never conflict
           for i in 1 2 3; do
             git pull -q --rebase origin "${{ steps.branch.outputs.ref }}" || { git rebase --abort; exit 1; }
+            python3 tools/build.py
+            git add -A products ./*.html sitemap.xml
+            git diff --cached --quiet || git commit -q --amend --no-edit
             git push -q origin "HEAD:${{ steps.branch.outputs.ref }}" && exit 0
             sleep 10
           done
