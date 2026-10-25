@@ -1,8 +1,13 @@
 name: consumables probe
 on: push
+permissions:
+  contents: write
 jobs:
   p:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: python3 probe.py
+      - run: |
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data && git commit -qm "probe output [skip ci]" && git push
