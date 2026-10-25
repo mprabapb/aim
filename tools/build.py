@@ -303,7 +303,7 @@ def build():
 </div></section>
 '''
     page('index.html', 'AIM Enterprises | Canon Printers, Copiers & Service in Port Blair',
-         'Canon Authorized Premium Business Partner and Canon Service Edge (CSP) in Sri Vijaya Puram (Port Blair). Canon copiers, printers, scanners, genuine consumables, AMC and service across the Andaman & Nicobar Islands.',
+         'Canon Authorized Premium Business Partner and Canon Service Edge (CSP) Provider in Sri Vijaya Puram (Port Blair). Canon copiers, printers, scanners, genuine consumables, AMC and service across the Andaman & Nicobar Islands.',
          home, 'Home')
 
     # ---------- Product listing ----------
@@ -374,7 +374,8 @@ def build():
 <section class="page-head"><div class="wrap">
   <nav class="crumbs"><a href="index.html">Home</a> / Service &amp; AMC</nav>
   <h1>Service and Maintenance</h1>
-  <p>Our engineers keep Canon copiers and printers running across Sri Vijaya Puram and the nearby islands.</p>
+  <p class="eyebrow">Canon Service Edge (CSP) Provider</p>
+  <p>As Canon's authorised service partner, our engineers keep Canon copiers and printers running across Sri Vijaya Puram and the nearby islands.</p>
 </div></section>
 <div class="wrap">
   <section class="section two-col">
