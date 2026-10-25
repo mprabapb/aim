@@ -1,5 +1,5 @@
 # Keeps the product catalogue in step with Canon India (in.canon): new models, MRP changes,
-# new product photos and models Canon has dropped. Runs every day, and on demand from the Actions tab.
+# new product photos, models Canon has dropped, and consumables prices. Runs every day, and on demand from the Actions tab.
 # GitHub only runs schedules from the default branch (main), so a copy of this file lives there too;
 # it updates the branch the website is published from.
 name: Sync products with Canon India
@@ -45,6 +45,8 @@ jobs:
           python-version: '3.12'
       - name: Check Canon India for changes
         run: python3 tools/sync_canon.py
+      - name: Check Canon India consumables
+        run: python3 tools/sync_consumables.py || true
       - name: Rebuild pages
         run: python3 tools/build.py
       - name: Publish changes
@@ -52,7 +54,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A data assets/products products ./*.html sitemap.xml
-          if git diff --cached --quiet -- data/products.csv assets/products; then
+          if git diff --cached --quiet -- data/products.csv data/consumables.csv assets/products; then
             echo "No product changes on Canon India today."; exit 0
           fi
           git commit -q -F .sync-message
