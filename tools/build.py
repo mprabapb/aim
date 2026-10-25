@@ -134,7 +134,7 @@ def page(path, title, desc, body, active=''):
     <p class="partner-badge">{E(SITE['badge'])}</p>
     <p><a class="verify-link" href="{SITE['canon_listing_url']}" target="_blank" rel="noopener">Verify on Canon India: Authorised Dealer Listing</a></p>
     <p>{E(SITE['tagline'])}</p>
-    <p class="small">GSTIN {E(SITE['gstin'])} · PAN {E(SITE['pan'])} · GeM Seller ID {E(SITE['gem_id'])}</p>
+    <p class="small">GSTIN {E(SITE['gstin'])} · GeM Seller ID {E(SITE['gem_id'])}</p>
   </div>
   <div>
     <h3>Products</h3>
@@ -455,7 +455,6 @@ def build():
   <section class="section facts">
     <div><span class="fact-label">GeM Seller ID</span><span class="fact">{E(SITE['gem_id'])}</span></div>
     <div><span class="fact-label">GSTIN</span><span class="fact">{E(SITE['gstin'])}</span></div>
-    <div><span class="fact-label">PAN</span><span class="fact">{E(SITE['pan'])}</span></div>
     <div><span class="fact-label">Location</span><span class="fact">Sri Vijaya Puram, A&amp;N Islands</span></div>
   </section>
   <section class="section two-col">
