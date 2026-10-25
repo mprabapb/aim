@@ -254,11 +254,14 @@ address { font-style: normal; }
 .social-row a:hover { border-color: var(--red); color: var(--white); background: var(--red); }
 .social-light { padding-bottom: 0; margin-top: 16px; }
 .social-light a { color: var(--ink); border-color: var(--panel-2); background: var(--panel); }
-.social-light .soc-facebook svg { color: #0866ff; }
-.social-light .soc-instagram svg { color: #e4405f; }
-.social-light .soc-youtube svg { color: #ff0000; }
+/* Original brand colours; X is black on light backgrounds and white on the black footer */
+.social-row .soc-facebook svg { color: #0866ff; }
+.social-row .soc-instagram svg { color: #e4405f; }
+.social-row .soc-youtube svg { color: #ff0000; }
+.social-row .soc-x svg { color: #fff; }
 .social-light .soc-x svg { color: #000; }
-.social-light .soc-linkedin svg { color: #0a66c2; }
+.social-row .soc-linkedin svg { color: #0a66c2; }
+.social-row a:hover svg { color: #fff; }
 .partner-badge { display: inline-block; border: 1px solid var(--grey); color: var(--white); font-size: 13px; border-radius: var(--radius); padding: 8px 12px; margin: 14px 0; }
 .legal { border-top: 1px solid var(--dark); padding-block: 18px 90px; font-size: 12px; color: var(--grey); }
 

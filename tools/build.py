@@ -147,10 +147,20 @@ SEGMENT_FOR = {'Consumables': 'Consumables', 'Service & AMC': 'Service & AMC', '
 SOCIAL_ICONS = json.load(open(os.path.join(ROOT, 'data', 'social-icons.json'), encoding='utf-8'))
 
 
+# Instagram's own colour is a gradient; the others use a flat brand colour set in the CSS
+IG_GRADIENT = ('<defs><radialGradient id="ig-grad" cx="0.3" cy="1.07" r="1.3">'
+               '<stop offset="0" stop-color="#fdd835"/><stop offset="0.25" stop-color="#fd5949"/>'
+               '<stop offset="0.6" stop-color="#d6249f"/><stop offset="1" stop-color="#285aeb"/></radialGradient></defs>')
+
+
 def social_links():
+    def icon(name):
+        fill = 'url(#ig-grad)' if name == 'instagram' else 'currentColor'
+        defs = IG_GRADIENT if name == 'instagram' else ''
+        return (f'<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">{defs}'
+                f'<path fill="{fill}" d="{SOCIAL_ICONS[name]}"/></svg>')
     return ''.join(f'<a class="soc-{l["icon"]}" href="{E(l["url"])}" target="_blank" rel="noopener" aria-label="Canon India on {E(l["name"])}">'
-                   f'<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="{SOCIAL_ICONS[l["icon"]]}"/></svg>'
-                   f'<span>{E(l["name"])}</span></a>' for l in SITE['canon_social'])
+                   f'{icon(l["icon"])}<span>{E(l["name"])}</span></a>' for l in SITE['canon_social'])
 
 
 def page(path, title, desc, body, active=''):
