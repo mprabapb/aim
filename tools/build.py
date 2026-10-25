@@ -484,24 +484,60 @@ def build():
     about = f'''
 <section class="page-head"><div class="wrap">
   <nav class="crumbs"><a href="index.html">Home</a> / About</nav>
+  <p class="eyebrow">Canon Authorized Premium Business Partner · Canon Service Edge (CSP) Provider</p>
   <h1>About AIM Enterprises</h1>
+  <p>Canon sales, service and support for the Andaman &amp; Nicobar Islands, from our shop on MG Road, Middle Point, Sri Vijaya Puram.</p>
 </div></section>
 <div class="wrap">
   <section class="section two-col">
     <div class="prose">
-      <p class="lede">AIM Enterprises is a {E(SITE['badge'])} based in Sri Vijaya Puram (Port Blair). We sell, install and service Canon office equipment for businesses, schools, banks and government departments across the Andaman &amp; Nicobar Islands.</p>
-      <p>Being on the islands means our customers cannot wait for a service engineer to fly in. We keep stock, spares and trained people here, so a machine bought from us is looked after locally for its whole working life.</p>
-      <p>Alongside Canon, we supply IT peripherals such as SSDs, UPS units, monitors and keyboards, and provide Lenovo and Wipro service support.</p>
+      <p class="lede">AIM Enterprises is a Canon Authorized Premium Business Partner and Canon Service Edge (CSP) Provider based in Sri Vijaya Puram (Port Blair). We help offices, schools, banks, businesses and government departments across the Andaman &amp; Nicobar Islands choose, install and run the right Canon equipment.</p>
+      <p>Being on the islands means our customers cannot wait for an engineer or a spare part to arrive from the mainland. That is why we keep Canon stock, genuine consumables, spare parts and trained service engineers right here in Sri Vijaya Puram. A machine bought from AIM is installed, supported and maintained locally for its whole working life.</p>
+      <p>As a Canon Service Edge (CSP) Provider, we handle Canon warranty repairs and offer Annual Maintenance Contracts, so one local partner looks after both the purchase and the service.</p>
     </div>
     <div class="callout">
       <h2>At a Glance</h2>
       <ul class="checks">
-        <li>Canon sales, service and consumables</li>
-        <li>Registered GeM seller</li>
-        <li>Shop on MG Road, Middle Point</li>
+        <li>Canon Authorized Premium Business Partner</li>
+        <li>Canon Service Edge (CSP) Provider</li>
+        <li>Full Canon range at Canon India MRP</li>
+        <li>Local stock, spares and service engineers</li>
+        <li>Registered GeM seller (ID {E(SITE['gem_id'])})</li>
+        <li>GSTIN {E(SITE['gstin'])}</li>
       </ul>
       <p><a class="btn" href="{SITE['canon_listing_url']}" target="_blank" rel="noopener">Verify Our Canon Authorisation</a></p>
       <p class="small">Opens AIM Enterprises' official listing on Canon India's authorised dealer site.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>What We Do</h2>
+    <ul class="service-list about-list">
+      <li><b>Canon Products</b><span>Office multifunction copiers (imageRUNNER and imageFORCE), imageCLASS laser printers, PIXMA ink tank printers, MAXIFY business inkjets, imagePROGRAF large format printers, imageFORMULA document scanners, CanoScan scanners, cheque scanners and SELPHY photo printers.</span></li>
+      <li><b>Service &amp; AMC</b><span>Canon warranty repairs, comprehensive and non-comprehensive AMC, per-call service, and network printing and scanning set-up, all on site.</span></li>
+      <li><b>Genuine Consumables</b><span>Canon toner, drums, ink bottles and paper, kept in stock and delivered across Sri Vijaya Puram.</span></li>
+      <li><b>Government &amp; GeM Supply</b><span>Canon products on GeM for direct purchase and bids, with tender documents and Canon manufacturer authorisation on request.</span></li>
+      <li><b>IT Peripherals</b><span>SSDs, UPS units, monitors, keyboards and other computer accessories for offices.</span></li>
+      <li><b>Lenovo &amp; Wipro Service</b><span>Service support for Lenovo and Wipro desktops and laptops.</span></li>
+    </ul>
+  </section>
+
+  <section class="section two-col">
+    <div class="prose">
+      <h2>Why Customers Choose AIM</h2>
+      <ul class="checks">
+        <li>Genuine Canon products with full manufacturer warranty</li>
+        <li>Engineers based on the islands, not flown in</li>
+        <li>Installation and user training included with every machine</li>
+        <li>One partner for sales, service, consumables and AMC</li>
+        <li>Quick quotations for budgets, file approvals and tenders</li>
+      </ul>
+    </div>
+    <div class="callout">
+      <h2>Visit or Call Us</h2>
+      <address>{'<br>'.join(E(l) for l in SITE['address_lines'])}</address>
+      <p>Mobile: <a href="tel:{SITE['phone_tel']}">{E(SITE['phone_display'])}</a><br>Landline: {' / '.join(f'<a href="tel:{l["tel"]}">{E(l["display"])}</a>' for l in SITE['landlines'])}<br>Email: <a href="mailto:{SITE['email']}">{E(SITE['email'])}</a></p>
+      <p><a class="btn btn-ghost" href="contact.html#quote">Request a Quotation</a></p>
     </div>
   </section>
 </div>
