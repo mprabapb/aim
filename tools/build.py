@@ -4,10 +4,13 @@
 Run from the repo root:  python3 tools/build.py
 Edit the CSV (prices, descriptions) or site.json (contact details), then run it again.
 """
-import csv, html, json, os, re
+import csv, hashlib, html, json, os, re
 from datetime import date
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Version query for shared assets, so browsers and phones fetch new copies after each change
+ASSET_V = hashlib.md5(b''.join(open(os.path.join(ROOT, 'assets', n), 'rb').read()
+                              for n in ('style.css', 'site.js', 'logo.svg', 'canon-logo.svg'))).hexdigest()[:8]
 SITE = json.load(open(os.path.join(ROOT, 'data', 'site.json'), encoding='utf-8'))
 E = html.escape
 
@@ -100,21 +103,21 @@ def page(path, title, desc, body, active=''):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Figtree:wght@400;500&display=swap">
-<link rel="stylesheet" href="{up}assets/style.css">
+<link rel="stylesheet" href="{up}assets/style.css?v={ASSET_V}">
 <link rel="icon" href="{up}assets/favicon.svg" type="image/svg+xml">
 <script type="application/ld+json">{json.dumps(ld)}</script>
 </head>
 <body data-wa="{SITE['whatsapp']}" data-email="{SITE['email']}">
 <header class="site-header">
 <div class="brandbar"><div class="wrap">
-  <a class="brand" href="{up}index.html"><img src="{up}assets/logo.svg" alt="AIM Enterprises, Canon Authorized Premium Partner" width="170" height="44"></a>
+  <a class="brand" href="{up}index.html"><img src="{up}assets/logo.svg?v={ASSET_V}" alt="AIM Enterprises, Canon Authorized Premium Partner" width="170" height="44"></a>
   <span class="brand-place">Andaman &amp; Nicobar</span>
   <nav class="segments" aria-label="Sections">{segments}</nav>
   <span class="bar-divider" aria-hidden="true"></span>
   <a class="search-link" href="{up}products/index.html#search" aria-label="Search products"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M15.6 15.6 21 21" stroke="currentColor" stroke-width="1.4"/></svg></a>
   <a class="bar-accent" href="tel:{SITE['phone_tel']}">Call Us</a>
   <span class="bar-divider" aria-hidden="true"></span>
-  <a class="partner-mark" href="{SITE['canon_listing_url']}" target="_blank" rel="noopener" title="Verify on Canon India"><img src="{up}assets/canon-logo.svg" alt="Canon" width="96" height="20"><span>Authorised Partner</span></a>
+  <a class="partner-mark" href="{SITE['canon_listing_url']}" target="_blank" rel="noopener" title="Verify on Canon India"><img src="{up}assets/canon-logo.svg?v={ASSET_V}" alt="Canon" width="96" height="20"><span>Authorised Partner</span></a>
   <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
 </div></div>
 <div class="menubar"><div class="wrap">
@@ -132,7 +135,7 @@ def page(path, title, desc, body, active=''):
 </main>
 <footer class="site-footer"><div class="wrap footer-grid">
   <div>
-    <img src="{up}assets/logo.svg" alt="AIM Enterprises" width="170" height="44">
+    <img src="{up}assets/logo.svg?v={ASSET_V}" alt="AIM Enterprises" width="170" height="44">
     <p class="partner-badge">{E(SITE['badge'])}</p>
     <p><a class="verify-link" href="{SITE['canon_listing_url']}" target="_blank" rel="noopener">Verify on Canon India: Authorised Dealer Listing</a></p>
     <p>{E(SITE['tagline'])}</p>
@@ -161,7 +164,7 @@ def page(path, title, desc, body, active=''):
 <div class="wrap legal">© {date.today().year} AIM Enterprises, Sri Vijaya Puram. Product photos © Canon India. Canon, imageRUNNER, imageFORCE, imageCLASS, PIXMA, MAXIFY, imagePROGRAF and imageFORMULA are trademarks of Canon Inc. MRPs are as published by Canon India and may change without notice.</div>
 </footer>
 <a class="wa-float" href="{wa_link('Hello AIM Enterprises, I have an enquiry.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">{WA_ICON}</a>
-<script src="{up}assets/site.js" defer></script>
+<script src="{up}assets/site.js?v={ASSET_V}" defer></script>
 </body>
 </html>
 '''
