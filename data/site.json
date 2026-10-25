@@ -6,6 +6,16 @@
   "url": "https://aimenterprises.net/",
   "phone_display": "+91 94342 82223",
   "phone_tel": "+919434282223",
+  "landlines": [
+    {
+      "display": "03192 220900",
+      "tel": "+913192220900"
+    },
+    {
+      "display": "03192 233444",
+      "tel": "+913192233444"
+    }
+  ],
   "whatsapp": "919434282223",
   "email": "info@aimenterprises.net",
   "hours": "Monday to Saturday, 9:30 am to 7:00 pm",

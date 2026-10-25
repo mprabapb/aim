@@ -80,7 +80,7 @@ def page(path, title, desc, body, active=''):
     nav = ''.join(f'<a href="{up}{href}">{E(label)}</a>' for href, label in NAV)
     ld = {
         '@context': 'https://schema.org', '@type': 'LocalBusiness', 'name': SITE['name'],
-        'description': SITE['tagline'], 'telephone': SITE['phone_display'], 'email': SITE['email'],
+        'description': SITE['tagline'], 'telephone': [SITE['phone_display']] + [l['display'] for l in SITE['landlines']], 'email': SITE['email'],
         'url': SITE['url'],
         'address': {'@type': 'PostalAddress', 'streetAddress': SITE['street'], 'addressLocality': SITE['city'],
                     'addressRegion': 'Andaman and Nicobar Islands', 'postalCode': SITE['pin'], 'addressCountry': 'IN'},
@@ -146,6 +146,7 @@ def page(path, title, desc, body, active=''):
     <h3>Visit Us</h3>
     <address>{'<br>'.join(E(l) for l in SITE['address_lines'])}</address>
     <a href="tel:{SITE['phone_tel']}">{E(SITE['phone_display'])}</a>
+    {''.join(f'<a href="tel:{l["tel"]}">{E(l["display"])}</a>' for l in SITE['landlines'])}
     <a href="mailto:{SITE['email']}">{E(SITE['email'])}</a>
   </div>
 </div>
@@ -483,7 +484,7 @@ def build():
   <section class="section two-col">
     <div class="contact-cards">
       <div class="callout"><h2>Visit</h2><address>{'<br>'.join(E(l) for l in SITE['address_lines'])}</address><a href="{E(SITE['maps_url'])}" target="_blank" rel="noopener">Open in Google Maps</a></div>
-      <div class="callout"><h2>Call or WhatsApp</h2><p><a href="tel:{SITE['phone_tel']}">{E(SITE['phone_display'])}</a></p><p><a href="{wa_link('Hello AIM Enterprises, I have an enquiry.')}" target="_blank" rel="noopener">Chat on WhatsApp</a></p></div>
+      <div class="callout"><h2>Call or WhatsApp</h2><p>Mobile: <a href="tel:{SITE['phone_tel']}">{E(SITE['phone_display'])}</a><br>Landline: {' / '.join(f'<a href="tel:{l["tel"]}">{E(l["display"])}</a>' for l in SITE['landlines'])}</p><p><a href="{wa_link('Hello AIM Enterprises, I have an enquiry.')}" target="_blank" rel="noopener">Chat on WhatsApp</a></p></div>
       <div class="callout"><h2>Email</h2><p><a href="mailto:{SITE['email']}">{E(SITE['email'])}</a></p><p class="small">{E(SITE['hours'])}</p></div>
     </div>
     <form class="form" id="quote" data-kind="quote">
