@@ -1,0 +1,30 @@
+# One-off: downloads the Canon wordmark (Wikimedia Commons) for the partner mark in the header,
+# since this repo's build machine can't reach that host.
+name: Fetch Canon partner logo
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/fetch-canon-logo.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download logo
+        run: |
+          curl -fsSL -A "AIM-website-build/1.0 (info@aimenterprises.net)" -o assets/canon-logo.svg "https://commons.wikimedia.org/wiki/Special:FilePath/Canon_wordmark.svg"
+          head -c 300 assets/canon-logo.svg
+          grep -q "<svg" assets/canon-logo.svg
+      - name: Commit logo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/canon-logo.svg
+          git diff --cached --quiet || git commit -m "Add Canon wordmark for partner mark"
+          git push
