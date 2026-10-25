@@ -113,6 +113,8 @@ def page(path, title, desc, body, active=''):
   <span class="bar-divider" aria-hidden="true"></span>
   <a class="search-link" href="{up}products/index.html#search" aria-label="Search products"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M15.6 15.6 21 21" stroke="currentColor" stroke-width="1.4"/></svg></a>
   <a class="bar-accent" href="tel:{SITE['phone_tel']}">Call Us</a>
+  <span class="bar-divider" aria-hidden="true"></span>
+  <a class="partner-mark" href="{SITE['canon_listing_url']}" target="_blank" rel="noopener" title="Verify on Canon India"><img src="{up}assets/canon-logo.svg" alt="Canon" width="96" height="20"><span>Authorised Partner</span></a>
   <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
 </div></div>
 <div class="menubar"><div class="wrap">

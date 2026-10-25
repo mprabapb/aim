@@ -43,7 +43,10 @@ address { font-style: normal; }
 .brandbar .wrap { display: flex; align-items: center; min-height: 90px; font-size: 16px; }
 .brand { display: flex; align-items: center; }
 .brand img { height: 44px; width: auto; display: block; }
-.brand-place { color: var(--grey-2); margin-left: 32px; }
+.brand-place { color: var(--ink); font-weight: 700; margin-left: 32px; }
+.partner-mark { display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; }
+.partner-mark img { height: 20px; width: auto; display: block; }
+.partner-mark span { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
 .segments { display: flex; gap: 20px; margin-left: auto; }
 .segments a { color: var(--grey-2); text-decoration: none; }
 .segments a:hover { color: var(--black); }
@@ -274,7 +277,11 @@ address { font-style: normal; }
   .tabbar { justify-content: flex-start; }
   .nav-toggle { display: block; }
   .segments, .brand-place, .bar-divider, .bar-accent, .menu-right { display: none; }
-  .search-link { margin-left: auto; }
+  .partner-mark { order: 1; margin: 0 16px 0 auto; padding-left: 14px; }
+  .search-link { order: 2; margin-right: 12px; }
+  .nav-toggle { order: 3; }
+  .partner-mark img { height: 16px; }
+  .partner-mark span { font-size: 8px; }
   .brandbar .wrap { min-height: 72px; }
   .menubar { border-bottom: 0; }
   .menubar .wrap { min-height: 0; }
@@ -286,7 +293,7 @@ address { font-style: normal; }
 @media (max-width: 560px) {
   body { font-size: 16px; line-height: 22px; }
   .wrap { padding: 0 16px; }
-  .brand img { height: 38px; }
+  .brand img { height: 34px; }
   #nav { padding-inline: 16px; }
   .why .checks, .service-list, .footer-grid, .support-grid, .about-list { grid-template-columns: 1fr; }
   .grid, .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -303,4 +310,10 @@ address { font-style: normal; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .reveal.pre { opacity: 1; transform: none; }
+}
+@media (max-width: 400px) {
+  .partner-mark span { display: none; }
+  .partner-mark { margin-right: 10px; }
+  .brand img { height: 30px; }
+  .search-link { margin-right: 8px; }
 }
