@@ -456,7 +456,6 @@ def build():
     <div><span class="fact-label">GeM Seller ID</span><span class="fact">{E(SITE['gem_id'])}</span></div>
     <div><span class="fact-label">GSTIN</span><span class="fact">{E(SITE['gstin'])}</span></div>
     <div><span class="fact-label">PAN</span><span class="fact">{E(SITE['pan'])}</span></div>
-    <div><span class="fact-label">Constitution</span><span class="fact">Sole Proprietorship</span></div>
     <div><span class="fact-label">Location</span><span class="fact">Sri Vijaya Puram, A&amp;N Islands</span></div>
   </section>
   <section class="section two-col">
