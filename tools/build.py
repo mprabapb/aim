@@ -161,7 +161,7 @@ def page(path, title, desc, body, active=''):
     # Support and Consumables sit in the bars above on desktop, so their main-row copies only show in the phone menu
     nav = ''.join(f'<a href="{up}{href}"{" class=\"nav-mobile\"" if href in ("support.html", "consumables.html") else ""}>{E(label)}</a>' for href, label in NAV)
     ld = {
-        '@context': 'https://schema.org', '@type': 'LocalBusiness', 'name': SITE['name'],
+        '@context': 'https://schema.org', '@type': 'LocalBusiness', 'name': SITE['name'], 'openingHours': SITE['opening_hours'],
         'description': SITE['tagline'], 'telephone': [SITE['phone_display']] + [l['display'] for l in SITE['landlines']] + [SITE['canon_virtual']['display']], 'email': SITE['email'],
         'url': SITE['url'],
         'address': {'@type': 'PostalAddress', 'streetAddress': SITE['street'], 'addressLocality': SITE['city'],
@@ -234,6 +234,7 @@ def page(path, title, desc, body, active=''):
   <div>
     <h3>Visit Us</h3>
     <address>{'<br>'.join(E(l) for l in SITE['address_lines'])}</address>
+    <p class="small">{E(SITE['hours'])}</p>
     <a href="tel:{SITE['phone_tel']}">{E(SITE['phone_display'])}</a>
     {''.join(f'<a href="tel:{l["tel"]}">{E(l["display"])}</a>' for l in SITE['landlines'])}
     <a href="tel:{SITE['canon_virtual']['tel']}">{E(SITE['canon_virtual']['display'])} (Canon virtual no.)</a>
