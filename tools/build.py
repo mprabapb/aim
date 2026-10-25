@@ -373,8 +373,8 @@ def build():
     service = f'''
 <section class="page-head"><div class="wrap">
   <nav class="crumbs"><a href="index.html">Home</a> / Service &amp; AMC</nav>
-  <h1>Service and Maintenance</h1>
   <p class="eyebrow">Canon Service Edge (CSP) Provider</p>
+  <h1>Service and Maintenance</h1>
   <p>As Canon's authorised service partner, our engineers keep Canon copiers and printers running across Sri Vijaya Puram and the nearby islands.</p>
 </div></section>
 <div class="wrap">
