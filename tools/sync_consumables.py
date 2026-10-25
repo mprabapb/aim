@@ -67,6 +67,8 @@ def read_consumables(page):
 
 def group_for(name, kind):
     n, k = name.lower(), kind.lower()
+    if n.startswith('pfi-'):
+        return 'Large Format Inks'
     if 'paper' in k or 'paper' in n or re.match(r'(gp|pp|mp|sg|lu|pt|kp|rp)-', n):
         return 'Photo Paper'
     if 'head' in k or re.match(r'(bh|ch|pf)-', n):

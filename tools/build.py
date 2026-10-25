@@ -69,6 +69,7 @@ CONSUMABLE_GROUPS = [
     ('drum', 'Drums', 'Drums'),
     ('bottle', 'Ink Bottles', 'Ink Bottles'),
     ('cartridge', 'Ink Cartridges', 'Ink Cartridges'),
+    ('lfp', 'Large Format Inks', 'Plotter Inks'),
     ('head', 'Print Heads', 'Print Heads'),
     ('maint', 'Maintenance Cartridges', 'Maintenance'),
     ('paper', 'Photo Paper', 'Paper & Ribbons'),
@@ -468,7 +469,7 @@ def build():
 <section class="page-head"><div class="wrap">
   <nav class="crumbs"><a href="index.html">Home</a> / Consumables</nav>
   <h1>Canon Consumables Price List</h1>
-  <p>{len(consumables)} genuine Canon toners, ink bottles, ink cartridges, print heads and papers. Prices are Canon India MRPs including GST. Search by your printer model to find the right supply, and ask us for the best price.</p>
+  <p>{len(consumables)} genuine Canon toners, ink bottles, ink cartridges, plotter inks, print heads and maintenance cartridges. Prices are Canon India MRPs including GST. Search by your printer model to find the right supply, and ask us for the best price.</p>
 </div></section>
 <div class="wrap catalogue">
   <div class="filters">
