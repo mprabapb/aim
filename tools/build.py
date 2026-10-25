@@ -106,7 +106,7 @@ def page(path, title, desc, body, active=''):
 <body data-wa="{SITE['whatsapp']}" data-email="{SITE['email']}">
 <header class="site-header">
 <div class="brandbar"><div class="wrap">
-  <a class="brand" href="{up}index.html"><img src="{up}assets/logo.svg" alt="AIM Enterprises, Canon Authorised Partner" width="170" height="44"></a>
+  <a class="brand" href="{up}index.html"><img src="{up}assets/logo.svg" alt="AIM Enterprises, Canon Authorized Premium Partner" width="170" height="44"></a>
   <span class="brand-place">Andaman &amp; Nicobar</span>
   <nav class="segments" aria-label="Sections">{segments}</nav>
   <span class="bar-divider" aria-hidden="true"></span>
@@ -132,7 +132,7 @@ def page(path, title, desc, body, active=''):
     <img src="{up}assets/logo.svg" alt="AIM Enterprises" width="170" height="44">
     <p class="partner-badge">{E(SITE['badge'])}</p>
     <p>{E(SITE['tagline'])}</p>
-    <p class="small">GSTIN {E(SITE['gstin'])} · GeM Seller ID {E(SITE['gem_id'])}</p>
+    <p class="small">GSTIN {E(SITE['gstin'])} · PAN {E(SITE['pan'])} · GeM Seller ID {E(SITE['gem_id'])}</p>
   </div>
   <div>
     <h3>Products</h3>
@@ -269,7 +269,7 @@ def build():
   <div class="hero-panel">
     <p class="panel-title">Why Buy from AIM</p>
     <ul class="checks">
-      <li>Authorised Canon partner with genuine products and full warranty</li>
+      <li>Canon Authorized Premium Business Partner with genuine products and full warranty</li>
       <li>Installation and service by our own engineers in Port Blair</li>
       <li>Registered GeM seller for government orders</li>
       <li>Genuine Canon toner, ink and spares kept in stock</li>
@@ -303,7 +303,7 @@ def build():
 </div></section>
 '''
     page('index.html', 'AIM Enterprises | Canon Printers, Copiers & Service in Port Blair',
-         'Authorised Canon partner in Sri Vijaya Puram (Port Blair). Canon copiers, printers, scanners, genuine consumables, AMC and service across the Andaman & Nicobar Islands.',
+         'Canon Authorized Premium Business Partner and Canon Service Edge (CSP) in Sri Vijaya Puram (Port Blair). Canon copiers, printers, scanners, genuine consumables, AMC and service across the Andaman & Nicobar Islands.',
          home, 'Home')
 
     # ---------- Product listing ----------
@@ -417,6 +417,7 @@ def build():
   <section class="section facts">
     <div><span class="fact-label">GeM Seller ID</span><span class="fact">{E(SITE['gem_id'])}</span></div>
     <div><span class="fact-label">GSTIN</span><span class="fact">{E(SITE['gstin'])}</span></div>
+    <div><span class="fact-label">PAN</span><span class="fact">{E(SITE['pan'])}</span></div>
     <div><span class="fact-label">Constitution</span><span class="fact">Sole Proprietorship</span></div>
     <div><span class="fact-label">Location</span><span class="fact">Sri Vijaya Puram, A&amp;N Islands</span></div>
   </section>

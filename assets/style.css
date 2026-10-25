@@ -251,7 +251,7 @@ address { font-style: normal; }
   #nav, .menu-right { gap: 16px; }
 }
 @media (max-width: 960px) {
-  .bslide-inner { grid-template-columns: 1fr; gap: 12px; min-height: 0; padding-block: 28px 64px; }
+  .wrap.bslide-inner { grid-template-columns: 1fr; gap: 12px; min-height: 0; padding-block: 28px 64px; }
   .bpic { order: -1; min-height: 0; height: auto; max-width: 460px; width: 100%; margin: 0 auto; }
   .bbadge { width: 84px; height: 84px; font-size: 12px; top: 0; right: 0; }
   .bbadge b { font-size: 17px; }

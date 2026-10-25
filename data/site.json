@@ -1,7 +1,7 @@
 {
   "name": "AIM Enterprises",
   "tagline": "Canon sales, service and genuine consumables in the Andaman & Nicobar Islands.",
-  "badge": "Canon Authorised Business Partner & Service Provider",
+  "badge": "Canon Authorized Premium Business Partner · Canon Service Edge (CSP)",
   "proprietor": "M. Prabaharan",
   "url": "https://aimenterprises.net/",
   "phone_display": "+91 94342 82223",
@@ -30,6 +30,7 @@
   ],
   "maps_url": "https://www.google.com/maps/search/?api=1&query=Middle+Point+MG+Road+Sri+Vijaya+Puram+744101",
   "gstin": "35AKEPP1123F1ZM",
+  "pan": "AKEPP1123F",
   "gem_id": "F634180000090965",
   "featured": [
     "imageRUNNER 2425",
