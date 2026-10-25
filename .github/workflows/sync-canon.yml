@@ -58,7 +58,8 @@ jobs:
           git commit -q -F .sync-message
           # Pages are rebuilt after catching up with the branch, so edits pushed meanwhile never conflict
           for i in 1 2 3; do
-            git pull -q --rebase origin "${{ steps.branch.outputs.ref }}" || { git rebase --abort; exit 1; }
+            # -X theirs: on a clash the freshly read Canon data wins
+            git pull -q --rebase -X theirs origin "${{ steps.branch.outputs.ref }}" || { git rebase --abort; exit 1; }
             python3 tools/build.py
             git add -A products ./*.html sitemap.xml
             git diff --cached --quiet || git commit -q --amend --no-edit
