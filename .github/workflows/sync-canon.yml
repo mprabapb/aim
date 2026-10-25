@@ -1,0 +1,64 @@
+# Keeps the product catalogue in step with Canon India (in.canon): new models, MRP changes,
+# new product photos and models Canon has dropped. Runs every day, and on demand from the Actions tab.
+# GitHub only runs schedules from the default branch (main), so a copy of this file lives there too;
+# it updates the branch the website is published from.
+name: Sync products with Canon India
+
+on:
+  schedule:
+    - cron: '30 0 * * *'   # 06:00 IST every day
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to update (leave empty for the website branch)'
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: canon-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SITE_BRANCH: claude/aim-website   # change to main once the website is published from main
+    steps:
+      - name: Pick the website branch
+        id: branch
+        run: |
+          if [ -n "${{ inputs.branch }}" ]; then
+            echo "ref=${{ inputs.branch }}" >> "$GITHUB_OUTPUT"
+          elif git ls-remote --exit-code --heads "https://github.com/${{ github.repository }}" "$SITE_BRANCH" >/dev/null; then
+            echo "ref=$SITE_BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${{ github.event.repository.default_branch }}" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.branch.outputs.ref }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check Canon India for changes
+        run: python3 tools/sync_canon.py
+      - name: Rebuild pages
+        run: python3 tools/build.py
+      - name: Publish changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data assets/products products ./*.html sitemap.xml
+          if git diff --cached --quiet -- data/products.csv assets/products; then
+            echo "No product changes on Canon India today."; exit 0
+          fi
+          git commit -q -F .sync-message
+          for i in 1 2 3; do
+            git pull -q --rebase origin "${{ steps.branch.outputs.ref }}" || { git rebase --abort; exit 1; }
+            git push -q origin "HEAD:${{ steps.branch.outputs.ref }}" && exit 0
+            sleep 10
+          done
+          exit 1
