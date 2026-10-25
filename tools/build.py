@@ -13,15 +13,15 @@ E = html.escape
 
 # Category order, slug and the fallback line used when Canon gives no description.
 CATEGORIES = [
-    ('office', 'Office multifunction copiers (imageRUNNER / imageFORCE)', 'Office copiers', 'A3/A4 multifunction copier for print, copy and scan in busy offices and departments.'),
-    ('laser', 'Laser printers & MFPs (imageCLASS)', 'Laser printers', 'Reliable imageCLASS laser printer for offices that need fast, sharp output.'),
-    ('inkjet', 'Ink tank & inkjet (PIXMA)', 'Ink tank printers', 'PIXMA printer with low running cost for home, school and small office use.'),
-    ('maxify', 'Business inkjet (MAXIFY)', 'Business inkjet', 'MAXIFY business inkjet built for high volume colour printing at low cost per page.'),
-    ('lfp', 'Large format printers & plotters (imagePROGRAF)', 'Large format', 'Wide format printer for drawings, maps, posters and CAD output.'),
-    ('docscan', 'Document scanners (imageFORMULA)', 'Document scanners', 'imageFORMULA scanner for fast, accurate digitisation of office records.'),
-    ('flatbed', 'Flatbed scanners (CanoScan LiDE)', 'Flatbed scanners', 'Slim USB-powered flatbed scanner for documents and photos.'),
-    ('cheque', 'Cheque scanners', 'Cheque scanners', 'CTS-ready cheque scanner for banks and finance offices.'),
-    ('selphy', 'Photo printers (SELPHY)', 'Photo printers', 'Compact photo printer for instant, lab-quality prints.'),
+    ('office', 'Office Multifunction Copiers (imageRUNNER / imageFORCE)', 'Office Copiers', 'A3/A4 multifunction copier for print, copy and scan in busy offices and departments.'),
+    ('laser', 'Laser Printers & MFPs (imageCLASS)', 'Laser Printers', 'Reliable imageCLASS laser printer for offices that need fast, sharp output.'),
+    ('inkjet', 'Ink Tank & Inkjet (PIXMA)', 'Ink Tank Printers', 'PIXMA printer with low running cost for home, school and small office use.'),
+    ('maxify', 'Business Inkjet (MAXIFY)', 'Business Inkjet', 'MAXIFY business inkjet built for high volume colour printing at low cost per page.'),
+    ('lfp', 'Large Format Printers & Plotters (imagePROGRAF)', 'Large Format', 'Wide format printer for drawings, maps, posters and CAD output.'),
+    ('docscan', 'Document Scanners (imageFORMULA)', 'Document Scanners', 'imageFORMULA scanner for fast, accurate digitisation of office records.'),
+    ('flatbed', 'Flatbed Scanners (CanoScan LiDE)', 'Flatbed Scanners', 'Slim USB-powered flatbed scanner for documents and photos.'),
+    ('cheque', 'Cheque Scanners', 'Cheque Scanners', 'CTS-ready cheque scanner for banks and finance offices.'),
+    ('selphy', 'Photo Printers (SELPHY)', 'Photo Printers', 'Compact photo printer for instant, lab-quality prints.'),
 ]
 CAT_BY_NAME = {c[1]: c for c in CATEGORIES}
 
@@ -69,7 +69,7 @@ def wa_link(text):
 SEGMENTS = [('products/index.html', 'Printers & Scanners'), ('service.html', 'Service & AMC'), ('government.html', 'Government (GeM)')]
 NAV = [('products/index.html', 'Products'), ('contact.html', 'Where to Buy'), ('service.html', 'Service Network'),
        ('service.html#book', 'Book a Service'), ('government.html', 'GeM Orders'), ('about.html', 'About Us'), ('contact.html', 'Contact')]
-SEGMENT_FOR = {'Service & AMC': 'Service & AMC', 'Government buyers': 'Government (GeM)'}
+SEGMENT_FOR = {'Service & AMC': 'Service & AMC', 'Government Buyers': 'Government (GeM)'}
 
 
 def page(path, title, desc, body, active=''):
@@ -140,10 +140,10 @@ def page(path, title, desc, body, active=''):
   </div>
   <div>
     <h3>Company</h3>
-    <a href="{up}service.html">Service &amp; AMC</a><a href="{up}government.html">Government buyers</a><a href="{up}about.html">About us</a><a href="{up}contact.html">Contact</a>
+    <a href="{up}service.html">Service &amp; AMC</a><a href="{up}government.html">Government Buyers</a><a href="{up}about.html">About Us</a><a href="{up}contact.html">Contact</a>
   </div>
   <div>
-    <h3>Visit us</h3>
+    <h3>Visit Us</h3>
     <address>{'<br>'.join(E(l) for l in SITE['address_lines'])}</address>
     <a href="tel:{SITE['phone_tel']}">{E(SITE['phone_display'])}</a>
     <a href="mailto:{SITE['email']}">{E(SITE['email'])}</a>
@@ -238,15 +238,15 @@ def build():
 
     # Three themed banners, rotating like Canon India's home carousel (artwork made in Canva can replace the photos later)
     banners = [
-        ('light', 'h1', E(SITE['badge']), 'Canon printing, copying and scanning for the Islands',
+        ('light', 'h1', E(SITE['badge']), 'Canon Printing, Copying and Scanning for the Islands',
          'Canon copiers, printers and scanners for the Andaman &amp; Nicobar Islands, with sales, installation and on-site service from Sri Vijaya Puram.',
          [('products/index.html', 'Discover More', ''), ('contact.html#quote', 'Get a Quotation', ' btn-ghost')],
          shots('imageRUNNER 2425')),
-        ('dark', 'h2', 'Service &amp; AMC', 'On-site service you can count on',
+        ('dark', 'h2', 'Service &amp; AMC', 'On-Site Service You Can Count On',
          'Installation, annual maintenance contracts and genuine Canon consumables, delivered by our own engineers across the Islands.',
          [('service.html#book', 'Book a Service', ''), ('service.html', 'AMC Plans', ' btn-ghost')],
          shots('imageCLASS MF289dw') + '<p class="bbadge"><b>On-site</b>service</p>'),
-        ('grey', 'h2', 'Government buyers', 'Supplying government offices through GeM',
+        ('grey', 'h2', 'Government Buyers', 'Supplying Government Offices through GeM',
          f'Registered GeM seller (ID {E(SITE["gem_id"])}). Copiers, printers and scanners with tender documents ready.',
          [('government.html', 'Government Orders', ''), ('contact.html#quote', 'Request a Quote', ' btn-ghost')],
          shots('imageFORMULA DR-C240', 'imageCLASS LBP6030B', 'PIXMA G3010')),
@@ -266,7 +266,7 @@ def build():
 </section>
 <section class="why"><div class="wrap">
   <div class="hero-panel">
-    <p class="panel-title">Why buy from AIM</p>
+    <p class="panel-title">Why Buy from AIM</p>
     <ul class="checks">
       <li>Authorised Canon partner with genuine products and full warranty</li>
       <li>Installation and service by our own engineers in Port Blair</li>
@@ -277,28 +277,28 @@ def build():
 </div></section>
 
 <section class="section reveal"><div class="wrap">
-  <div class="section-head"><h2>Product Range</h2><a href="products/index.html">View all {len(products)} products</a></div>
+  <div class="section-head"><h2>Product Range</h2><a href="products/index.html">View All {len(products)} Products</a></div>
   <div class="tiles">{tiles}</div>
 </div></section>
 
 <section class="section band reveal"><div class="wrap">
-  <div class="section-head"><h2>Featured Products</h2><a href="products/index.html">See full range</a></div>
+  <div class="section-head"><h2>Featured Products</h2><a href="products/index.html">See Full Range</a></div>
   <div class="grid">{''.join(card(p, '') for p in featured)}</div>
 </div></section>
 
 <section class="section reveal"><div class="wrap services">
-  <div><h2>More than a dealer</h2><p>Buying a copier is the start. We look after it for its whole life, so your office never stops printing.</p><a class="btn btn-ghost" href="service.html">Service &amp; AMC plans</a></div>
+  <div><h2>More Than a Dealer</h2><p>Buying a copier is the start. We look after it for its whole life, so your office never stops printing.</p><a class="btn btn-ghost" href="service.html">Service &amp; AMC Plans</a></div>
   <ul class="service-list">
-    <li><b>Installation &amp; training</b><span>Set-up, network printing and scanning to email, done on site.</span></li>
-    <li><b>Annual maintenance contracts</b><span>Comprehensive and non-comprehensive AMC for copiers and printers.</span></li>
-    <li><b>Genuine consumables</b><span>Toner, ink bottles, drums and paper delivered across Sri Vijaya Puram.</span></li>
-    <li><b>Warranty service</b><span>Canon warranty repairs plus Lenovo and Wipro service support.</span></li>
+    <li><b>Installation &amp; Training</b><span>Set-up, network printing and scanning to email, done on site.</span></li>
+    <li><b>Annual Maintenance Contracts</b><span>Comprehensive and non-comprehensive AMC for copiers and printers.</span></li>
+    <li><b>Genuine Consumables</b><span>Toner, ink bottles, drums and paper delivered across Sri Vijaya Puram.</span></li>
+    <li><b>Warranty Service</b><span>Canon warranty repairs plus Lenovo and Wipro service support.</span></li>
   </ul>
 </div></section>
 
 <section class="section band-dark"><div class="wrap cta-row">
-  <div><h2>Buying for a government office?</h2><p>We supply through GeM and open tenders, with all bid documents ready.</p></div>
-  <a class="btn" href="government.html">How we work with departments</a>
+  <div><h2>Buying for a Government Office?</h2><p>We supply through GeM and open tenders, with all bid documents ready.</p></div>
+  <a class="btn" href="government.html">How We Work with Departments</a>
 </div></section>
 '''
     page('index.html', 'AIM Enterprises | Canon Printers, Copiers & Service in Port Blair',
@@ -316,16 +316,16 @@ def build():
     listing = f'''
 <section class="page-head"><div class="wrap">
   <nav class="crumbs"><a href="../index.html">Home</a> / Products</nav>
-  <h1>Canon products</h1>
+  <h1>Canon Products</h1>
   <p>{len(products)} models across copiers, printers and scanners. Prices shown are Canon India MRPs including GST. Ask us for the best price on any model.</p>
 </div></section>
 <div class="wrap catalogue">
   <div class="filters">
-    <label class="search"><span class="sr">Search models</span><input id="q" type="search" placeholder="Search a model, e.g. G3010 or 2224"></label>
+    <label class="search"><span class="sr">Search Models</span><input id="q" type="search" placeholder="Search a model, e.g. G3010 or 2224"></label>
     <div class="chips">{chips}</div>
   </div>
   {sections}
-  <p class="empty" hidden>No model matches that search. <a href="../contact.html#quote">Ask us</a> and we will source it for you.</p>
+  <p class="empty" hidden>No model matches that search. <a href="../contact.html#quote">Ask Us</a> and we will source it for you.</p>
 </div>
 '''
     page('products/index.html', 'Canon Printers, Copiers & Scanners with MRP | AIM Enterprises',
@@ -360,7 +360,7 @@ def build():
       <p class="small">Full specifications and brochure: <a href="{E(p['canon_url'])}" target="_blank" rel="noopener">Canon India product page</a></p>
     </div>
   </section>
-  {'<section class="section reveal"><h2>Similar models</h2><div class="grid">' + ''.join(card(r, '../') for r in related) + '</div></section>' if related else ''}
+  {'<section class="section reveal"><h2>Similar Models</h2><div class="grid">' + ''.join(card(r, '../') for r in related) + '</div></section>' if related else ''}
 </div>
 '''
         price_txt = f"MRP ₹{rupees(p['mrp'])} incl. GST. " if p['mrp'] else ''
@@ -372,13 +372,13 @@ def build():
     service = f'''
 <section class="page-head"><div class="wrap">
   <nav class="crumbs"><a href="index.html">Home</a> / Service &amp; AMC</nav>
-  <h1>Service and maintenance</h1>
+  <h1>Service and Maintenance</h1>
   <p>Our engineers keep Canon copiers and printers running across Sri Vijaya Puram and the nearby islands.</p>
 </div></section>
 <div class="wrap">
   <section class="section two-col">
     <div class="prose">
-      <h2>What we cover</h2>
+      <h2>What We Cover</h2>
       <ul class="checks">
         <li>Canon warranty repairs on copiers, printers and scanners</li>
         <li>Comprehensive AMC: parts, labour and consumables in one yearly fee</li>
@@ -390,13 +390,13 @@ def build():
       </ul>
     </div>
     <form class="form" id="book" data-kind="service">
-      <h2>Book a service visit</h2>
+      <h2>Book a Service Visit</h2>
       <label>Name<input name="name" required autocomplete="name"></label>
-      <label>Office or organisation<input name="org"></label>
+      <label>Office or Organisation<input name="org"></label>
       <label>Phone<input name="phone" type="tel" required autocomplete="tel"></label>
-      <label>Machine model<input name="model" placeholder="e.g. imageRUNNER 2425"></label>
+      <label>Machine Model<input name="model" placeholder="e.g. imageRUNNER 2425"></label>
       <label>Problem<textarea name="message" rows="3" placeholder="Paper jam, error code, print quality…"></textarea></label>
-      <div class="form-actions"><button class="btn btn-wa" type="submit" data-via="whatsapp">Send on WhatsApp</button><button class="btn btn-ghost" type="submit" data-via="email">Send by email</button></div>
+      <div class="form-actions"><button class="btn btn-wa" type="submit" data-via="whatsapp">Send on WhatsApp</button><button class="btn btn-ghost" type="submit" data-via="email">Send by Email</button></div>
     </form>
   </section>
 </div>
@@ -408,20 +408,20 @@ def build():
     # ---------- Government ----------
     gov = f'''
 <section class="page-head"><div class="wrap">
-  <nav class="crumbs"><a href="index.html">Home</a> / Government buyers</nav>
-  <h1>Supplying government departments</h1>
+  <nav class="crumbs"><a href="index.html">Home</a> / Government Buyers</nav>
+  <h1>Supplying Government Departments</h1>
   <p>We have supplied and serviced Canon equipment for departments in the Andaman &amp; Nicobar Islands through GeM and open tenders.</p>
 </div></section>
 <div class="wrap">
   <section class="section facts">
     <div><span class="fact-label">GeM Seller ID</span><span class="fact">{E(SITE['gem_id'])}</span></div>
     <div><span class="fact-label">GSTIN</span><span class="fact">{E(SITE['gstin'])}</span></div>
-    <div><span class="fact-label">Constitution</span><span class="fact">Sole proprietorship</span></div>
+    <div><span class="fact-label">Constitution</span><span class="fact">Sole Proprietorship</span></div>
     <div><span class="fact-label">Location</span><span class="fact">Sri Vijaya Puram, A&amp;N Islands</span></div>
   </section>
   <section class="section two-col">
     <div class="prose">
-      <h2>How we help</h2>
+      <h2>How We Help</h2>
       <ul class="checks">
         <li>Canon products listed on GeM for direct purchase and bids</li>
         <li>Manufacturer authorisation (MAF) from Canon India on request</li>
@@ -431,16 +431,16 @@ def build():
       </ul>
     </div>
     <div class="callout">
-      <h2>Need a budgetary quote?</h2>
+      <h2>Need a Budgetary Quote?</h2>
       <p>Send the specification or the GeM bid number and we will reply with a quotation on our letterhead.</p>
-      <a class="btn" href="contact.html#quote">Request quotation</a>
+      <a class="btn" href="contact.html#quote">Request Quotation</a>
     </div>
   </section>
 </div>
 '''
     page('government.html', 'GeM Seller for Canon Products in Andaman | AIM Enterprises',
          'AIM Enterprises supplies Canon copiers, printers and scanners to government departments in the Andaman & Nicobar Islands through GeM and tenders.',
-         gov, 'Government buyers')
+         gov, 'Government Buyers')
 
     # ---------- About ----------
     about = f'''
@@ -456,7 +456,7 @@ def build():
       <p>Alongside Canon, we supply IT peripherals such as SSDs, UPS units, monitors and keyboards, and provide Lenovo and Wipro service support.</p>
     </div>
     <div class="callout">
-      <h2>At a glance</h2>
+      <h2>At a Glance</h2>
       <ul class="checks">
         <li>Proprietor: {E(SITE['proprietor'])}</li>
         <li>Canon sales, service and consumables</li>
@@ -476,7 +476,7 @@ def build():
     contact = f'''
 <section class="page-head"><div class="wrap">
   <nav class="crumbs"><a href="index.html">Home</a> / Contact</nav>
-  <h1>Contact us</h1>
+  <h1>Contact Us</h1>
   <p>Call, WhatsApp or send a quotation request. We reply the same working day.</p>
 </div></section>
 <div class="wrap">
@@ -487,16 +487,16 @@ def build():
       <div class="callout"><h2>Email</h2><p><a href="mailto:{SITE['email']}">{E(SITE['email'])}</a></p><p class="small">{E(SITE['hours'])}</p></div>
     </div>
     <form class="form" id="quote" data-kind="quote">
-      <h2>Request a quotation</h2>
+      <h2>Request a Quotation</h2>
       <label>Name<input name="name" required autocomplete="name"></label>
-      <label>Office or organisation<input name="org"></label>
+      <label>Office or Organisation<input name="org"></label>
       <label>Phone<input name="phone" type="tel" required autocomplete="tel"></label>
       <label>Email<input name="email" type="email" autocomplete="email"></label>
       <label>Model<input name="model" list="models" placeholder="Start typing a model"></label>
       <datalist id="models">{options}</datalist>
       <label>Quantity<input name="qty" type="number" min="1" value="1"></label>
       <label>Message<textarea name="message" rows="3" placeholder="Accessories, delivery location, GeM bid number…"></textarea></label>
-      <div class="form-actions"><button class="btn btn-wa" type="submit" data-via="whatsapp">Send on WhatsApp</button><button class="btn btn-ghost" type="submit" data-via="email">Send by email</button></div>
+      <div class="form-actions"><button class="btn btn-wa" type="submit" data-via="whatsapp">Send on WhatsApp</button><button class="btn btn-ghost" type="submit" data-via="email">Send by Email</button></div>
     </form>
   </section>
 </div>
