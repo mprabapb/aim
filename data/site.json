@@ -78,23 +78,28 @@
   "canon_social": [
     {
       "name": "Facebook",
-      "url": "https://www.facebook.com/canonindia"
+      "url": "https://www.facebook.com/canonindia",
+      "icon": "facebook"
     },
     {
       "name": "Instagram",
-      "url": "https://www.instagram.com/canonindia_official"
+      "url": "https://www.instagram.com/canonindia_official",
+      "icon": "instagram"
     },
     {
       "name": "YouTube",
-      "url": "https://www.youtube.com/channel/UCQYoWRg5VdK7lrR5u4BAFuQ"
+      "url": "https://www.youtube.com/channel/UCQYoWRg5VdK7lrR5u4BAFuQ",
+      "icon": "youtube"
     },
     {
       "name": "X (Twitter)",
-      "url": "https://twitter.com/Canon_India"
+      "url": "https://twitter.com/Canon_India",
+      "icon": "x"
     },
     {
       "name": "LinkedIn",
-      "url": "https://www.linkedin.com/company/canon-india-pvt--ltd"
+      "url": "https://www.linkedin.com/company/canon-india-pvt--ltd",
+      "icon": "linkedin"
     }
   ]
 }

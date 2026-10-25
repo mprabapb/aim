@@ -248,10 +248,16 @@ address { font-style: normal; }
 .verify-link { color: var(--white); font-size: 14px; text-decoration: underline; }
 .social-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding-bottom: 28px; }
 .social-row span { color: var(--grey-2); font-size: 14px; margin-right: 4px; }
-.social-row a { color: var(--white); border: 1px solid var(--grey); border-radius: 999px; padding: 6px 14px; font-size: 14px; text-decoration: none; }
+.social-row a { display: inline-flex; align-items: center; gap: 8px; color: var(--white); border: 1px solid var(--grey); border-radius: 999px; padding: 6px 14px 6px 10px; font-size: 14px; text-decoration: none; }
+.social-row a span { color: inherit; font-size: inherit; margin: 0; }
 .social-row a:hover { border-color: var(--red); color: var(--white); background: var(--red); }
 .social-light { padding-bottom: 0; margin-top: 16px; }
 .social-light a { color: var(--ink); border-color: var(--panel-2); background: var(--panel); }
+.social-light .soc-facebook svg { color: #0866ff; }
+.social-light .soc-instagram svg { color: #e4405f; }
+.social-light .soc-youtube svg { color: #ff0000; }
+.social-light .soc-x svg { color: #000; }
+.social-light .soc-linkedin svg { color: #0a66c2; }
 .partner-badge { display: inline-block; border: 1px solid var(--grey); color: var(--white); font-size: 13px; border-radius: var(--radius); padding: 8px 12px; margin: 14px 0; }
 .legal { border-top: 1px solid var(--dark); padding-block: 18px 90px; font-size: 12px; color: var(--grey); }
 

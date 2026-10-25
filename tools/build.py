@@ -75,6 +75,16 @@ NAV = [('products/index.html', 'Products'), ('contact.html', 'Where to Buy'), ('
 SEGMENT_FOR = {'Service & AMC': 'Service & AMC', 'Support': 'Service & AMC', 'Government Buyers': 'Government (GeM)'}
 
 
+# Brand icon paths (Simple Icons, CC0) for the Canon India social links
+SOCIAL_ICONS = json.load(open(os.path.join(ROOT, 'data', 'social-icons.json'), encoding='utf-8'))
+
+
+def social_links():
+    return ''.join(f'<a class="soc-{l["icon"]}" href="{E(l["url"])}" target="_blank" rel="noopener" aria-label="Canon India on {E(l["name"])}">'
+                   f'<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="{SOCIAL_ICONS[l["icon"]]}"/></svg>'
+                   f'<span>{E(l["name"])}</span></a>' for l in SITE['canon_social'])
+
+
 def page(path, title, desc, body, active=''):
     depth = path.count('/')
     up = '../' * depth
@@ -161,7 +171,7 @@ def page(path, title, desc, body, active=''):
     <a href="mailto:{SITE['email']}">{E(SITE['email'])}</a>
   </div>
 </div>
-<div class="wrap social-row"><span>Follow Canon India</span>{''.join(f'<a href="{E(l["url"])}" target="_blank" rel="noopener">{E(l["name"])}</a>' for l in SITE['canon_social'])}</div>
+<div class="wrap social-row"><span>Follow Canon India</span>{social_links()}</div>
 <div class="wrap legal">© {date.today().year} AIM Enterprises, Sri Vijaya Puram. Product photos © Canon India. Canon, imageRUNNER, imageFORCE, imageCLASS, PIXMA, MAXIFY, imagePROGRAF and imageFORMULA are trademarks of Canon Inc. MRPs are as published by Canon India and may change without notice.</div>
 </footer>
 <a class="wa-float" href="{wa_link('Hello AIM Enterprises, I have an enquiry.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">{WA_ICON}</a>
@@ -442,7 +452,7 @@ def build():
   <section class="section">
     <h2>Follow Canon India</h2>
     <p>Product launches, tips and offers from Canon India's official social media accounts.</p>
-    <div class="social-row social-light">{''.join(f'<a href="{E(l["url"])}" target="_blank" rel="noopener">{E(l["name"])}</a>' for l in SITE['canon_social'])}</div>
+    <div class="social-row social-light">{social_links()}</div>
   </section>
   <section class="section callout">
     <h2>Talk to Our Service Team</h2>
