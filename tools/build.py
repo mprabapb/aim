@@ -11,7 +11,8 @@ from datetime import date
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Version query for shared assets, so browsers and phones fetch new copies after each change
-ASSET_V = hashlib.md5(b''.join(open(os.path.join(ROOT, 'assets', n), 'rb').read()
+# The salt changes every URL once: browsers had cached GitHub's old redirect to aimenterprises.net
+ASSET_V = hashlib.md5(b'gh-pages-1' + b''.join(open(os.path.join(ROOT, 'assets', n), 'rb').read()
                               for n in ('style.css', 'site.js', 'logo.svg', 'canon-logo.svg'))).hexdigest()[:8]
 SITE = json.load(open(os.path.join(ROOT, 'data', 'site.json'), encoding='utf-8'))
 E = html.escape
@@ -227,7 +228,7 @@ def page(path, title, desc, body, active=''):
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Figtree:wght@400;500&display=swap">
 <link rel="stylesheet" href="{up}assets/style.css?v={ASSET_V}">
-<link rel="icon" href="{up}assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="{up}assets/favicon.svg?v={ASSET_V}" type="image/svg+xml">
 <script type="application/ld+json">{json.dumps(ld)}</script>
 </head>
 <body data-wa="{SITE['whatsapp']}" data-email="{SITE['email']}">
@@ -337,7 +338,7 @@ def picture(p, up, lazy=True):
     f = PHOTOS.get(p['slug'])
     if not f:
         return icon(p['cat'])
-    return f'<img class="photo" src="{up}assets/products/{f}" alt="Canon {E(p["model"])}"{" loading=\"lazy\"" if lazy else ""}>'
+    return f'<img class="photo" src="{up}assets/products/{f}?v={ASSET_V}" alt="Canon {E(p["model"])}"{" loading=\"lazy\"" if lazy else ""}>'
 
 
 CAT_PHOTO = {}  # category -> product whose photo stands for the category
