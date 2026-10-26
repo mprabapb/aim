@@ -171,6 +171,10 @@ SOCIAL_ICONS = json.load(open(os.path.join(ROOT, 'data', 'social-icons.json'), e
 
 
 # Instagram's own colour is a gradient; the others use a flat brand colour set in the CSS
+def hours_html(cls='hours'):
+    lines = '<br>'.join(E(l) for l in SITE['hours_lines'])
+    return f'<p class="{cls}"><strong>Office hours:</strong><br>{lines}</p>'
+
 IG_GRADIENT = ('<defs><radialGradient id="ig-grad" cx="0.3" cy="1.07" r="1.3">'
                '<stop offset="0" stop-color="#fdd835"/><stop offset="0.25" stop-color="#fd5949"/>'
                '<stop offset="0.6" stop-color="#d6249f"/><stop offset="1" stop-color="#285aeb"/></radialGradient></defs>')
@@ -276,7 +280,7 @@ def page(path, title, desc, body, active=''):
   <div>
     <h3>Visit Us</h3>
     <address>{'<br>'.join(E(l) for l in SITE['address_lines'])}</address>
-    <p class="small">{E(SITE['hours'])}</p>
+    {hours_html('hours small')}
     <a href="tel:{SITE['phone_tel']}">{E(SITE['phone_display'])}</a>
     {''.join(f'<a href="tel:{l["tel"]}">{E(l["display"])}</a>' for l in SITE['landlines'])}
     <a href="tel:{SITE['canon_virtual']['tel']}">{E(SITE['canon_virtual']['display'])} (Canon virtual no.)</a>
@@ -789,6 +793,7 @@ def build():
     <div class="callout">
       <h2>Visit or Call Us</h2>
       <address>{'<br>'.join(E(l) for l in SITE['address_lines'])}</address>
+      {hours_html()}
       <p>Mobile: <a href="tel:{SITE['phone_tel']}">{E(SITE['phone_display'])}</a><br>Landline: {' / '.join(f'<a href="tel:{l["tel"]}">{E(l["display"])}</a>' for l in SITE['landlines'])}<br>Canon virtual no.: <a href="tel:{SITE['canon_virtual']['tel']}">{E(SITE['canon_virtual']['display'])}</a><br>Email: <a href="mailto:{SITE['email']}">{E(SITE['email'])}</a></p>
       <p><a class="btn btn-ghost" href="contact.html#quote">Request a Quotation</a></p>
     </div>
@@ -810,9 +815,9 @@ def build():
 <div class="wrap">
   <section class="section two-col">
     <div class="contact-cards">
-      <div class="callout"><h2>Visit</h2><address>{'<br>'.join(E(l) for l in SITE['address_lines'])}</address><a href="{E(SITE['maps_url'])}" target="_blank" rel="noopener">Open in Google Maps</a></div>
+      <div class="callout"><h2>Visit</h2><address>{'<br>'.join(E(l) for l in SITE['address_lines'])}</address>{hours_html()}<a href="{E(SITE['maps_url'])}" target="_blank" rel="noopener">Open in Google Maps</a></div>
       <div class="callout"><h2>Call or WhatsApp</h2><p>Mobile: <a href="tel:{SITE['phone_tel']}">{E(SITE['phone_display'])}</a><br>Landline: {' / '.join(f'<a href="tel:{l["tel"]}">{E(l["display"])}</a>' for l in SITE['landlines'])}<br>Canon virtual no.: <a href="tel:{SITE['canon_virtual']['tel']}">{E(SITE['canon_virtual']['display'])}</a></p><p><a href="{wa_link('Hello AIM Enterprises, I have an enquiry.')}" target="_blank" rel="noopener">Chat on WhatsApp</a></p></div>
-      <div class="callout"><h2>Email</h2><p><a href="mailto:{SITE['email']}">{E(SITE['email'])}</a></p><p class="small">{E(SITE['hours'])}</p></div>
+      <div class="callout"><h2>Email</h2><p><a href="mailto:{SITE['email']}">{E(SITE['email'])}</a></p></div>
     </div>
     <form class="form" id="quote" data-kind="quote">
       <h2>Request a Quotation</h2>

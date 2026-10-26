@@ -23,6 +23,7 @@
   "whatsapp": "919434282223",
   "email": "info@aimenterprises.net",
   "hours": "Office hours: Monday to Friday, 9 am to 6 pm; Saturday, 9 am to 1 pm",
+  "hours_lines": ["Monday to Friday, 9 am to 6 pm", "Saturday, 9 am to 1 pm"],
   "opening_hours": ["Mo-Fr 09:00-18:00", "Sa 09:00-13:00"],
   "street": "Shop No. 3, No. 112 Middle Point, MG Road, opp. BJP Bhawan",
   "city": "Sri Vijaya Puram (Port Blair)",

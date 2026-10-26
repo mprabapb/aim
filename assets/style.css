@@ -359,3 +359,7 @@ address { font-style: normal; }
 .spec-table th, .spec-table td { white-space: normal; vertical-align: top; }
 .spec-table tbody th { width: 34%; color: var(--ink); }
 .spec-table td { color: var(--black); overflow-wrap: anywhere; }
+
+/* Office hours shown line by line under the address */
+.hours { margin: 10px 0; line-height: 1.45; }
+.site-footer .hours strong { color: #fff; }
