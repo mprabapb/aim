@@ -1,5 +1,6 @@
 # Keeps the product catalogue in step with Canon India (in.canon): new models, MRP changes,
-# new product photos, models Canon has dropped, and consumables prices. Runs every day, and on demand from the Actions tab.
+# new product photos, models Canon has dropped, and consumables prices.
+# Covers printers, copiers and scanners plus the camera range (EOS, PowerShot, lenses, camcorders, Cinema EOS) with specifications. Runs every day, and on demand from the Actions tab.
 # GitHub only runs schedules from the default branch (main), so a copy of this file lives there too;
 # it updates the branch the website is published from.
 name: Sync products with Canon India
@@ -23,7 +24,7 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 50
     env:
       SITE_BRANCH: claude/aim-website   # change to main once the website is published from main
     steps:
@@ -52,7 +53,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A data assets/products
-          if git diff --cached --quiet -- data/products.csv data/consumables.csv assets/products; then
+          if git diff --cached --quiet -- data/products.csv data/consumables.csv data/specs.json assets/products; then
             echo "No product changes on Canon India today."; exit 0
           fi
           git commit -q -F .sync-message
