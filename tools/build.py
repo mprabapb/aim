@@ -27,8 +27,23 @@ CATEGORIES = [
     ('flatbed', 'Flatbed Scanners (CanoScan LiDE)', 'Flatbed Scanners', 'Slim USB-powered flatbed scanner for documents and photos.'),
     ('cheque', 'Cheque Scanners', 'Cheque Scanners', 'CTS-ready cheque scanner for banks and finance offices.'),
     ('selphy', 'Photo Printers (SELPHY)', 'Photo Printers', 'Compact photo printer for instant, lab-quality prints.'),
+    # Cameras and lenses: listed on products/cameras.html
+    ('mirrorless', 'EOS R Mirrorless Cameras', 'Mirrorless Cameras', 'Canon EOS R system mirrorless camera with fast Dual Pixel autofocus.'),
+    ('dslr', 'EOS DSLR Cameras', 'DSLR Cameras', 'Easy-to-use Canon EOS DSLR camera for stills and Full HD video.'),
+    ('compact', 'Compact Cameras (PowerShot / IXUS)', 'Compact Cameras', 'Pocket-sized Canon camera for travel, vlogging and everyday photos.'),
+    ('lens', 'RF Lenses', 'Lenses', 'Canon RF lens for EOS R system cameras.'),
+    ('camacc', 'Camera Accessories', 'Camera Accessories', 'Genuine Canon accessory for EOS cameras.'),
+    ('camcorder', 'Professional Camcorders', 'Camcorders', 'Canon professional camcorder for events, news and broadcast.'),
+    ('cinema', 'Cinema EOS Cameras', 'Cinema EOS', 'Canon Cinema EOS camera for film, documentary and broadcast production.'),
+    ('cinelens', 'Cinema & Broadcast Lenses', 'Cinema Lenses', 'Canon cinema and broadcast lens for professional video production.'),
 ]
 CAT_BY_NAME = {c[1]: c for c in CATEGORIES}
+CAMERA_CATS = {'mirrorless', 'dslr', 'compact', 'lens', 'camacc', 'camcorder', 'cinema', 'cinelens'}
+
+
+def cat_href(cat):
+    """Catalogue page and anchor for a category, relative to the site root."""
+    return f"products/{'cameras' if cat in CAMERA_CATS else 'index'}.html#{cat}"
 
 
 def slugify(s):
@@ -62,6 +77,9 @@ def load_price_list():
 
 
 PRICE_LIST = load_price_list()
+# Specification tables, key features and body/kit options read from Canon India by tools/sync_canon.py
+_SPECS_PATH = os.path.join(ROOT, 'data', 'specs.json')
+SPECS = json.load(open(_SPECS_PATH, encoding='utf-8')) if os.path.exists(_SPECS_PATH) else {}
 
 
 def load_products():
@@ -73,8 +91,13 @@ def load_products():
             pl = PRICE_LIST['product'].get(norm(r['Model']))
             if pl:
                 price = pl['MRP (Rs, incl. GST)'].strip()
+            spec = SPECS.get(slugify(r['Model']), {})
+            kit_prices = {v[1] for v in spec.get('variants', []) if v[1]}
             rows.append({
-                'from': bool(pl and pl['From'].strip()),
+                'from': bool(pl and pl['From'].strip()) or (not pl and len(kit_prices) > 1),
+                'specs': spec.get('specs', []),
+                'features': spec.get('features', []),
+                'variants': spec.get('variants', []),
                 'note': pl['Note'].strip() if pl else '',
                 'model': r['Model'],
                 'slug': slugify(r['Model']),
@@ -137,10 +160,10 @@ def wa_link(text):
 
 
 # Two-row header like Canon India: segments in the grey band, everyday links in the white row below
-SEGMENTS = [('products/index.html', 'Printers & Scanners'), ('consumables.html', 'Consumables'), ('service.html', 'Service & AMC'), ('government.html', 'Government (GeM)')]
-NAV = [('products/index.html', 'Products'), ('consumables.html', 'Consumables'), ('contact.html', 'Where to Buy'), ('service.html', 'Service Network'),
+SEGMENTS = [('products/index.html', 'Printers & Scanners'), ('products/cameras.html', 'Cameras & Lenses'), ('consumables.html', 'Consumables'), ('service.html', 'Service & AMC'), ('government.html', 'Government (GeM)')]
+NAV = [('products/index.html', 'Products'), ('products/cameras.html', 'Cameras'), ('consumables.html', 'Consumables'), ('contact.html', 'Where to Buy'), ('service.html', 'Service Network'),
        ('service.html#book', 'Book a Service'), ('government.html', 'GeM Orders'), ('about.html', 'About Us'), ('contact.html', 'Contact'), ('support.html', 'Support')]
-SEGMENT_FOR = {'Consumables': 'Consumables', 'Service & AMC': 'Service & AMC', 'Support': 'Service & AMC', 'Government Buyers': 'Government (GeM)'}
+SEGMENT_FOR = {'Cameras': 'Cameras & Lenses', 'Consumables': 'Consumables', 'Service & AMC': 'Service & AMC', 'Support': 'Service & AMC', 'Government Buyers': 'Government (GeM)'}
 
 
 # Brand icon paths (Simple Icons, CC0) for the Canon India social links
@@ -168,8 +191,8 @@ def page(path, title, desc, body, active=''):
     up = '../' * depth
     seg_on = SEGMENT_FOR.get(active, 'Printers & Scanners')
     segments = ''.join(f'<a href="{up}{href}"{" class=\"on\"" if label == seg_on else ""}>{E(label)}</a>' for href, label in SEGMENTS)
-    # Support and Consumables sit in the bars above on desktop, so their main-row copies only show in the phone menu
-    nav = ''.join(f'<a href="{up}{href}"{" class=\"nav-mobile\"" if href in ("support.html", "consumables.html") else ""}>{E(label)}</a>' for href, label in NAV)
+    # Support, Cameras and Consumables sit in the bars above on desktop, so their main-row copies only show in the phone menu
+    nav = ''.join(f'<a href="{up}{href}"{" class=\"nav-mobile\"" if href in ("support.html", "consumables.html", "products/cameras.html") else ""}>{E(label)}</a>' for href, label in NAV)
     ld = {
         '@context': 'https://schema.org', '@type': 'LocalBusiness', 'name': SITE['name'], 'openingHours': SITE['opening_hours'],
         'description': SITE['tagline'], 'telephone': [SITE['phone_display']] + [l['display'] for l in SITE['landlines']] + [SITE['canon_virtual']['display']], 'email': SITE['email'],
@@ -224,7 +247,7 @@ def page(path, title, desc, body, active=''):
     <a class="quote-link" href="{up}contact.html#quote"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M2 3h3l2.6 12.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H6.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.4" fill="currentColor"/><circle cx="17.5" cy="20" r="1.4" fill="currentColor"/></svg>Get a Quote</a>
   </div>
 </div></div>
-<div class="megamenu"><div class="wrap">{''.join(f'<a href="{up}products/index.html#{c[0]}">{cat_picture(c[0], up)}<span>{c[2]}</span></a>' for c in CATEGORIES)}</div></div>
+<div class="megamenu"><div class="wrap">{''.join(f'<a href="{up}{cat_href(c[0])}">{cat_picture(c[0], up)}<span>{c[2]}</span></a>' for c in CATEGORIES if CAT_PHOTO.get(c[0]) or c[0] not in CAMERA_CATS)}</div></div>
 </header>
 <main>
 {body}
@@ -240,6 +263,7 @@ def page(path, title, desc, body, active=''):
   <div>
     <h3>Products</h3>
     {''.join(f'<a href="{up}products/index.html#{c[0]}">{c[2]}</a>' for c in CATEGORIES[:6])}
+    <a href="{up}products/cameras.html">Cameras &amp; Lenses</a>
   </div>
   <div>
     <h3>Company</h3>
@@ -260,7 +284,7 @@ def page(path, title, desc, body, active=''):
   </div>
 </div>
 <div class="wrap social-row"><span>Follow Canon India</span>{social_links()}</div>
-<div class="wrap legal">© {date.today().year} AIM Enterprises, Sri Vijaya Puram. Product photos © Canon India. Canon, imageRUNNER, imageFORCE, imageCLASS, PIXMA, MAXIFY, imagePROGRAF and imageFORMULA are trademarks of Canon Inc. MRPs are as published by Canon India and may change without notice.</div>
+<div class="wrap legal">© {date.today().year} AIM Enterprises, Sri Vijaya Puram. Product photos © Canon India. Canon, imageRUNNER, imageFORCE, imageCLASS, PIXMA, MAXIFY, imagePROGRAF, imageFORMULA, EOS, PowerShot and IXUS are trademarks of Canon Inc. MRPs are as published by Canon India and may change without notice.</div>
 </footer>
 <a class="wa-float" href="{wa_link('Hello AIM Enterprises, I have an enquiry.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">{WA_ICON}</a>
 <script src="{up}assets/site.js?v={ASSET_V}" defer></script>
@@ -285,6 +309,14 @@ CAT_ICON = {
     'flatbed': '<rect x="12" y="44" width="76" height="20" rx="4"/><rect x="12" y="38" width="76" height="8" rx="3" class="hl"/>',
     'cheque': '<rect x="14" y="40" width="72" height="26" rx="6"/><rect x="24" y="28" width="52" height="14" rx="1" class="hl"/>',
     'selphy': '<rect x="22" y="38" width="56" height="30" rx="8"/><rect x="34" y="24" width="32" height="16" rx="2" class="hl"/>',
+    'mirrorless': '<rect x="14" y="34" width="60" height="38" rx="6"/><rect x="30" y="26" width="22" height="10" rx="2"/><circle cx="56" cy="53" r="16" class="hl"/>',
+    'dslr': '<rect x="14" y="34" width="60" height="40" rx="6"/><path d="M30 34 L36 22 L52 22 L58 34 Z"/><circle cx="56" cy="54" r="16" class="hl"/>',
+    'compact': '<rect x="18" y="36" width="64" height="36" rx="6"/><circle cx="50" cy="54" r="12" class="hl"/>',
+    'lens': '<rect x="24" y="30" width="52" height="40" rx="6"/><rect x="20" y="40" width="60" height="8" class="hl"/>',
+    'camacc': '<rect x="30" y="20" width="40" height="60" rx="6"/><rect x="38" y="28" width="24" height="10" rx="2" class="hl"/>',
+    'camcorder': '<rect x="12" y="38" width="58" height="30" rx="6"/><path d="M70 46 L88 38 L88 68 L70 60 Z" class="hl"/>',
+    'cinema': '<rect x="20" y="34" width="50" height="40" rx="4"/><rect x="70" y="44" width="16" height="20" rx="3" class="hl"/><rect x="26" y="24" width="30" height="10" rx="2"/>',
+    'cinelens': '<rect x="14" y="36" width="72" height="28" rx="6"/><rect x="30" y="32" width="8" height="36" class="hl"/><rect x="56" y="32" width="8" height="36" class="hl"/>',
 }
 
 
@@ -347,6 +379,28 @@ def ccard(c, up):
 </article>'''
 
 
+def variants_table(p):
+    """Body, kit and colour options with their Canon India MRPs (only when there is a choice to show)."""
+    vs = p['variants']
+    if not vs or (len(vs) == 1 and not vs[0][1]):
+        return ''
+    head = 'Body &amp; Kit Options' if p['cat'] in ('mirrorless', 'dslr') else 'Available Options'
+    rows = ''.join(f'''<tr><th scope="row">Canon {E(n)}</th><td class="num">{'Rs. ' + rupees(int(m)) + '.00' if m else 'On request'}</td>'''
+                   f'''<td><a href="{wa_link(f"Hello AIM Enterprises, please share your best price for Canon {n}.")}" target="_blank" rel="noopener">Ask Price</a></td></tr>''' for n, m in vs)
+    return (f'<section class="section reveal" id="options"><h2>{head}</h2><p>Canon India MRPs, inclusive of all taxes.</p>'
+            f'<div class="ctable-wrap"><table class="ctable"><thead><tr><th>Model</th><th class="num">MRP (incl. GST)</th><th></th></tr></thead>'
+            f'<tbody>{rows}</tbody></table></div></section>')
+
+
+def specs_table(p):
+    if not p['specs']:
+        return ''
+    rows = ''.join(f'<tr><th scope="row">{E(k)}</th><td>{"<br>".join(E(l) for l in v.split(chr(10)))}</td></tr>' for k, v in p['specs'])
+    return (f'<section class="section reveal" id="specs"><h2>Specifications</h2>'
+            f'<div class="ctable-wrap"><table class="ctable spec-table"><tbody>{rows}</tbody></table></div>'
+            f'<p class="small">Specifications as published by Canon India. <a href="{E(p["canon_url"])}" target="_blank" rel="noopener">See the Canon India product page</a> for brochures and full details.</p></section>')
+
+
 def consumables_table(items, up):
     rows = ''.join(f'''<tr><th scope="row">{E(c['name'])}</th><td class="num">{'Rs. ' + rupees(c['mrp']) + '.00' if c['mrp'] else 'On request'}</td>'''
                    f'''<td>{rupees(int(c['pages'])) + ' pages' if c['pages'].isdigit() else '-'}</td><td>{E(c['type'])}</td>'''
@@ -391,13 +445,18 @@ def build():
          [('government.html', 'Government Orders', ''), ('contact.html#quote', 'Request a Quote', ' btn-ghost')],
          shots('imageFORMULA DR-C240', 'imageCLASS LBP6030B', 'PIXMA G3010')),
     ]
+    if any(by_cat[c] for c in CAMERA_CATS):
+        banners.insert(1, ('grey', 'h2', 'Cameras &amp; Lenses', 'Canon EOS Cameras, Lenses and PowerShot',
+                           'EOS R mirrorless and DSLR cameras, RF lenses, PowerShot compacts, camcorders and Cinema EOS, with Canon India warranty.',
+                           [('products/cameras.html', 'Explore Cameras', ''), ('contact.html#quote', 'Get a Quotation', ' btn-ghost')],
+                           shots('EOS R6 Mark III', 'EOS R50', 'PowerShot G7 X Mark III')))
     slides_html = ''.join(
         f'<article class="slide bslide bslide-{tone}{" is-on" if i == 0 else ""}" aria-roledescription="slide" aria-label="{i + 1} of {len(banners)}"><div class="wrap bslide-inner">'
         f'<div class="bcopy"><p class="eyebrow">{eyebrow}</p><{tag} class="btitle">{title}</{tag}><p class="lede">{lede}</p>'
         f'<div class="hero-actions">{btns(buttons)}</div></div>'
         f'<div class="bpic">{pics}</div></div></article>'
         for i, (tone, tag, eyebrow, title, lede, buttons, pics) in enumerate(banners))
-    tiles = ''.join(f'''<a class="tile" href="products/index.html#{c[0]}">{cat_picture(c[0], '')}<span class="tile-name">{c[2]}</span><span class="tile-count">{len(by_cat[c[0]])} models</span><span class="tile-cta">View Products</span></a>'''
+    tiles = ''.join(f'''<a class="tile" href="{cat_href(c[0])}">{cat_picture(c[0], '')}<span class="tile-name">{c[2]}</span><span class="tile-count">{len(by_cat[c[0]])} models</span><span class="tile-cta">View Products</span></a>'''
                     for c in CATEGORIES if by_cat[c[0]])
     home = f'''
 <section class="banner" aria-roledescription="carousel" aria-label="Highlights">
@@ -445,41 +504,66 @@ def build():
          'Canon Authorized Premium Business Partner and Canon Service Edge (CSP) Provider in Sri Vijaya Puram (Port Blair). Canon copiers, printers, scanners, genuine consumables, AMC and service across the Andaman & Nicobar Islands.',
          home, 'Home')
 
-    # ---------- Product listing ----------
-    chips = '<button class="chip" data-filter="all" aria-pressed="true">All</button>' + ''.join(
-        f'<button class="chip" data-filter="{c[0]}" aria-pressed="false">{c[2]} <span>{len(by_cat[c[0]])}</span></button>'
-        for c in CATEGORIES if by_cat[c[0]])
-    sections = ''.join(f'''<section class="cat-block" id="{c[0]}" data-cat="{c[0]}">
+    # ---------- Product listings: printers & scanners, and cameras & lenses ----------
+    def listing_page(path, cats, title, intro, placeholder, meta_title, meta_desc, active):
+        cats = [c for c in CATEGORIES if c[0] in cats and by_cat[c[0]]]
+        count = sum(len(by_cat[c[0]]) for c in cats)
+        chips = '<button class="chip" data-filter="all" aria-pressed="true">All</button>' + ''.join(
+            f'<button class="chip" data-filter="{c[0]}" aria-pressed="false">{c[2]} <span>{len(by_cat[c[0]])}</span></button>'
+            for c in cats)
+        sections = ''.join(f'''<section class="cat-block" id="{c[0]}" data-cat="{c[0]}">
   <h2>{E(c[1])}</h2>
   <div class="grid">{''.join(card(p, '../') for p in by_cat[c[0]])}</div>
-</section>''' for c in CATEGORIES if by_cat[c[0]])
-    listing = f'''
+</section>''' for c in cats)
+        other = ('<a href="cameras.html">Looking for cameras and lenses?</a>' if path.endswith('index.html')
+                 else '<a href="index.html">Looking for printers, copiers and scanners?</a>')
+        listing = f'''
 <section class="page-head"><div class="wrap">
-  <nav class="crumbs"><a href="../index.html">Home</a> / Products</nav>
-  <h1>Canon Products</h1>
-  <p>{len(products)} models across copiers, printers and scanners. Prices shown are Canon India MRPs including GST. Ask us for the best price on any model.</p>
+  <nav class="crumbs"><a href="../index.html">Home</a> / {E(title)}</nav>
+  <h1>{E(title)}</h1>
+  <p>{count} {intro} Prices shown are Canon India MRPs including GST. Ask us for the best price on any model. {other}</p>
 </div></section>
 <div class="wrap catalogue">
   <div class="filters">
-    <label class="search"><span class="sr">Search Models</span><input id="q" type="search" placeholder="Search a model, e.g. G3010 or 2224"></label>
+    <label class="search"><span class="sr">Search Models</span><input id="q" type="search" placeholder="{E(placeholder)}"></label>
     <div class="chips">{chips}</div>
   </div>
   {sections}
-  <p class="empty" hidden>No model matches that search. <a href="../contact.html#quote">Ask Us</a> and we will source it for you.</p>
+  <p class="empty" hidden>No model matches that search. {other} Or <a href="../contact.html#quote">ask us</a> and we will source it for you.</p>
 </div>
 '''
-    page('products/index.html', 'Canon Printers, Copiers & Scanners with MRP | AIM Enterprises',
-         'Full Canon range with MRP: imageRUNNER copiers, imageCLASS laser, PIXMA ink tank, MAXIFY, imagePROGRAF and imageFORMULA scanners. Delivered and installed in the Andaman & Nicobar Islands.',
-         listing, 'Products')
+        page(path, meta_title, meta_desc, listing, active)
+
+    listing_page('products/index.html', [c[0] for c in CATEGORIES if c[0] not in CAMERA_CATS], 'Canon Products',
+                 'models across copiers, printers and scanners.', 'Search a model, e.g. G3010 or 2224',
+                 'Canon Printers, Copiers & Scanners with MRP | AIM Enterprises',
+                 'Full Canon range with MRP: imageRUNNER copiers, imageCLASS laser, PIXMA ink tank, MAXIFY, imagePROGRAF and imageFORMULA scanners. Delivered and installed in the Andaman & Nicobar Islands.',
+                 'Products')
+    if any(by_cat[c] for c in CAMERA_CATS):
+        listing_page('products/cameras.html', CAMERA_CATS, 'Canon Cameras & Lenses',
+                     'Canon cameras, lenses and accessories: EOS R mirrorless, EOS DSLR, PowerShot, RF lenses, camcorders and Cinema EOS.',
+                     'Search a model, e.g. R50, G7 X or RF50mm',
+                     'Canon EOS Cameras, RF Lenses & PowerShot with MRP | AIM Enterprises',
+                     'Canon EOS R mirrorless and DSLR cameras, PowerShot and IXUS compacts, RF lenses, accessories, camcorders and Cinema EOS with Canon India MRP. Genuine Canon India warranty from AIM Enterprises, Port Blair.',
+                     'Cameras')
 
     # ---------- Product pages ----------
     for p in products:
         related = [r for r in by_cat[p['cat']] if r is not p][:4]
         cat = next(c for c in CATEGORIES if c[0] == p['cat'])
+        is_cam = p['cat'] in CAMERA_CATS
+        list_page, list_name = ('cameras.html', 'Cameras &amp; Lenses') if is_cam else ('index.html', 'Products')
+        spec_href = '#specs' if p['specs'] else E(p['canon_url'])
+        spec_target = '' if p['specs'] else ' target="_blank" rel="noopener"'
+        canon_feats = ''.join(f'<li>{E(f)}</li>' for f in p['features'])
+        aim_feats = (['Genuine Canon India product with manufacturer warranty', 'Delivered across Sri Vijaya Puram and the Islands',
+                      'Canon service support through AIM', 'Available for GeM and tender orders'] if is_cam else
+                     ['Genuine Canon product with manufacturer warranty', 'Delivery and installation in Sri Vijaya Puram',
+                      'AMC and consumables available from AIM', 'Available for GeM and tender orders'])
         body = f'''
 <div class="wrap">
-  <nav class="crumbs"><a href="../index.html">Home</a> / <a href="index.html">Products</a> / <a href="index.html#{p['cat']}">{E(p['cat_label'])}</a> / {E(p['model'])}</nav>
-  <nav class="tabbar"><a href="#overview" class="on">Overview</a><a href="#features">Key Features</a><a href="{E(p['canon_url'])}" target="_blank" rel="noopener">Specifications</a><a href="../contact.html?model={E(p['model'])}#quote">Where to Buy</a>{'<a href="#consumables">Consumables</a>' if fits_map.get(p['model']) else ''}<a href="../support.html">Get Support</a></nav>
+  <nav class="crumbs"><a href="../index.html">Home</a> / <a href="{list_page}">{list_name}</a> / <a href="{list_page}#{p['cat']}">{E(p['cat_label'])}</a> / {E(p['model'])}</nav>
+  <nav class="tabbar"><a href="#overview" class="on">Overview</a><a href="#features">Key Features</a><a href="{spec_href}"{spec_target}>Specifications</a><a href="../contact.html?model={E(p['model'])}#quote">Where to Buy</a>{'<a href="#consumables">Consumables</a>' if fits_map.get(p['model']) else ''}<a href="../support.html">Get Support</a></nav>
   <section class="product" id="overview">
     <div class="product-pic">{picture(p, '../', lazy=False)}</div>
     <div class="product-info">
@@ -492,15 +576,14 @@ def build():
         <a class="btn btn-wa" href="{wa_link(f"Hello AIM Enterprises, please share your best price and availability for Canon {p['model']}.")}" target="_blank" rel="noopener">Ask on WhatsApp</a>
       </div>
       <ul class="checks small-checks" id="features">
-        <li>Genuine Canon product with manufacturer warranty</li>
-        <li>Delivery and installation in Sri Vijaya Puram</li>
-        <li>AMC and consumables available from AIM</li>
-        <li>Available for GeM and tender orders</li>
+        {canon_feats}{''.join(f'<li>{f}</li>' for f in aim_feats)}
       </ul>
       <p class="small">Full specifications and brochure: <a href="{E(p['canon_url'])}" target="_blank" rel="noopener">Canon India product page</a></p>
       <p class="small">Bought this model? <a href="{SITE['register_url']}" target="_blank" rel="noopener">Register your Canon product</a> for warranty support. Drivers, manuals and FAQ are on our <a href="../support.html">Support page</a>.</p>
     </div>
   </section>
+  {variants_table(p)}
+  {specs_table(p)}
   {'<section class="section reveal" id="consumables"><h2>Genuine Consumables</h2><p>Canon India MRPs, inclusive of all taxes. We keep genuine Canon supplies in stock in Sri Vijaya Puram. <a href="../consumables.html">Full consumables price list</a></p>' + consumables_table(fits_map[p['model']], '../') + '</section>' if fits_map.get(p['model']) else ''}
   {'<section class="section reveal"><h2>Similar Models</h2><div class="grid">' + ''.join(card(r, '../') for r in related) + '</div></section>' if related else ''}
 </div>
@@ -508,7 +591,7 @@ def build():
         price_txt = f"MRP ₹{rupees(p['mrp'])} incl. GST. " if p['mrp'] else ''
         page(f"products/{p['slug']}.html", f"Canon {p['model']} | Price in Port Blair | AIM Enterprises",
              f"Canon {p['model']}: {p['desc']} {price_txt}Buy from AIM Enterprises, Sri Vijaya Puram."[:300],
-             body, 'Products')
+             body, 'Cameras' if is_cam else 'Products')
 
     # ---------- Consumables ----------
     by_group = {g[0]: [c for c in consumables if c['group'] == g[0]] for g in CONSUMABLE_GROUPS}
@@ -752,7 +835,7 @@ def build():
 
     # ---------- Sitemap / robots / data for search ----------
     base = SITE['url'].rstrip('/')
-    urls = ['', 'products/', 'consumables.html', 'service.html', 'government.html', 'about.html', 'contact.html', 'support.html'] + [f"products/{p['slug']}.html" for p in products]
+    urls = ['', 'products/', 'products/cameras.html', 'consumables.html', 'service.html', 'government.html', 'about.html', 'contact.html', 'support.html'] + [f"products/{p['slug']}.html" for p in products]
     with open(os.path.join(ROOT, 'sitemap.xml'), 'w', encoding='utf-8') as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n')
         f.writelines(f'  <url><loc>{base}/{u}</loc></url>\n' for u in urls)

@@ -356,3 +356,6 @@ address { font-style: normal; }
 .ctable thead th { font-weight: 700; background: var(--panel); }
 .ctable tbody th { font-weight: 400; color: var(--black); }
 .ctable .num { text-align: right; font-variant-numeric: tabular-nums; }
+.spec-table th, .spec-table td { white-space: normal; vertical-align: top; }
+.spec-table tbody th { width: 34%; color: var(--ink); }
+.spec-table td { color: var(--black); overflow-wrap: anywhere; }
