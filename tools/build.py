@@ -226,7 +226,7 @@ def page(path, title, desc, body, active=''):
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Figtree:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Figtree:wght@400;500&display=swap">
 <link rel="stylesheet" href="{up}assets/style.css?v={ASSET_V}">
 <link rel="icon" href="{up}assets/favicon.svg?v={ASSET_V}" type="image/svg+xml">
 <script type="application/ld+json">{json.dumps(ld)}</script>
@@ -234,8 +234,7 @@ def page(path, title, desc, body, active=''):
 <body data-wa="{SITE['whatsapp']}" data-email="{SITE['email']}">
 <header class="site-header">
 <div class="brandbar"><div class="wrap">
-  <a class="brand" href="{up}index.html"><img src="{up}assets/logo.svg?v={ASSET_V}" alt="AIM Enterprises, Canon Authorized Premium Partner" width="170" height="44"></a>
-  <span class="brand-place">Andaman &amp; Nicobar</span>
+  <a class="brand" href="{up}index.html" aria-label="AIM Enterprises home"><span class="brand-name">AIM ENTERPRISES</span><span class="brand-tag">Canon Authorized Premium Partner</span></a>
   <nav class="segments" aria-label="Sections">{segments}</nav>
   <span class="bar-divider" aria-hidden="true"></span>
   <a class="search-link" href="{up}products/index.html#search" aria-label="Search products"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M15.6 15.6 21 21" stroke="currentColor" stroke-width="1.4"/></svg></a>
