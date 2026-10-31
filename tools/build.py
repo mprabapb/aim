@@ -12,7 +12,7 @@ from datetime import date
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Version query for shared assets, so browsers and phones fetch new copies after each change
 # Bump the salt to give every asset a new URL (browsers cache GitHub Pages redirects)
-ASSET_V = hashlib.md5(b'gh-pages-3' + b''.join(open(os.path.join(ROOT, 'assets', n), 'rb').read()
+ASSET_V = hashlib.md5(b'gh-pages-4' + b''.join(open(os.path.join(ROOT, 'assets', n), 'rb').read()
                               for n in ('style.css', 'site.js', 'logo.svg', 'canon-logo.svg'))).hexdigest()[:8]
 SITE = json.load(open(os.path.join(ROOT, 'data', 'site.json'), encoding='utf-8'))
 E = html.escape
