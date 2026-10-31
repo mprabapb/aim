@@ -1,0 +1,377 @@
+/* AIM Enterprises — styled after Canon India (in.canon): Lato body text, light headings, white pages with soft grey panels, black footer, Canon red for the main call to action */
+:root {
+  --red: #e41920;          /* Canon red */
+  --red-dark: #c3131a;
+  --black: #000;
+  --ink: #383838;          /* body text */
+  --grey: #757575;         /* secondary text, prices */
+  --grey-2: #939393;       /* inactive nav, captions */
+  --panel: #f3f4f6;        /* light section / card background */
+  --panel-2: #e8e9eb;
+  --line: #e8e9eb;
+  --dark: #262626;
+  --white: #fff;
+  --wa: #1f9d55;
+  --title: "Figtree", "Proxima Nova", "Helvetica Neue", Arial, sans-serif; /* Figtree: closest free match to Canon's proxima-nova */
+  --font: "Lato", "Helvetica Neue", Arial, sans-serif;
+  --radius: 5px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; background: var(--white); }
+body { margin: 0; font: 400 18px/24px var(--font); color: var(--ink); background: var(--white); }
+img, svg { max-width: 100%; }
+a { color: var(--black); }
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+h1, h2, h3 { font-family: var(--title); font-weight: 400; color: var(--black); text-wrap: balance; margin: 0 0 .5em; }
+h1 { font-size: clamp(34px, 4.2vw, 56px); line-height: 1.1; }
+h2 { font-size: clamp(28px, 3.3vw, 46px); line-height: 1.15; }
+h3 { font-size: 20px; line-height: 1.3; }
+p { margin: 0 0 1em; line-height: 28px; }
+b, strong { font-weight: 700; color: var(--black); }
+address { font-style: normal; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.small { font-size: 14px; line-height: 20px; color: var(--grey); }
+.lede { font-size: 18px; max-width: 58ch; color: var(--ink); }
+.eyebrow { font-size: 14px; color: var(--red); margin-bottom: 14px; }
+
+/* Header, two rows like Canon India: grey brand band (logo, sections, search) over a white menu row */
+.site-header { position: relative; z-index: 20; background: var(--white); }
+.brandbar { background: var(--panel); }
+.brandbar .wrap { display: flex; align-items: center; min-height: 90px; font-size: 16px; }
+.brand { display: flex; flex-direction: column; justify-content: center; text-decoration: none; line-height: 1; flex-shrink: 0; }
+.brand img { height: 44px; width: auto; display: block; }
+.brand-name { font-family: Lato, Arial, sans-serif; font-weight: 900; font-size: 30px; letter-spacing: .01em; color: var(--red); white-space: nowrap; }
+.brand-tag { margin-top: 5px; font-size: 11px; font-weight: 700; letter-spacing: .03em; color: var(--ink); white-space: nowrap; }
+.brand-place { color: var(--ink); font-weight: 700; margin: 0 24px 0 28px; }
+.partner-mark { display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; }
+.partner-mark img { height: 20px; width: auto; display: block; }
+.partner-mark span { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
+.segments { display: flex; gap: 16px; margin-left: auto; padding-left: 24px; }
+.segments a { color: var(--grey-2); text-decoration: none; white-space: nowrap; }
+.brand-place, .bar-accent { white-space: nowrap; }
+.segments a:hover { color: var(--black); }
+.segments a.on { color: var(--black); font-weight: 700; }
+@media (min-width: 961px) { .bar-divider, .search-link, .bar-accent, .partner-mark { flex-shrink: 0; } }
+.bar-divider { width: 1px; height: 26px; background: #c9cbcf; margin: 0 18px 0 24px; }
+.menubar .bar-divider { margin: 0 20px; }
+.search-link { color: var(--grey); display: grid; place-items: center; width: 40px; height: 40px; }
+.search-link:hover { color: var(--black); }
+.bar-accent { color: var(--red); text-decoration: none; margin-left: 32px; }
+.bar-accent:hover { text-decoration: underline; }
+.menubar { background: var(--white); border-bottom: 1px solid var(--line); }
+.menubar .wrap { display: flex; align-items: center; min-height: 76px; font-size: 16px; }
+#nav { display: flex; align-items: center; gap: 20px; }
+#nav a, .menu-right a { color: var(--black); text-decoration: none; padding: 12.5px 0; }
+#nav a:hover, .menu-right a:hover { color: var(--red); }
+.menu-right { display: flex; align-items: center; gap: 20px; margin-left: auto; }
+.quote-link { display: inline-flex; align-items: center; gap: 10px; }
+.nav-toggle { display: none; margin-left: 16px; font: 16px var(--font); background: none; color: var(--black); border: 1px solid var(--black); border-radius: var(--radius); padding: 8px 16px; cursor: pointer; }
+.megamenu { display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--white); border-top: 1px solid var(--line); box-shadow: 0 16px 32px rgba(0,0,0,.08); }
+.megamenu .wrap { display: grid; grid-template-columns: repeat(9, 1fr); gap: 8px; padding-block: 24px; }
+.megamenu a { display: grid; justify-items: center; gap: 8px; text-align: center; text-decoration: none; color: var(--ink); font-size: 14px; padding: 12px 8px; border-radius: var(--radius); }
+.megamenu a:hover { color: var(--black); background: var(--panel); }
+.site-header.mega-open .megamenu { display: block; }
+
+/* Buttons (Canon: 5px radius, 16px Lato; red filled "Buy Now", outlined "Discover More") */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: 400 16px/1 var(--font); text-decoration: none; background: var(--red); color: #fff; border: 1px solid var(--red); border-radius: var(--radius); padding: 16.5px 32px; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+.btn:hover { background: var(--red-dark); border-color: var(--red-dark); }
+.btn-ghost { background: transparent; color: var(--black); border-color: var(--black); padding: 11px 24px; }
+.btn-ghost:hover { background: var(--black); color: #fff; border-color: var(--black); }
+.btn-wa { background: var(--wa); border-color: var(--wa); }
+.btn-wa:hover { background: #17824a; border-color: #17824a; }
+.btn-block { width: 100%; padding: 13px 12px; }
+.text-link { color: var(--grey); text-decoration: none; font-size: 14px; }
+.text-link:hover { color: var(--black); text-decoration: underline; }
+
+/* Home banners: three full-width slides rotating like Canon India's carousel */
+.banner { position: relative; overflow: hidden; }
+.banner .slides { display: grid; }
+.slide { grid-area: 1 / 1; opacity: 0; visibility: hidden; transition: opacity .8s var(--ease), visibility 0s .8s; }
+.slide.is-on { opacity: 1; visibility: visible; transition: opacity .8s var(--ease); }
+.bslide-light { background: var(--panel); }
+.bslide-grey { background: linear-gradient(90deg, #fff 0%, #fff 45%, var(--panel-2) 100%); }
+.bslide-dark { background: radial-gradient(ellipse 60% 90% at 75% 55%, #3a3a3f 0%, var(--dark) 55%, #111 100%); color: #e8e9eb; }
+.bslide-dark .btitle, .bslide-dark .lede { color: var(--white); }
+.bslide-dark .eyebrow { color: #ff5a5f; }
+.bslide-dark .btn-ghost { color: var(--white); border-color: var(--white); }
+.bslide-dark .btn-ghost:hover { background: var(--white); color: var(--black); }
+.bslide-inner { display: grid; grid-template-columns: 1fr 1.05fr; align-items: center; gap: 40px; min-height: min(68vh, 560px); padding-block: 56px 72px; }
+.btitle { font: 400 clamp(32px, 4vw, 56px)/1.1 var(--title); color: var(--black); margin: 0 0 .4em; }
+.bpic { position: relative; display: flex; align-items: flex-end; justify-content: center; gap: 2%; height: 100%; min-height: 300px; }
+.bshot { flex: 1 1 0; max-width: 560px; aspect-ratio: 362 / 320; }
+.bshot .photo { filter: drop-shadow(0 22px 26px rgba(0,0,0,.18)); }
+.bslide-dark .bshot .photo { filter: drop-shadow(0 26px 30px rgba(0,0,0,.6)); }
+.slide.is-on .bshot { animation: rise .9s var(--ease) both; }
+.slide.is-on .bshot:nth-child(2) { animation-delay: .12s; }
+.slide.is-on .bshot:nth-child(3) { animation-delay: .24s; }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+.bbadge { position: absolute; top: 6%; right: 6%; width: 116px; height: 116px; border-radius: 50%; background: var(--red); color: #fff; display: grid; place-content: center; text-align: center; font-size: 15px; line-height: 1.2; margin: 0; box-shadow: 0 10px 30px rgba(228,25,32,.4); }
+.bbadge b { display: block; color: #fff; font: 400 22px/1.1 var(--title); }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 14px; margin: 28px 0 4px; }
+.reel { position: absolute; left: 0; right: 0; bottom: 22px; z-index: 2; display: flex; justify-content: center; gap: 12px; }
+.reel-tick { width: 10px; height: 10px; padding: 0; border: 0; border-radius: 50%; background: var(--grey-2); opacity: .55; cursor: pointer; }
+.reel-tick i { display: none; }
+.reel-tick.is-on { background: var(--red); opacity: 1; }
+
+.why { background: var(--white); border-bottom: 1px solid var(--line); }
+.why .hero-panel { padding-block: 28px; }
+.panel-title { font-size: 14px; color: var(--grey); margin-bottom: 14px; }
+.why .checks { grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.checks li { position: relative; padding-left: 26px; font-size: 16px; line-height: 22px; }
+.checks li::before { content: ""; position: absolute; left: 2px; top: .4em; width: 11px; height: 6px; border-left: 2px solid var(--red); border-bottom: 2px solid var(--red); transform: rotate(-45deg); }
+.small-checks { margin: 22px 0; }
+
+/* Sections: centred headings like Canon's "Featured Products" */
+.section { padding-block: 64px; }
+.band { background: var(--panel); }
+.band-dark { background: var(--black); color: #e8e9eb; }
+.band-dark h2 { color: var(--white); }
+.section-head { display: grid; justify-items: center; text-align: center; gap: 6px; margin-bottom: 36px; }
+.section-head h2 { margin: 0; }
+.section-head a { color: var(--grey); font-size: 16px; text-decoration: none; }
+.section-head a:hover { color: var(--black); text-decoration: underline; }
+.cta-row { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+.cta-row p { margin: 0; }
+
+/* Product photos sit on Canon's light grey */
+.card-pic, .product-pic, .megamenu a .photo { background: var(--panel); }
+.photo { display: block; width: 100%; height: 100%; object-fit: contain; transition: transform .5s var(--ease); }
+.pic { fill: #b9bbc0; }
+.pic .hl { fill: var(--red); }
+
+/* Category tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
+.tile { display: grid; justify-items: center; text-align: center; gap: 6px; padding: 24px 14px 22px; text-decoration: none; color: var(--black); background: var(--panel); border-radius: 8px; transition: box-shadow .25s; }
+.tile:hover { box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+.tile:hover .photo { transform: scale(1.05); }
+.tile .photo, .megamenu .photo { width: 110px; height: 90px; }
+.tile .pic, .megamenu .pic { width: 84px; height: 84px; }
+.tile-name { font: 400 18px/1.3 var(--title); }
+.tile-count { font-size: 14px; color: var(--grey); }
+.tile-cta { font-size: 14px; color: var(--red); margin-top: 4px; }
+
+/* Product cards (Canon: grey photo panel, centred name, grey MRP, outlined button) */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+.card { display: flex; flex-direction: column; text-align: center; background: var(--white); border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px var(--line); padding: 0 0 22px; min-width: 0; transition: box-shadow .25s; }
+.band .card { box-shadow: none; }
+.card:hover { box-shadow: 0 10px 30px rgba(0,0,0,.1); }
+.card:hover .photo { transform: scale(1.05); }
+.card-pic { display: grid; place-items: center; aspect-ratio: 4 / 3; margin-bottom: 18px; overflow: hidden; }
+.card-pic .photo { width: 80%; height: 80%; }
+.card-pic .pic { width: 44%; }
+.card > h3, .card > .price, .card > .card-actions, .card > .card-cat { margin-inline: 18px; }
+.card-cat { font-size: 14px; color: var(--red); margin: 0 0 4px; }
+.card h3 { font-size: 18px; margin-bottom: 6px; overflow-wrap: anywhere; }
+.card h3 a { color: var(--black); text-decoration: none; }
+.card h3 a:hover { text-decoration: underline; }
+.price { font: 400 16px/22px var(--font); color: var(--grey); margin: auto 0 18px; font-variant-numeric: tabular-nums; }
+.price-note { display: block; font-size: 11px; line-height: 16px; color: var(--grey-2); }
+.price-ask { color: var(--grey); }
+.card-actions { display: grid; gap: 10px; justify-items: center; }
+.card .btn { background: transparent; color: var(--black); border-color: var(--black); padding: 11px 24px; }
+.card .btn:hover { background: var(--black); color: #fff; }
+
+/* Catalogue */
+.page-head { background: var(--panel); padding-block: 40px 36px; }
+.page-head p { max-width: 70ch; margin: 0; }
+.crumbs { font-size: 14px; color: var(--grey); margin-bottom: 14px; }
+.crumbs a { color: var(--grey); text-decoration: none; }
+.crumbs a:hover { color: var(--black); }
+.wrap > .crumbs { padding-top: 22px; }
+.catalogue { padding-block: 24px 72px; }
+.filters { position: sticky; top: 0; z-index: 10; background: var(--white); padding-block: 14px 0; margin-bottom: 8px; display: grid; gap: 12px; }
+.search input { width: 100%; max-width: 460px; font: 16px var(--font); color: var(--black); background: var(--white); padding: 12px 16px; border: 1px solid #cfd1d5; border-radius: var(--radius); }
+.search input::placeholder { color: var(--grey-2); }
+.chips { display: flex; overflow-x: auto; border-bottom: 1px solid var(--line); }
+.chip { white-space: nowrap; font: 16px var(--font); background: none; border: 0; border-bottom: 2px solid transparent; padding: 12px 16px; cursor: pointer; color: var(--grey); }
+.chip span { color: var(--grey-2); font-size: 14px; }
+.chip:hover { color: var(--black); }
+.chip[aria-pressed="true"] { color: var(--black); border-bottom-color: var(--red); }
+.cat-block { padding-top: 40px; scroll-margin-top: 190px; }
+.cat-block h2 { font-size: clamp(24px, 2.6vw, 36px); }
+.empty { padding: 32px 0; color: var(--grey); }
+
+/* Product page (Canon: grey hero with name, MRP, red Buy Now; tab bar beneath) */
+.tabbar { position: sticky; top: 0; z-index: 10; background: var(--white); display: flex; justify-content: center; overflow-x: auto; border-bottom: 1px solid var(--line); margin: 16px 0 8px; }
+.tabbar a { white-space: nowrap; padding: 22px 13px; text-decoration: none; color: var(--grey); font-size: 18px; border-bottom: 2px solid transparent; }
+.tabbar a:hover { color: var(--black); }
+.tabbar a.on { color: var(--black); border-bottom-color: var(--red); }
+.product { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; padding-block: 28px 56px; align-items: center; scroll-margin-top: 140px; }
+.product > :first-child { order: 2; }
+.product-pic { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; }
+.product-pic .photo { width: 80%; height: 80%; }
+.product-pic .pic { width: 44%; }
+.product h1 { font-size: clamp(32px, 4vw, 56px); }
+.product .card-cat { margin-bottom: 10px; }
+.product .price { font-size: 18px; margin: 6px 0 4px; }
+#features { scroll-margin-top: 140px; }
+
+/* Two-column content, forms, callouts */
+.two-col { display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: start; }
+.prose { min-width: 0; }
+.callout { background: var(--panel); border-radius: 8px; padding: 28px; }
+.callout h2 { font-size: 26px; }
+.contact-cards { display: grid; gap: 14px; }
+.form { background: var(--panel); border-radius: 8px; padding: 28px; display: grid; gap: 14px; scroll-margin-top: 120px; }
+.form h2 { font-size: 26px; margin: 0; }
+.form label { display: grid; gap: 6px; font-size: 14px; color: var(--grey); }
+.form input, .form textarea { font: 16px var(--font); color: var(--black); background: var(--white); padding: 12px 14px; border: 1px solid #cfd1d5; border-radius: var(--radius); width: 100%; }
+.form input:focus, .form textarea:focus { border-color: var(--black); outline: none; }
+.form-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; padding-bottom: 0; }
+.facts div { background: var(--panel); border-radius: 8px; padding: 18px 20px; }
+.fact-label { display: block; font-size: 14px; color: var(--grey); }
+.fact { font: 400 20px/1.3 var(--title); color: var(--black); font-variant-numeric: tabular-nums; }
+.services { display: grid; grid-template-columns: 1fr 1.4fr; gap: 48px; }
+.service-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.service-list li { display: grid; gap: 6px; background: var(--panel); border-radius: 8px; padding: 22px; }
+#nav .nav-mobile { display: none; }
+.support-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+.support-card { display: grid; gap: 8px; align-content: start; background: var(--panel); border-radius: 8px; padding: 24px; color: var(--ink); text-decoration: none; border: 1px solid transparent; }
+.support-card:hover { border-color: var(--red); }
+.support-card b { font: 400 20px/1.3 var(--title); }
+.support-card span { color: var(--grey); font-size: 16px; line-height: 22px; }
+.support-card em { font-style: normal; color: var(--red); font-size: 15px; margin-top: 4px; }
+.about-list { grid-template-columns: repeat(3, 1fr); margin-top: 24px; }
+.about-list li { align-content: start; }
+.service-list b { font: 400 20px/1.3 var(--title); }
+.service-list span { color: var(--grey); font-size: 16px; line-height: 22px; }
+
+/* Footer (Canon: black, grey headings, white 14px links) */
+.site-footer { background: var(--black); color: var(--grey-2); padding-top: 56px; font-size: 14px; line-height: 20px; }
+.site-footer h3 { font: 500 16px/19px var(--title); color: var(--grey); margin-bottom: 16px; }
+.site-footer a { display: block; color: var(--white); text-decoration: none; padding: 4px 0; }
+.site-footer a:hover { text-decoration: underline; }
+.site-footer p { line-height: 20px; }
+.site-footer img { filter: brightness(0) invert(1); }
+.footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr 1.2fr; gap: 32px; padding-bottom: 36px; }
+.verify-link { color: var(--white); font-size: 14px; text-decoration: underline; }
+.social-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding-bottom: 28px; }
+.social-row span { color: var(--grey-2); font-size: 14px; margin-right: 4px; }
+.social-row a { display: inline-flex; align-items: center; gap: 8px; color: var(--white); border: 1px solid var(--grey); border-radius: 999px; padding: 6px 14px 6px 10px; font-size: 14px; text-decoration: none; }
+.social-row a span { color: inherit; font-size: inherit; margin: 0; }
+.social-row a:hover { border-color: var(--red); color: var(--white); background: var(--red); }
+.social-light { padding-bottom: 0; margin-top: 16px; }
+.social-light a { color: var(--ink); border-color: var(--panel-2); background: var(--panel); }
+/* Original brand colours; X is black on light backgrounds and white on the black footer */
+.social-row .soc-facebook svg { color: #0866ff; }
+.social-row .soc-instagram svg { color: #e4405f; }
+.social-row .soc-youtube svg { color: #ff0000; }
+.social-row .soc-x svg { color: #fff; }
+.social-light .soc-x svg { color: #000; }
+.social-row .soc-linkedin svg { color: #0a66c2; }
+.social-row a:hover svg { color: #fff; }
+.partner-badge { display: inline-block; border: 1px solid var(--grey); color: var(--white); font-size: 13px; border-radius: var(--radius); padding: 8px 12px; margin: 14px 0; }
+.legal { border-top: 1px solid var(--dark); padding-block: 18px 90px; font-size: 12px; color: var(--grey); }
+
+/* Floating WhatsApp */
+.wa-float { position: fixed; right: 18px; bottom: 18px; width: 54px; height: 54px; border-radius: 50%; background: var(--wa); color: #fff; display: grid; place-items: center; box-shadow: 0 6px 18px rgba(0,0,0,.25); z-index: 30; }
+
+/* Gentle fade-in for sections below the fold (JS adds .pre) */
+.reveal.pre { opacity: 0; transform: translateY(20px); }
+.reveal { transition: opacity .7s var(--ease), transform .7s var(--ease); }
+
+@media (max-width: 1320px) {
+  .brand-place { display: none; }
+  .brand-name { font-size: 28px; }
+  .segments { gap: 16px; padding-left: 20px; }
+  .segments a[href$="government.html"] { display: none; } /* GeM Orders is in the menu row */
+}
+@media (max-width: 1180px) {
+  .segments { gap: 16px; }
+  .bar-divider { margin-left: 20px; margin-right: 12px; }
+  .bar-accent { margin-left: 16px; }
+  #nav, .menu-right { gap: 16px; }
+  #nav a, .menu-right a { white-space: nowrap; font-size: 15px; }
+  .brand-name { font-size: 24px; }
+  .brand-tag { font-size: 10px; }
+  .brand { margin-right: 8px; }
+  .segments a[href$="service.html"] { display: none; } /* Book a Service and AMC are in the menu row */
+  .menu-right { margin-left: 16px; }
+}
+@media (max-width: 1099px) {
+  .segments { gap: 12px; font-size: 15px; }
+  #nav, .menu-right { gap: 10px; }
+  .menu-right { margin-left: 10px; }
+  .menubar .bar-divider { margin: 0 12px; }
+  #nav a, .menu-right a { font-size: 14px; }
+}
+@media (max-width: 960px) {
+  .wrap.bslide-inner { grid-template-columns: 1fr; gap: 12px; min-height: 0; padding-block: 28px 64px; }
+  .bpic { order: -1; min-height: 0; height: auto; max-width: 460px; width: 100%; margin: 0 auto; }
+  .bbadge { width: 84px; height: 84px; font-size: 12px; top: 0; right: 0; }
+  .bbadge b { font-size: 17px; }
+  .product, .two-col, .services { grid-template-columns: 1fr; gap: 32px; }
+  .product > :first-child { order: 0; }
+  .why .checks { grid-template-columns: 1fr 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .support-grid, .about-list { grid-template-columns: 1fr 1fr; }
+  #nav .nav-mobile { display: block; }
+  .tabbar { justify-content: flex-start; }
+  .nav-toggle { display: block; }
+  .segments, .brand-place, .bar-divider, .bar-accent, .menu-right { display: none; }
+  .partner-mark { order: 1; margin: 0 16px 0 auto; padding-left: 14px; }
+  .search-link { order: 2; margin-right: 12px; }
+  .nav-toggle { order: 3; }
+  .partner-mark img { height: 16px; }
+  .partner-mark span { font-size: 8px; }
+  .brandbar .wrap { min-height: 72px; }
+  .menubar { border-bottom: 0; }
+  .menubar .wrap { min-height: 0; }
+  .site-header.mega-open .megamenu { display: none; }
+  #nav { display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--white); border-bottom: 1px solid var(--line); flex-direction: column; align-items: stretch; gap: 0; padding: 8px 32px 16px; margin: 0; box-shadow: 0 16px 32px rgba(0,0,0,.08); }
+  #nav a { padding: 14px 0; border-bottom: 1px solid var(--line); }
+  #nav.open { display: flex; }
+}
+@media (max-width: 560px) {
+  body { font-size: 16px; line-height: 22px; }
+  .wrap { padding: 0 16px; }
+  .brand-name { font-size: 22px; }
+  .brand-tag { font-size: 9px; margin-top: 4px; }
+  #nav { padding-inline: 16px; }
+  .why .checks, .service-list, .footer-grid, .support-grid, .about-list { grid-template-columns: 1fr; }
+  .grid, .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .tile .photo { width: 96px; height: 78px; }
+  .card { padding-bottom: 14px; }
+  .card > h3, .card > .price, .card > .card-actions, .card > .card-cat { margin-inline: 8px; }
+  .card h3 { font-size: 15px; }
+  .price { font-size: 14px; }
+  .card .btn { padding: 10px 14px; font-size: 14px; }
+  .btn { padding: 14px 22px; }
+  .section { padding-block: 48px; }
+  .tabbar a { font-size: 16px; padding: 16px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .reveal.pre { opacity: 1; transform: none; }
+}
+@media (max-width: 400px) {
+  .partner-mark span { display: none; }
+  .partner-mark { margin-right: 10px; }
+  .brand-name { font-size: 19px; }
+  .brand-tag { font-size: 8px; }
+  .search-link { margin-right: 8px; }
+}
+
+/* Consumables (no photo: text card) and the per-printer consumables table */
+.ccard { padding-top: 22px; text-align: left; }
+.ccard > .cyield, .ccard > .cfits { margin: 0 18px 6px; font-size: 14px; color: var(--grey); }
+.ccard > .price { margin-top: auto; padding-top: 10px; }
+.ccard .card-actions { justify-items: start; }
+.ctable-wrap { overflow-x: auto; }
+.ctable { width: 100%; border-collapse: collapse; font-size: 16px; }
+.ctable th, .ctable td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.ctable thead th { font-weight: 700; background: var(--panel); }
+.ctable tbody th { font-weight: 400; color: var(--black); }
+.ctable .num { text-align: right; font-variant-numeric: tabular-nums; }
+.spec-table th, .spec-table td { white-space: normal; vertical-align: top; }
+.spec-table tbody th { width: 34%; color: var(--ink); }
+.spec-table td { color: var(--black); overflow-wrap: anywhere; }
+
+/* Office hours shown line by line under the address */
+.hours { margin: 10px 0; line-height: 1.45; }
+.site-footer .hours strong { color: #fff; }

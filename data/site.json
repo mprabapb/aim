@@ -1,0 +1,112 @@
+{
+  "name": "AIM Enterprises",
+  "tagline": "Canon sales, service and genuine consumables in the Andaman & Nicobar Islands.",
+  "badge": "Canon Authorized Premium Business Partner · Canon Service Edge (CSP) Provider",
+  "url": "https://aimenterprises.net/",
+  "phone_display": "+91 94342 82223",
+  "phone_tel": "+919434282223",
+  "landlines": [
+    {
+      "display": "+91 3192 220900",
+      "tel": "+913192220900"
+    },
+    {
+      "display": "+91 3192 233444",
+      "tel": "+913192233444"
+    }
+  ],
+  "canon_virtual": {
+    "display": "+91 96190 29537",
+    "tel": "+919619029537"
+  },
+  "share_image": "https://raw.githubusercontent.com/mprabapb/aim/claude/aim-website/assets/share.png",
+  "whatsapp": "919434282223",
+  "email": "info@aimenterprises.net",
+  "hours": "Office hours: Monday to Friday, 9 am to 6 pm; Saturday, 9 am to 1 pm",
+  "hours_lines": ["Monday to Friday, 9 am to 6 pm", "Saturday, 9 am to 1 pm"],
+  "opening_hours": ["Mo-Fr 09:00-18:00", "Sa 09:00-13:00"],
+  "street": "Shop No. 3, No. 112 Middle Point, MG Road, opp. BJP Bhawan",
+  "city": "Sri Vijaya Puram (Port Blair)",
+  "pin": "744101",
+  "address_lines": [
+    "Shop No. 3, No. 112 Middle Point",
+    "MG Road, opp. BJP Bhawan",
+    "Sri Vijaya Puram (Port Blair) 744101",
+    "Andaman & Nicobar Islands"
+  ],
+  "maps_url": "https://www.google.com/maps/search/?api=1&query=AIM+Enterprises%2C+Middle+Point%2C+Port+Blair+744101&query_place_id=ChIJu_cffViViDARtXAFxcTaQMQ",
+  "gstin": "35AKEPP1123F1ZM",
+  "gem_id": "F634180000090965",
+  "featured": [
+    "imageRUNNER 2425",
+    "imageRUNNER 2224N/2224",
+    "imageCLASS MF3010",
+    "imageCLASS MF289dw",
+    "imageCLASS LBP6030B",
+    "PIXMA G3010",
+    "PIXMA G4780",
+    "imageFORMULA DR-C240"
+  ],
+  "register_url": "https://shop.in.canon/productregistration/",
+  "support_links": [
+    {
+      "title": "Drivers, Software & Firmware",
+      "text": "Download printer and scanner drivers, utilities and the latest firmware.",
+      "url": "https://in.canon/en/support/download"
+    },
+    {
+      "title": "Manuals",
+      "text": "User guides, set-up guides and reference manuals for your model.",
+      "url": "https://in.canon/en/support/manual"
+    },
+    {
+      "title": "Product Specification",
+      "text": "Full technical specifications for Canon products.",
+      "url": "https://in.canon/en/support/specification"
+    },
+    {
+      "title": "FAQ",
+      "text": "Answers to common questions, error codes and troubleshooting by topic.",
+      "url": "https://in.canon/en/support/faq?searchType=topic"
+    },
+    {
+      "title": "Service Labour Charges",
+      "text": "Canon's published labour charges for out-of-warranty repairs.",
+      "url": "https://in.canon/en/consumer/web/labour-charges"
+    },
+    {
+      "title": "Product Registration",
+      "text": "Register your new Canon product to activate warranty support.",
+      "url": "https://shop.in.canon/productregistration/"
+    }
+  ],
+  "labour_url": "https://in.canon/en/consumer/web/labour-charges",
+  "canon_listing_url": "https://bisstores.in.canon/canon-authorised-dealer-aim-enterprises-printing-equipment-and-supplies-middle-point-port-blair-165142/Home",
+  "canon_social": [
+    {
+      "name": "Facebook",
+      "url": "https://www.facebook.com/canonindia",
+      "icon": "facebook"
+    },
+    {
+      "name": "Instagram",
+      "url": "https://www.instagram.com/canonindia_official",
+      "icon": "instagram"
+    },
+    {
+      "name": "YouTube",
+      "url": "https://www.youtube.com/channel/UCQYoWRg5VdK7lrR5u4BAFuQ",
+      "icon": "youtube"
+    },
+    {
+      "name": "X (Twitter)",
+      "url": "https://twitter.com/Canon_India",
+      "icon": "x"
+    },
+    {
+      "name": "LinkedIn",
+      "url": "https://www.linkedin.com/company/canon-india-pvt--ltd",
+      "icon": "linkedin"
+    }
+  ]
+}
