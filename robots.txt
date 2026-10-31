@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
+Disallow: /engineer.html
 Sitemap: https://aimenterprises.net/sitemap.xml

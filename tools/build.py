@@ -13,7 +13,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Version query for shared assets, so browsers and phones fetch new copies after each change
 # Bump the salt to give every asset a new URL (browsers cache GitHub Pages redirects)
 ASSET_V = hashlib.md5(b'gh-pages-4' + b''.join(open(os.path.join(ROOT, 'assets', n), 'rb').read()
-                              for n in ('style.css', 'site.js', 'logo.svg', 'canon-logo.svg'))).hexdigest()[:8]
+                              for n in ('style.css', 'site.js', 'service.js', 'logo.svg', 'canon-logo.svg'))).hexdigest()[:8]
 SITE = json.load(open(os.path.join(ROOT, 'data', 'site.json'), encoding='utf-8'))
 E = html.escape
 
@@ -191,7 +191,7 @@ def social_links():
                    f'{icon(l["icon"])}<span>{E(l["name"])}</span></a>' for l in SITE['canon_social'])
 
 
-def page(path, title, desc, body, active=''):
+def page(path, title, desc, body, active='', scripts=(), noindex=False):
     depth = path.count('/')
     up = '../' * depth
     seg_on = SEGMENT_FOR.get(active, 'Printers & Scanners')
@@ -213,7 +213,7 @@ def page(path, title, desc, body, active=''):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{E(title)}</title>
 <meta name="description" content="{E(desc)}">
-<link rel="canonical" href="{E(canonical)}">
+{'<meta name="robots" content="noindex, nofollow">' if noindex else f'<link rel="canonical" href="{E(canonical)}">'}
 <meta property="og:title" content="{E(title)}">
 <meta property="og:description" content="{E(desc)}">
 <meta property="og:type" content="website">
@@ -231,7 +231,7 @@ def page(path, title, desc, body, active=''):
 <link rel="icon" href="{up}assets/favicon.svg?v={ASSET_V}" type="image/svg+xml">
 <script type="application/ld+json">{json.dumps(ld)}</script>
 </head>
-<body data-wa="{SITE['whatsapp']}" data-email="{SITE['email']}">
+<body data-wa="{SITE['whatsapp']}" data-email="{SITE['email']}" data-api="{E(SITE.get('service_api', ''))}">
 <header class="site-header">
 <div class="brandbar"><div class="wrap">
   <a class="brand" href="{up}index.html" aria-label="AIM Enterprises home"><span class="brand-name">AIM ENTERPRISES</span><span class="brand-tag">Canon Authorized Premium Partner</span></a>
@@ -291,7 +291,7 @@ def page(path, title, desc, body, active=''):
 <div class="wrap legal">© {date.today().year} AIM Enterprises, Sri Vijaya Puram. Product photos © Canon India. Canon, imageRUNNER, imageFORCE, imageCLASS, PIXMA, MAXIFY, imagePROGRAF, imageFORMULA, EOS, PowerShot and IXUS are trademarks of Canon Inc. MRPs are as published by Canon India and may change without notice.</div>
 </footer>
 <a class="wa-float" href="{wa_link('Hello AIM Enterprises, I have an enquiry.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">{WA_ICON}</a>
-<script src="{up}assets/site.js?v={ASSET_V}" defer></script>
+<script src="{up}assets/site.js?v={ASSET_V}" defer></script>{''.join(f'<script src="{up}assets/{n}?v={ASSET_V}" defer></script>' for n in scripts)}
 </body>
 </html>
 '''
@@ -654,21 +654,71 @@ def build():
       <p>Register your new Canon machine with Canon India to activate warranty support and get service updates.</p>
       <p><a class="btn" href="{SITE['register_url']}" target="_blank" rel="noopener">Register on Canon India</a></p>
     </div>
-    <form class="form" id="book" data-kind="service">
+    <div class="book-col">
+    <form class="form" id="book" data-kind="service" data-online>
       <h2>Book a Service Visit</h2>
+      <p class="small">Book online and get a job number straight away. Our engineer closes the job on site with your signature.</p>
       <label>Name<input name="name" required autocomplete="name"></label>
-      <label>Office or Organisation<input name="org"></label>
-      <label>Phone<input name="phone" type="tel" required autocomplete="tel"></label>
-      <label>Machine Model<input name="model" placeholder="e.g. imageRUNNER 2425"></label>
-      <label>Problem<textarea name="message" rows="3" placeholder="Paper jam, error code, print quality…"></textarea></label>
-      <div class="form-actions"><button class="btn btn-wa" type="submit" data-via="whatsapp">Send on WhatsApp</button><button class="btn btn-ghost" type="submit" data-via="email">Send by Email</button></div>
+      <label>Office or Organisation<input name="org" autocomplete="organization"></label>
+      <div class="form-row"><label>Phone<input name="phone" type="tel" required autocomplete="tel" inputmode="tel"></label>
+      <label>Email<input name="email" type="email" autocomplete="email"></label></div>
+      <label>Address for the visit<textarea name="address" rows="2" autocomplete="street-address" placeholder="Office, building, area"></textarea></label>
+      <div class="form-row"><label>Machine Model<input name="model" placeholder="e.g. imageRUNNER 2425"></label>
+      <label>Serial No. (if known)<input name="serial"></label></div>
+      <label>Problem<textarea name="problem" rows="3" required placeholder="Paper jam, error code, print quality…"></textarea></label>
+      <div class="form-row"><label>Preferred Date<input name="preferredDate" type="date"></label>
+      <label>Preferred Time<select name="slot"><option>Any time</option><option>Morning (9 to 1)</option><option>Afternoon (1 to 6)</option></select></label></div>
+      <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+      <p class="form-msg" hidden></p>
+      <div class="form-actions"><button class="btn" type="submit" data-via="online">Book Service</button><button class="btn btn-wa" type="submit" data-via="whatsapp">Send on WhatsApp</button></div>
     </form>
+    <form class="form" id="track" data-online>
+      <h2>Check Booking Status</h2>
+      <div class="form-row"><label>Job Number<input name="id" required placeholder="SR-261031-AB12" autocapitalize="characters"></label>
+      <label>Phone<input name="phone" type="tel" required inputmode="tel"></label></div>
+      <p class="form-msg" hidden></p>
+      <div class="form-actions"><button class="btn btn-ghost" type="submit">Check Status</button></div>
+    </form>
+    <div class="track-result sr-report" hidden></div>
+    </div>
   </section>
 </div>
 '''
     page('service.html', 'Canon Copier Service & AMC in Port Blair | AIM Enterprises',
          'Canon copier and printer service, AMC plans, genuine toner and warranty repairs in Sri Vijaya Puram (Port Blair), Andaman & Nicobar Islands.',
-         service, 'Service & AMC')
+         service, 'Service & AMC', scripts=('service.js',))
+
+    # ---------- Engineer job page (not linked or indexed; needs the staff PIN) ----------
+    engineer = '''
+<section class="page-head"><div class="wrap">
+  <p class="eyebrow">Staff only</p>
+  <h1>Engineer Jobs</h1>
+  <p>Service bookings from the website. Open a job to assign it, then close it on site with the customer's signature.</p>
+</div></section>
+<div class="wrap section" id="engineer-app">
+  <form class="form eng-login" id="eng-login" data-online>
+    <h2>Sign In</h2>
+    <label>Staff PIN<input name="pin" type="password" required autocomplete="current-password"></label>
+    <p class="form-msg" hidden></p>
+    <div class="form-actions"><button class="btn" type="submit">Open Jobs</button></div>
+  </form>
+  <div id="eng-board" hidden>
+    <div class="eng-toolbar">
+      <div id="eng-tabs" class="chips"><button class="chip" data-filter="open" aria-pressed="true">Open</button><button class="chip" data-filter="Closed" aria-pressed="false">Closed</button><button class="chip" data-filter="Cancelled" aria-pressed="false">Cancelled</button><button class="chip" data-filter="all" aria-pressed="false">All</button></div>
+      <span class="small" id="eng-count"></span>
+      <button class="btn btn-ghost" id="eng-refresh" type="button">Refresh</button>
+      <button class="btn btn-ghost" id="eng-logout" type="button">Sign Out</button>
+    </div>
+    <div id="eng-list" class="job-list"></div>
+  </div>
+  <div id="eng-detail" hidden>
+    <p class="no-print"><button class="btn btn-ghost" id="eng-back" type="button">Back to Jobs</button></p>
+    <div id="eng-job"></div>
+  </div>
+</div>
+'''
+    page('engineer.html', 'Engineer Jobs | AIM Enterprises', 'Service job list for AIM Enterprises engineers.', engineer, 'Service & AMC',
+         scripts=('service.js',), noindex=True)
 
     # ---------- Support ----------
     support = f'''
@@ -846,8 +896,8 @@ def build():
         f.writelines(f'  <url><loc>{base}/{u}</loc></url>\n' for u in urls)
         f.write('</urlset>\n')
     with open(os.path.join(ROOT, 'robots.txt'), 'w') as f:
-        f.write(f'User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n')
-    print(f'Built {len(products)} product pages + 8 site pages ({len(consumables)} consumables).')
+        f.write(f'User-agent: *\nAllow: /\nDisallow: /engineer.html\nSitemap: {base}/sitemap.xml\n')
+    print(f'Built {len(products)} product pages + 9 site pages ({len(consumables)} consumables).')
 
 
 if __name__ == '__main__':
