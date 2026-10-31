@@ -375,3 +375,49 @@ address { font-style: normal; }
 /* Office hours shown line by line under the address */
 .hours { margin: 10px 0; line-height: 1.45; }
 .site-footer .hours strong { color: #fff; }
+
+/* Online service booking, status check and engineer jobs (service.js) */
+.form select { font: 16px var(--font); color: var(--black); background: var(--white); padding: 12px 14px; border: 1px solid #cfd1d5; border-radius: var(--radius); width: 100%; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-msg { margin: 0; font-size: 15px; color: var(--ink); }
+.form-msg.bad { color: var(--red-dark); }
+.form .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.book-col { display: grid; gap: 24px; }
+.booked { text-align: center; }
+.job-no { font: 700 30px/1.2 var(--font); color: var(--black); letter-spacing: .04em; margin: 4px 0 12px; }
+.sr-report { background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 24px; }
+.sr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.sr-head h3 { font-size: 24px; margin: 0; }
+.sr-head .eyebrow { margin: 0 0 4px; }
+.sr-status { display: inline-block; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 99px; background: var(--panel-2); color: var(--black); white-space: nowrap; }
+.s-booked { background: #fff4d6; color: #7a5300; }
+.s-assigned { background: #e2ecff; color: #1d4ea8; }
+.s-closed { background: #ddf3e6; color: #13703c; }
+.s-cancelled { background: var(--panel-2); color: var(--grey); }
+.sr-table { margin: 12px 0; }
+.sr-table td { white-space: pre-line; }
+.sr-sign { border-top: 1px solid var(--line); padding-top: 12px; }
+.sr-sign img { display: block; max-width: 320px; width: 100%; height: auto; border-bottom: 1px solid var(--ink); margin-bottom: 6px; }
+.sr-sign p { margin: 4px 0; }
+.eng-login { max-width: 420px; }
+.eng-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 16px; }
+.eng-toolbar .chips { display: flex; flex-wrap: wrap; margin-right: auto; }
+.job-list { display: grid; gap: 10px; }
+.job-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; font: inherit; color: inherit; background: var(--panel); border: 1px solid transparent; border-radius: 8px; padding: 14px 18px; cursor: pointer; }
+.job-row:hover { border-color: var(--black); }
+#eng-job { display: grid; gap: 24px; max-width: 760px; }
+.eng-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; }
+.sig { border: 0; padding: 0; margin: 0; }
+.sig legend { font-size: 14px; color: var(--grey); margin-bottom: 6px; }
+#sig-pad { display: block; width: 100%; height: 200px; background: var(--white); border: 1px dashed #9a9ca1; border-radius: var(--radius); touch-action: none; cursor: crosshair; }
+.sig-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 8px; }
+@media (max-width: 560px) {
+  .form-row { grid-template-columns: 1fr; }
+  .sr-report { padding: 16px; }
+}
+@media print {
+  .site-header, .site-footer, .wa-float, .page-head, .no-print, .book-col > form, #eng-job > form, .eng-actions { display: none !important; }
+  .two-col { display: block; }
+  .two-col > .prose { display: none; }
+  .sr-report { border: 0; padding: 0; }
+}

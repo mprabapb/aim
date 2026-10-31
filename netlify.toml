@@ -4,6 +4,12 @@
   publish = "."
   command = ""
 
+# Service booking API: netlify/functions/jobs.mjs, served at /api/jobs.
+# Set STAFF_PIN under Site configuration > Environment variables for the engineer page.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 # Keep the generator's source files private on Netlify.
 [[redirects]]
   from = "/tools/*"
@@ -13,6 +19,18 @@
 
 [[redirects]]
   from = "/data/*"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/node_modules/*"
   to = "/404"
   status = 404
   force = true

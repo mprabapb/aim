@@ -91,6 +91,7 @@
   // Forms: pre-fill model from ?model=, then send through WhatsApp or email
   var params = new URLSearchParams(location.search);
   document.querySelectorAll('form.form').forEach(function (form) {
+    if (form.hasAttribute('data-online')) return; // handled by service.js
     if (params.get('model') && form.elements.model) form.elements.model.value = params.get('model');
     var via = 'whatsapp';
     form.querySelectorAll('button[data-via]').forEach(function (b) {

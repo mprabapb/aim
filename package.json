@@ -1,0 +1,9 @@
+{
+  "name": "aim-website",
+  "private": true,
+  "type": "module",
+  "description": "Static site plus the service booking backend (Netlify Functions + Netlify Blobs).",
+  "dependencies": {
+    "@netlify/blobs": "^8.2.0"
+  }
+}
