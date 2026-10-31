@@ -35,6 +35,6 @@ The quotation form opens WhatsApp (or the visitor's email app) with the details 
 Bookings are stored by a small Netlify Function (`netlify/functions/jobs.mjs`) in Netlify Blobs, so there is no database to run. To switch it on:
 
 1. Deploy this branch on Netlify (Netlify installs `package.json` and picks up the function by itself).
-2. In Netlify: Site configuration, Environment variables, add `STAFF_PIN` with a PIN of at least 8 characters. Share it only with engineers.
+2. In Netlify: Site configuration, Environment variables, add `STAFF_PIN` with the staff PIN, then redeploy. Share it only with engineers. After 5 wrong PINs from one address, sign-in there is locked for 15 minutes.
 
 Where the booking server is not reachable (for example the GitHub Pages copy), "Book Service" opens WhatsApp with the details instead, so no booking is lost. To make GitHub Pages book online too, set `"service_api"` in `data/site.json` to the Netlify address (for example `"https://aim-enterprises.netlify.app"`) and run `python3 tools/build.py`.

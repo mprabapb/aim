@@ -13,7 +13,15 @@ import { getStore } from '@netlify/blobs';
 export const config = { path: ['/api/jobs', '/api/jobs/*'] };
 
 // Swappable for tests
-export const deps = { store: () => getStore({ name: 'service-jobs', consistency: 'strong' }), pin: () => process.env.STAFF_PIN || '' };
+export const deps = {
+  store: () => getStore({ name: 'service-jobs', consistency: 'strong' }),
+  locks: () => getStore({ name: 'staff-signin-locks', consistency: 'strong' }),
+  pin: () => process.env.STAFF_PIN || '',
+};
+
+// After MAX_FAILS wrong PINs from one address, staff sign-in is blocked there for LOCK_MS
+const MAX_FAILS = 5;
+const LOCK_MS = 15 * 60e3;
 
 const CORS = {
   'access-control-allow-origin': '*',
@@ -57,7 +65,7 @@ function publicView(j) {
   return v;
 }
 
-export default async function handler(req) {
+export default async function handler(req, context) {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   const url = new URL(req.url);
   const parts = url.pathname.replace(/^\/api\/jobs\/?/, '').split('/').filter(Boolean);
@@ -65,10 +73,33 @@ export default async function handler(req) {
   const store = deps.store();
 
   const staffPin = deps.pin();
-  const isStaff = () => staffPin && sameText(req.headers.get('x-staff-pin') || '', staffPin);
+  const sentPin = req.headers.get('x-staff-pin') || '';
+  const ip = (context && context.ip) || req.headers.get('x-nf-client-connection-ip') || 'unknown';
+  const lockKey = 'ip-' + ip.replace(/[^0-9a-fA-F:.]/g, '_');
+  let staffOk = null;
+  // Checks the PIN once per request, counting wrong tries per address
+  const isStaff = async () => {
+    if (staffOk !== null) return staffOk;
+    if (!staffPin || !sentPin) return (staffOk = false);
+    const locks = deps.locks();
+    const now = Date.now();
+    let rec = (await locks.get(lockKey, { type: 'json' })) || { fails: 0, since: now };
+    if (now - rec.since > LOCK_MS) rec = { fails: 0, since: now };
+    if (rec.fails >= MAX_FAILS) return (staffOk = 'locked');
+    if (sameText(sentPin, staffPin)) {
+      if (rec.fails) await locks.delete(lockKey);
+      return (staffOk = true);
+    }
+    rec.fails += 1;
+    await locks.setJSON(lockKey, rec);
+    await new Promise((r) => setTimeout(r, 800));
+    return (staffOk = false);
+  };
   const needStaff = async () => {
     if (!staffPin) return fail('Engineer access is not set up yet: add STAFF_PIN in Netlify environment variables.', 503);
-    if (!isStaff()) { await new Promise((r) => setTimeout(r, 800)); return fail('Wrong PIN.', 401); }
+    const ok = await isStaff();
+    if (ok === 'locked') return fail('Too many wrong PINs. Sign-in is locked for 15 minutes.', 429);
+    if (!ok) return fail('Wrong PIN.', 401);
     return null;
   };
 
@@ -109,7 +140,11 @@ export default async function handler(req) {
 
   // ---- Check one job: customer with phone, or staff ----
   if (req.method === 'GET' && !action) {
-    if (isStaff()) return job ? json({ job }) : fail('Not found.', 404);
+    if (sentPin) {
+      const denied = await needStaff();
+      if (denied) return denied;
+      return job ? json({ job }) : fail('Not found.', 404);
+    }
     const phone = digits(url.searchParams.get('phone'));
     if (!job || phone.length < 10 || phone !== digits(job.phone)) {
       await new Promise((r) => setTimeout(r, 500));
