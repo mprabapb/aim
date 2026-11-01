@@ -275,7 +275,7 @@ def page(path, title, desc, body, active='', scripts=(), noindex=False):
   </div>
   <div>
     <h3>Support</h3>
-    <a href="{up}support.html">Support Home</a><a href="{SITE['canon_listing_url']}" target="_blank" rel="noopener">Canon Authorised Dealer Certification</a>{''.join(f'<a href="{E(l["url"])}" target="_blank" rel="noopener">{E(l["title"])}</a>' for l in SITE['support_links'])}
+    <a href="{up}support.html">Support Home</a><a href="{up}service.html#book">Book a Service</a><a href="{up}service.html#track">Check Booking Status</a><a href="{up}engineer.html" rel="nofollow">Engineer Login</a><a href="{SITE['canon_listing_url']}" target="_blank" rel="noopener">Canon Authorised Dealer Certification</a>{''.join(f'<a href="{E(l["url"])}" target="_blank" rel="noopener">{E(l["title"])}</a>' for l in SITE['support_links'])}
   </div>
   <div>
     <h3>Visit Us</h3>
