@@ -6,16 +6,18 @@
   // On a Netlify site the page's own server is tried first.
   var BASES = (document.body.dataset.api || '').split(',').map(function (b) { return b.trim().replace(/\/$/, ''); }).filter(Boolean);
   if (/\.netlify\.app$/.test(location.hostname) || !BASES.length) BASES.unshift('');
-  var apiBase = null;
+  var apiBase = null, apiTried = [];
   function isJson(r) { return (r.headers.get('content-type') || '').indexOf('application/json') !== -1; }
   function findApi(i) {
     if (apiBase !== null) return Promise.resolve(apiBase);
     i = i || 0;
     if (i >= BASES.length) return Promise.reject(new Error('offline'));
+    var name = BASES[i] ? BASES[i].replace(/^https?:\/\//, '') : location.host;
     return fetch(BASES[i] + '/api/jobs', { method: 'GET' }).then(function (r) {
-      if (!isJson(r)) throw new Error('no api');
+      if (!isJson(r)) { apiTried.push(name + ': ' + r.status + ' ' + (r.headers.get('content-type') || 'no type').split(';')[0]); throw new Error('no api'); }
       return (apiBase = BASES[i]);
-    }).catch(function () { return findApi(i + 1); });
+    }, function (e) { apiTried.push(name + ': ' + (e && e.message || 'network error')); throw e; })
+      .catch(function () { return findApi(i + 1); });
   }
   var WA = document.body.dataset.wa;
 
@@ -196,7 +198,7 @@
         setMsg(loginMsg, 'No staff PIN has been set yet. Choose one now (at least 4 characters). Engineers will use it to sign in.');
         return;
       }
-      setMsg(loginMsg, err.offline ? 'The job server is not reachable from this address. Open the engineer page on the Netlify site.' : err.message, true);
+      setMsg(loginMsg, err.offline ? 'The job server is not reachable. Details for support: ' + (apiTried.join(' | ') || 'no server tried') : err.message, true);
     });
   }
   login.addEventListener('submit', function (e) {
