@@ -1,0 +1,41 @@
+# Netlify settings (a second copy of the site; GitHub Pages keeps working as before).
+# The pages are already built and committed, so Netlify just publishes the repo as is.
+[build]
+  publish = "."
+  command = ""
+
+# Service booking API: netlify/functions/jobs.mjs, served at /api/jobs.
+# Set STAFF_PIN under Site configuration > Environment variables for the engineer page.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Keep the generator's source files private on Netlify.
+[[redirects]]
+  from = "/tools/*"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/data/*"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/node_modules/*"
+  to = "/404"
+  status = 404
+  force = true
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
