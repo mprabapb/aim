@@ -72,6 +72,10 @@ function publicView(j) {
 
 export default async function handler(req, context) {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+  // Pages on another address (aimenterprises.net) send "simple" requests to avoid CORS preflights:
+  // the PIN travels in the JSON body as _pin, and a staff read is a POST with _get: true.
+  const body = req.method === 'POST' ? await readBody(req) : null;
+  const method = req.method === 'POST' && body && body._get === true ? 'GET' : req.method;
   const url = new URL(req.url);
   const parts = url.pathname.replace(/^\/api\/jobs\/?/, '').split('/').filter(Boolean);
   const [id, action] = parts;
@@ -86,7 +90,7 @@ export default async function handler(req, context) {
     const a = Buffer.from(hashPin(p, saved.salt), 'hex'), b = Buffer.from(saved.hash, 'hex');
     return a.length === b.length && timingSafeEqual(a, b);
   };
-  const sentPin = req.headers.get('x-staff-pin') || '';
+  const sentPin = req.headers.get('x-staff-pin') || (body && typeof body._pin === 'string' ? body._pin : '');
   const ip = (context && context.ip) || req.headers.get('x-nf-client-connection-ip') || 'unknown';
   const lockKey = 'ip-' + ip.replace(/[^0-9a-fA-F:.]/g, '_');
   let staffOk = null;
@@ -117,9 +121,9 @@ export default async function handler(req, context) {
   };
 
   // ---- First-time staff PIN (only while none is set) ----
-  if (req.method === 'POST' && id === 'staff-pin') {
+  if (method === 'POST' && id === 'staff-pin') {
     if (staffPin) return fail('A staff PIN is already set.', 409);
-    const b = (await readBody(req)) || {};
+    const b = body || {};
     const pin = String(b.pin || '');
     if (!/^\S{4,64}$/.test(pin)) return fail('Use at least 4 characters for the PIN, with no spaces.');
     const salt = randomBytes(16).toString('hex');
@@ -128,8 +132,8 @@ export default async function handler(req, context) {
   }
 
   // ---- Book a service (public) ----
-  if (req.method === 'POST' && !id) {
-    const b = await readBody(req);
+  if (method === 'POST' && !id) {
+    const b = body;
     if (!b) return fail('Send the booking as JSON.');
     if (b.website) return json({ id: 'SR-OK' }); // honeypot field filled in by bots
     const job = {
@@ -149,7 +153,7 @@ export default async function handler(req, context) {
   }
 
   // ---- Staff: list ----
-  if (req.method === 'GET' && !id) {
+  if (method === 'GET' && !id) {
     const denied = await needStaff();
     if (denied) return denied;
     const { blobs } = await store.list();
@@ -163,7 +167,7 @@ export default async function handler(req, context) {
   const job = await store.get(id, { type: 'json' });
 
   // ---- Check one job: customer with phone, or staff ----
-  if (req.method === 'GET' && !action) {
+  if (method === 'GET' && !action) {
     if (sentPin) {
       const denied = await needStaff();
       if (denied) return denied;
@@ -177,11 +181,11 @@ export default async function handler(req, context) {
     return json({ job: publicView(job) });
   }
 
-  if (req.method !== 'POST') return fail('Not found.', 404);
+  if (method !== 'POST') return fail('Not found.', 404);
   const denied = await needStaff();
   if (denied) return denied;
   if (!job) return fail('Not found.', 404);
-  const b = (await readBody(req)) || {};
+  const b = body || {};
   const now = new Date().toISOString();
 
   if (action === 'assign') {
