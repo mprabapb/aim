@@ -1,5 +1,6 @@
 // Online service booking, booking status check and the engineer job page.
-// Talks to the jobs API (netlify/functions/jobs.mjs). Where the API is not reachable
+// Talks to the jobs API: a Google Apps Script web app (google-apps-script/Code.gs) or
+// netlify/functions/jobs.mjs. Where the API is not reachable
 // (for example on the GitHub Pages copy), booking falls back to WhatsApp.
 (function () {
   // data-api may list several servers (comma separated); the first one that answers is used.
@@ -16,13 +17,15 @@
     for (var k = 0; k < 4; k++) r += ALPHA[Math.floor(Math.random() * ALPHA.length)];
     return 'SR-' + d.toISOString().slice(2, 10).replace(/-/g, '') + '-' + r;
   }
+  // A Google Apps Script web app (google-apps-script/Code.gs) backed by a Google Sheet
+  function isGas(base) { return /script\.google(usercontent)?\.com/.test(base); }
   function isJson(r) { return (r.headers.get('content-type') || '').indexOf('application/json') !== -1; }
   function findApi(i) {
     if (apiBase !== null) return Promise.resolve(apiBase);
     i = i || 0;
     if (i >= BASES.length) return Promise.reject(new Error('offline'));
     var name = BASES[i] ? BASES[i].replace(/^https?:\/\//, '') : location.host;
-    return fetch(BASES[i] + '/api/jobs', { method: 'GET' }).then(function (r) {
+    return fetch(BASES[i] + (isGas(BASES[i]) ? '?action=ping' : '/api/jobs'), { method: 'GET' }).then(function (r) {
       if (!isJson(r)) { apiTried.push(name + ': ' + r.status + ' ' + (r.headers.get('content-type') || 'no type').split(';')[0]); throw new Error('no api'); }
       return (apiBase = BASES[i]);
     }, function (e) { apiTried.push(name + ': ' + (e && e.message || 'network error')); throw e; })
@@ -52,11 +55,23 @@
     var init = { method: method };
     if (body) { init.body = JSON.stringify(body); init.headers = { 'content-type': 'text/plain' }; }
     var offline = function () { var e = new Error('offline'); e.offline = true; throw e; };
-    return findApi().then(function (base) { return fetch(base + '/api/jobs' + path, init); }, offline)
+    return findApi().then(function (base) {
+      if (!isGas(base)) return fetch(base + '/api/jobs' + path, init);
+      // Apps Script: map the REST-style path to {action, id, ...}; replies always come back as HTTP 200
+      var m = path.match(/^\/([^\/?]+)(?:\/(assign|close|cancel))?(?:\?phone=(.*))?$/), b = Object.assign({}, body || {});
+      if (path === '/staff-pin') b.action = 'setpin';
+      else if (!m) b.action = opts.pin ? 'list' : 'book';
+      else if (m[3] !== undefined) {
+        return fetch(base + '?action=status&id=' + m[1] + '&phone=' + m[3], { method: 'GET' });
+      } else { b.action = m[2] || 'get'; b.id = decodeURIComponent(m[1]); }
+      delete b._get;
+      return fetch(base, { method: 'POST', body: JSON.stringify(b), headers: { 'content-type': 'text/plain' } });
+    }, offline)
       .then(function (r) {
         if (!isJson(r)) offline();
         return r.json().then(function (data) {
-          if (!r.ok) { var err = new Error(data.error || 'Something went wrong.'); err.status = r.status; err.data = data; throw err; }
+          var code = data.status && data.status >= 400 ? data.status : r.ok ? 0 : r.status;
+          if (code || data.error) { var err = new Error(data.error || 'Something went wrong.'); err.status = code || 400; err.data = data; throw err; }
           return data;
         });
       }, function (e) { if (e && e.status) throw e; offline(); });
