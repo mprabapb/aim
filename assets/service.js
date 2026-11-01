@@ -32,12 +32,16 @@
   }
   function call(path, opts) {
     opts = opts || {};
-    var headers = { 'content-type': 'application/json' };
-    if (opts.pin) headers['x-staff-pin'] = opts.pin;
+    // Plain GETs and text/plain POSTs only, so browsers send them across sites without a preflight
+    var method = opts.method || 'GET', body = opts.body;
+    if (opts.pin) {
+      body = Object.assign({}, body || {}, { _pin: opts.pin });
+      if (method === 'GET') { body._get = true; method = 'POST'; }
+    }
+    var init = { method: method };
+    if (body) { init.body = JSON.stringify(body); init.headers = { 'content-type': 'text/plain' }; }
     var offline = function () { var e = new Error('offline'); e.offline = true; throw e; };
-    return findApi().then(function (base) {
-      return fetch(base + '/api/jobs' + path, { method: opts.method || 'GET', headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
-    }, offline)
+    return findApi().then(function (base) { return fetch(base + '/api/jobs' + path, init); }, offline)
       .then(function (r) {
         if (!isJson(r)) offline();
         return r.json().then(function (data) {
