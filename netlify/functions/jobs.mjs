@@ -3,12 +3,15 @@
 // Public (customers):
 //   POST /api/jobs                       book a service visit -> { id }
 //   GET  /api/jobs/:id?phone=...         check a booking (phone must match)
-// Staff (header "x-staff-pin" must equal the STAFF_PIN environment variable):
+// Staff (header "x-staff-pin" must equal the staff PIN: the STAFF_PIN environment variable if set,
+// otherwise the PIN saved once from the engineer page):
+//   POST /api/jobs/staff-pin             { pin } first-time set-up, only while no PIN exists
 //   GET  /api/jobs                       list jobs, newest first
 //   POST /api/jobs/:id/assign            { engineer, visitDate } -> status "Assigned"
 //   POST /api/jobs/:id/close             { engineer, workDone, ..., signature } -> status "Closed"
 //   POST /api/jobs/:id/cancel            { reason } -> status "Cancelled"
 import { getStore } from '@netlify/blobs';
+import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 
 export const config = { path: ['/api/jobs', '/api/jobs/*'] };
 
@@ -22,6 +25,8 @@ export const deps = {
 // After MAX_FAILS wrong PINs from one address, staff sign-in is blocked there for LOCK_MS
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60e3;
+const PIN_KEY = 'config-staff-pin';
+const hashPin = (pin, salt) => scryptSync(String(pin), Buffer.from(salt, 'hex'), 32).toString('hex');
 
 const CORS = {
   'access-control-allow-origin': '*',
@@ -72,7 +77,15 @@ export default async function handler(req, context) {
   const [id, action] = parts;
   const store = deps.store();
 
-  const staffPin = deps.pin();
+  const envPin = deps.pin();
+  // With no STAFF_PIN variable, use the PIN saved from the engineer page (stored only as a salted hash)
+  const saved = envPin ? null : await deps.locks().get(PIN_KEY, { type: 'json' });
+  const staffPin = envPin || (saved && saved.hash ? 'saved' : '');
+  const pinMatches = (p) => {
+    if (envPin) return sameText(p, envPin);
+    const a = Buffer.from(hashPin(p, saved.salt), 'hex'), b = Buffer.from(saved.hash, 'hex');
+    return a.length === b.length && timingSafeEqual(a, b);
+  };
   const sentPin = req.headers.get('x-staff-pin') || '';
   const ip = (context && context.ip) || req.headers.get('x-nf-client-connection-ip') || 'unknown';
   const lockKey = 'ip-' + ip.replace(/[^0-9a-fA-F:.]/g, '_');
@@ -86,7 +99,7 @@ export default async function handler(req, context) {
     let rec = (await locks.get(lockKey, { type: 'json' })) || { fails: 0, since: now };
     if (now - rec.since > LOCK_MS) rec = { fails: 0, since: now };
     if (rec.fails >= MAX_FAILS) return (staffOk = 'locked');
-    if (sameText(sentPin, staffPin)) {
+    if (pinMatches(sentPin)) {
       if (rec.fails) await locks.delete(lockKey);
       return (staffOk = true);
     }
@@ -96,12 +109,23 @@ export default async function handler(req, context) {
     return (staffOk = false);
   };
   const needStaff = async () => {
-    if (!staffPin) return fail('Engineer access is not set up yet: add STAFF_PIN in Netlify environment variables.', 503);
+    if (!staffPin) return json({ error: 'No staff PIN yet. Create one to start.', setup: true }, 503);
     const ok = await isStaff();
     if (ok === 'locked') return fail('Too many wrong PINs. Sign-in is locked for 15 minutes.', 429);
     if (!ok) return fail('Wrong PIN.', 401);
     return null;
   };
+
+  // ---- First-time staff PIN (only while none is set) ----
+  if (req.method === 'POST' && id === 'staff-pin') {
+    if (staffPin) return fail('A staff PIN is already set.', 409);
+    const b = (await readBody(req)) || {};
+    const pin = String(b.pin || '');
+    if (!/^\S{4,64}$/.test(pin)) return fail('Use at least 4 characters for the PIN, with no spaces.');
+    const salt = randomBytes(16).toString('hex');
+    await deps.locks().setJSON(PIN_KEY, { salt, hash: hashPin(pin, salt), setAt: new Date().toISOString() });
+    return json({ ok: true }, 201);
+  }
 
   // ---- Book a service (public) ----
   if (req.method === 'POST' && !id) {

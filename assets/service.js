@@ -25,7 +25,7 @@
         var type = r.headers.get('content-type') || '';
         if (type.indexOf('application/json') === -1) { var e = new Error('offline'); e.offline = true; throw e; }
         return r.json().then(function (data) {
-          if (!r.ok) { var err = new Error(data.error || 'Something went wrong.'); err.status = r.status; throw err; }
+          if (!r.ok) { var err = new Error(data.error || 'Something went wrong.'); err.status = r.status; err.data = data; throw err; }
           return data;
         });
       }, function () { var e = new Error('offline'); e.offline = true; throw e; });
@@ -157,6 +157,13 @@
   function load() {
     return call('', { pin: pin }).then(function (res) { jobs = res.jobs; renderList(); });
   }
+  var setupMode = false;
+  function showSetup(on) {
+    setupMode = on;
+    $('h2', login).textContent = on ? 'Create Staff PIN' : 'Sign In';
+    $('button[type="submit"]', login).textContent = on ? 'Save PIN' : 'Open Jobs';
+    login.elements.pin.setAttribute('autocomplete', on ? 'new-password' : 'current-password');
+  }
   function enter() {
     setMsg(loginMsg, 'Checking…');
     load().then(function () {
@@ -164,10 +171,22 @@
       login.hidden = true; board.hidden = false; setMsg(loginMsg, '');
     }, function (err) {
       pin = ''; login.hidden = false; board.hidden = true;
+      if (err.data && err.data.setup) {
+        showSetup(true);
+        setMsg(loginMsg, 'No staff PIN has been set yet. Choose one now (at least 4 characters). Engineers will use it to sign in.');
+        return;
+      }
       setMsg(loginMsg, err.offline ? 'The job server is not reachable from this address. Open the engineer page on the Netlify site.' : err.message, true);
     });
   }
-  login.addEventListener('submit', function (e) { e.preventDefault(); pin = login.elements.pin.value; enter(); });
+  login.addEventListener('submit', function (e) {
+    e.preventDefault();
+    pin = login.elements.pin.value;
+    if (!setupMode) { enter(); return; }
+    setMsg(loginMsg, 'Saving…');
+    call('/staff-pin', { method: 'POST', body: { pin: pin } }).then(function () { showSetup(false); enter(); },
+      function (err) { setMsg(loginMsg, err.message, true); if (err.status === 409) showSetup(false); });
+  });
   if (pin) enter();
   $('#eng-logout').addEventListener('click', function () { try { sessionStorage.removeItem('aim-pin'); } catch (e) {} location.reload(); });
   $('#eng-refresh').addEventListener('click', function () { load(); });
