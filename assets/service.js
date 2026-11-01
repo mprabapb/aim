@@ -2,7 +2,21 @@
 // Talks to the jobs API (netlify/functions/jobs.mjs). Where the API is not reachable
 // (for example on the GitHub Pages copy), booking falls back to WhatsApp.
 (function () {
-  var API = (document.body.dataset.api || '').replace(/\/$/, '') + '/api/jobs';
+  // data-api may list several servers (comma separated); the first one that answers is used.
+  // On a Netlify site the page's own server is tried first.
+  var BASES = (document.body.dataset.api || '').split(',').map(function (b) { return b.trim().replace(/\/$/, ''); }).filter(Boolean);
+  if (/\.netlify\.app$/.test(location.hostname) || !BASES.length) BASES.unshift('');
+  var apiBase = null;
+  function isJson(r) { return (r.headers.get('content-type') || '').indexOf('application/json') !== -1; }
+  function findApi(i) {
+    if (apiBase !== null) return Promise.resolve(apiBase);
+    i = i || 0;
+    if (i >= BASES.length) return Promise.reject(new Error('offline'));
+    return fetch(BASES[i] + '/api/jobs', { method: 'GET' }).then(function (r) {
+      if (!isJson(r)) throw new Error('no api');
+      return (apiBase = BASES[i]);
+    }).catch(function () { return findApi(i + 1); });
+  }
   var WA = document.body.dataset.wa;
 
   function esc(s) {
@@ -18,17 +32,23 @@
   }
   function call(path, opts) {
     opts = opts || {};
-    var headers = { 'content-type': 'application/json' };
-    if (opts.pin) headers['x-staff-pin'] = opts.pin;
-    return fetch(API + path, { method: opts.method || 'GET', headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined })
+    // Plain GETs and text/plain POSTs only, so browsers send them across sites without a preflight
+    var method = opts.method || 'GET', body = opts.body;
+    if (opts.pin) {
+      body = Object.assign({}, body || {}, { _pin: opts.pin });
+      if (method === 'GET') { body._get = true; method = 'POST'; }
+    }
+    var init = { method: method };
+    if (body) { init.body = JSON.stringify(body); init.headers = { 'content-type': 'text/plain' }; }
+    var offline = function () { var e = new Error('offline'); e.offline = true; throw e; };
+    return findApi().then(function (base) { return fetch(base + '/api/jobs' + path, init); }, offline)
       .then(function (r) {
-        var type = r.headers.get('content-type') || '';
-        if (type.indexOf('application/json') === -1) { var e = new Error('offline'); e.offline = true; throw e; }
+        if (!isJson(r)) offline();
         return r.json().then(function (data) {
           if (!r.ok) { var err = new Error(data.error || 'Something went wrong.'); err.status = r.status; err.data = data; throw err; }
           return data;
         });
-      }, function () { var e = new Error('offline'); e.offline = true; throw e; });
+      }, function (e) { if (e && e.status) throw e; offline(); });
   }
   function waText(phone, text) {
     var p = String(phone || '').replace(/\D/g, '');
