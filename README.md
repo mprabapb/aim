@@ -27,14 +27,11 @@ Model names and descriptions you edit by hand are kept. If Canon's site is down 
 
 The quotation form opens WhatsApp (or the visitor's email app) with the details filled in, addressed to the number and email in `data/site.json`.
 
-## Online service booking and signed job closure
+## Service booking and signed job closure
 
-- **Customers** book on `service.html#book` and get a job number (like `SR-261031-7KQ4`). They can check progress, and see the signed service report, under "Check Booking Status" with the job number and their phone.
-- **Engineers** open `engineer.html` (not linked from the site, hidden from search engines), sign in with the staff PIN, assign a job, and close it on site: work done, parts, meter reading, charges, then the customer signs on the screen with a finger. The signed report can be printed or saved as PDF, or sent to the customer on WhatsApp.
+Works on GitHub Pages alone, with no server (`"service_api": ""` in `data/site.json`):
 
-Bookings are stored by a small Netlify Function (`netlify/functions/jobs.mjs`) in Netlify Blobs, so there is no database to run. To switch it on:
+- **Customers** book on `service.html#book`. They get a job number, and WhatsApp opens with the booking addressed to the shop's number.
+- **Engineers** open `engineer.html` (not linked from the site, hidden from search engines) on their phone at the customer's site, fill in the job sheet (job number from the WhatsApp booking, work done, parts, meter reading, charges), and the customer signs on the screen with a finger. The signed report can then be shared as an image (WhatsApp etc.), printed or saved as PDF, and a text summary sent to the customer and the office. The last 40 reports stay on that phone under "Reports on this phone".
 
-1. Deploy this branch on Netlify (Netlify installs `package.json` and picks up the function by itself).
-2. Set the staff PIN: open `engineer.html` on the Netlify site; the first time, it asks you to create the PIN (saved as a salted hash in Netlify Blobs). Or set `STAFF_PIN` under Site configuration, Environment variables, and redeploy: the variable always wins, and is how to change a forgotten PIN. Share it only with engineers. After 5 wrong PINs from one address, sign-in there is locked for 15 minutes.
-
-Where the booking server is not reachable (for example the GitHub Pages copy), "Book Service" opens WhatsApp with the details instead, so no booking is lost. To make GitHub Pages book online too, set `"service_api"` in `data/site.json` to the Netlify address (for example `"https://aim-enterprises.netlify.app"`) and run `python3 tools/build.py`.
+Optional server mode: `netlify/functions/jobs.mjs` (Netlify Function + Netlify Blobs) adds a shared online job list and booking status check. It is used only when `service_api` lists a server address, or when the site itself runs on Netlify.
