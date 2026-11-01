@@ -693,7 +693,7 @@ def build():
 <section class="page-head"><div class="wrap">
   <p class="eyebrow">Staff only</p>
   <h1>Engineer Jobs</h1>
-  <p>Service bookings from the website. Open a job to assign it, then close it on site with the customer's signature.</p>
+  <p>Close each service job on site with the customer's signature, then share the signed report.</p>
 </div></section>
 <div class="wrap section" id="engineer-app">
   <form class="form eng-login" id="eng-login" data-online>

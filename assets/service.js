@@ -7,6 +7,15 @@
   var BASES = (document.body.dataset.api || '').split(',').map(function (b) { return b.trim().replace(/\/$/, ''); }).filter(Boolean);
   if (/\.netlify\.app$/.test(location.hostname) || !BASES.length) BASES.unshift('');
   var apiBase = null, apiTried = [];
+  // No API configured and not on Netlify: GitHub Pages only. Bookings go by WhatsApp and the
+  // engineer's signed job sheet is made on the phone (saved as PDF / image, sent on WhatsApp).
+  var OFFLINE = !(document.body.dataset.api || '').trim() && !/\.netlify\.app$/.test(location.hostname);
+  var ALPHA = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+  function newJobId() {
+    var d = new Date(Date.now() + 5.5 * 3600e3), r = '';
+    for (var k = 0; k < 4; k++) r += ALPHA[Math.floor(Math.random() * ALPHA.length)];
+    return 'SR-' + d.toISOString().slice(2, 10).replace(/-/g, '') + '-' + r;
+  }
   function isJson(r) { return (r.headers.get('content-type') || '').indexOf('application/json') !== -1; }
   function findApi(i) {
     if (apiBase !== null) return Promise.resolve(apiBase);
@@ -89,7 +98,7 @@
     var c = j.closure || {};
     return ['AIM Enterprises: Service Report ' + j.id, 'Status: ' + j.status, 'Machine: ' + (j.model || '-'), 'Engineer: ' + (j.engineer || '-'),
       c.workDone ? 'Work done: ' + c.workDone : '', c.parts ? 'Parts: ' + c.parts : '', c.charges ? 'Charges: Rs ' + c.charges + (c.payment ? ' (' + c.payment + ')' : '') : '',
-      c.signedBy ? 'Signed by: ' + c.signedBy : '', 'Check status: ' + location.origin + location.pathname.replace(/[^/]*$/, '') + 'service.html#track']
+      c.signedBy ? 'Signed by: ' + c.signedBy : '', OFFLINE ? '' : 'Check status: ' + location.origin + location.pathname.replace(/[^/]*$/, '') + 'service.html#track']
       .filter(Boolean).join('\n');
   }
 
@@ -114,7 +123,17 @@
       e.preventDefault();
       var data = {};
       fields.forEach(function (f) { if (book.elements[f]) data[f] = book.elements[f].value.trim(); });
-      if (via === 'whatsapp') { window.open(waFallback(data), '_blank', 'noopener'); return; }
+      if (via === 'whatsapp' && !OFFLINE) { window.open(waFallback(data), '_blank', 'noopener'); return; }
+      if (OFFLINE) {
+        if (data.website) return;
+        var jid = newJobId();
+        window.open(waFallback(data, jid), '_blank', 'noopener');
+        book.innerHTML = '<div class="booked"><h2>Almost Done</h2><p>Your job number is</p><p class="job-no">' + esc(jid) + '</p>' +
+          '<p>WhatsApp has opened with your booking. <b>Tap Send in WhatsApp</b> to confirm it. We will call you on <b>' + esc(data.phone) + '</b> to fix the visit.</p>' +
+          '<p><a class="btn btn-wa" target="_blank" rel="noopener" href="' + esc(waFallback(data, jid)) + '">Open WhatsApp again</a></p></div>';
+        book.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
       var btn = $('button[data-via="online"]', book);
       btn.disabled = true; setMsg(bookMsg, 'Booking…');
       call('', { method: 'POST', body: data }).then(function (res) {
@@ -137,7 +156,8 @@
 
   // ---------- Status check ----------
   var track = document.getElementById('track');
-  if (track) {
+  if (track && OFFLINE) { track.hidden = true; }
+  else if (track) {
     var out = $('.track-result', track.parentNode);
     var trackMsg = $('.form-msg', track);
     try {
@@ -159,6 +179,7 @@
   // ---------- Engineer page ----------
   var app = document.getElementById('engineer-app');
   if (!app) return;
+  if (OFFLINE) { jobSheet(); return; }
   var store = { get: function (k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }, set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
   var pin = '';
   try { pin = sessionStorage.getItem('aim-pin') || ''; } catch (e) {}
@@ -294,6 +315,118 @@
       call('/' + j.id + '/close', { method: 'POST', pin: pin, body: data }).then(function (res) { showJob(res.job); window.scrollTo(0, 0); },
         function (err) { btn.disabled = false; setMsg(m, err.message, true); });
     });
+  }
+
+  // ---------- Job sheet on the phone (no server) ----------
+  function jobSheet() {
+    var KEY = 'aim-job-sheets';
+    var load = function () { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } };
+    var save = function (list) { try { localStorage.setItem(KEY, JSON.stringify(list.slice(0, 40))); } catch (e) {} };
+    var me = function () { try { return localStorage.getItem('aim-engineer') || ''; } catch (e) { return ''; } };
+    $('#eng-login').hidden = true; $('#eng-board').hidden = true;
+    var det = $('#eng-detail'); det.hidden = false; $('#eng-back').parentNode.hidden = true;
+    var body = $('#eng-job');
+    var f = function (label, name, extra) { return '<label>' + label + '<input name="' + name + '" ' + (extra || '') + '></label>'; };
+    function form() {
+      var past = load();
+      body.innerHTML = '<form class="form" id="sheet"><h2>Service Job Sheet</h2>' +
+        '<p class="small">Fill this in at the customer\'s site. The customer signs on the screen, then save or send the signed report.</p>' +
+        '<div class="form-row">' + f('Job number (from WhatsApp booking)', 'id', 'placeholder="Leave empty for a new number"') + f('Engineer', 'engineer', 'required value="' + esc(me()) + '"') + '</div>' +
+        '<div class="form-row">' + f('Customer name', 'name', 'required') + f('Phone', 'phone', 'type="tel" inputmode="tel" required') + '</div>' +
+        f('Office or Organisation', 'org') + '<label>Address<textarea name="address" rows="2"></textarea></label>' +
+        '<div class="form-row">' + f('Machine model', 'model') + f('Serial no.', 'serial') + '</div>' +
+        '<label>Problem reported<textarea name="problem" rows="2"></textarea></label>' +
+        '<label>Work done<textarea name="workDone" rows="3" required placeholder="Fault found and what was fixed"></textarea></label>' +
+        f('Parts replaced', 'parts') +
+        '<div class="form-row">' + f('Meter reading', 'meter', 'inputmode="numeric"') + f('Charges (₹)', 'charges', 'inputmode="decimal"') + '</div>' +
+        '<label>Payment<select name="payment"><option>Under warranty</option><option>Under AMC</option><option>Paid: cash</option><option>Paid: UPI</option><option>To be billed</option><option>No charge</option></select></label>' +
+        f('Remarks', 'remarks') +
+        '<fieldset class="sig"><legend>Customer signature</legend><canvas id="sig-pad" aria-label="Sign here"></canvas>' +
+        '<div class="sig-bar"><span class="small">Ask the customer to sign above with a finger.</span><button type="button" class="btn btn-ghost" id="sig-clear">Clear</button></div></fieldset>' +
+        f('Customer name (signed by)', 'signedBy', 'required') +
+        '<p class="form-msg" hidden></p><div class="form-actions"><button class="btn" type="submit">Close Job with Signature</button></div></form>' +
+        (past.length ? '<div><h2>Reports on this phone</h2><div class="job-list">' + past.map(function (j, i) {
+          return '<button class="job-row" data-i="' + i + '"><span><b>' + esc(j.name) + '</b><br><span class="small">' + esc(j.id) + ' · ' + esc(fmtDate(j.closure.closedAt, true)) + '</span></span><span class="sr-status s-closed">Closed</span></button>';
+        }).join('') + '</div></div>' : '');
+      var sheet = $('#sheet');
+      sheet.elements.name.addEventListener('input', function () { sheet.elements.signedBy.value = sheet.elements.name.value; });
+      var pad = signaturePad($('#sig-pad'));
+      $('#sig-clear').addEventListener('click', pad.clear);
+      body.querySelectorAll('.job-row').forEach(function (b) { b.addEventListener('click', function () { show(load()[+b.dataset.i]); }); });
+      sheet.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var m = $('.form-msg', sheet), el = sheet.elements;
+        if (pad.isEmpty()) { setMsg(m, 'The customer needs to sign before you close the job.', true); return; }
+        var v = function (k) { return el[k].value.trim(); };
+        var now = new Date().toISOString();
+        var job = { id: (v('id') || newJobId()).toUpperCase(), status: 'Closed', createdAt: now, name: v('name'), org: v('org'), phone: v('phone'), address: v('address'),
+          model: v('model'), serial: v('serial'), problem: v('problem'), engineer: v('engineer'),
+          closure: { engineer: v('engineer'), workDone: v('workDone'), parts: v('parts'), meter: v('meter'), charges: v('charges'), payment: v('payment'),
+            remarks: v('remarks'), signedBy: v('signedBy'), closedAt: now, signature: pad.toDataURL() } };
+        try { localStorage.setItem('aim-engineer', job.engineer); } catch (err) {}
+        save([job].concat(load()));
+        show(job);
+      });
+    }
+    function show(j) {
+      body.innerHTML = '<div class="sr-report">' + reportHtml(j, true) + '</div>' +
+        '<p class="eng-actions no-print"><button class="btn" type="button" id="share-img">Share signed report</button>' +
+        '<a class="btn btn-wa" target="_blank" rel="noopener" href="' + esc(waText(j.phone, reportSummary(j))) + '">Send summary to customer</a>' +
+        '<a class="btn btn-wa" target="_blank" rel="noopener" href="https://wa.me/' + esc(WA) + '?text=' + encodeURIComponent(reportSummary(j)) + '">Send to office</a>' +
+        '<button class="btn btn-ghost" type="button" onclick="print()">Print or save as PDF</button>' +
+        '<button class="btn btn-ghost" type="button" id="new-sheet">New Job Sheet</button></p>';
+      $('#new-sheet').addEventListener('click', function () { form(); window.scrollTo(0, 0); });
+      $('#share-img').addEventListener('click', function () { reportImage(j); });
+      window.scrollTo(0, 0);
+    }
+    form();
+  }
+
+  // Draws the signed report as a PNG and shares it (WhatsApp etc.), or downloads it
+  function reportImage(j) {
+    var c = j.closure || {}, W = 1000, pad = 48, lines = [];
+    var rows = [['Job number', j.id], ['Date', fmtDate(c.closedAt, true)], ['Customer', j.name], ['Organisation', j.org], ['Phone', j.phone], ['Address', j.address],
+      ['Machine', j.model], ['Serial no.', j.serial], ['Problem', j.problem], ['Engineer', c.engineer], ['Work done', c.workDone], ['Parts replaced', c.parts],
+      ['Meter reading', c.meter], ['Charges', c.charges ? 'Rs ' + c.charges : ''], ['Payment', c.payment], ['Remarks', c.remarks]].filter(function (r) { return r[1]; });
+    var cv = document.createElement('canvas'), x = cv.getContext('2d');
+    x.font = '26px Arial';
+    var wrap = function (text, width) {
+      var out = [], line = '';
+      String(text).split(/\s+/).forEach(function (w) { var t = line ? line + ' ' + w : w; if (x.measureText(t).width > width && line) { out.push(line); line = w; } else line = t; });
+      out.push(line); return out;
+    };
+    rows.forEach(function (r) { var ls = wrap(r[1], W - pad * 2 - 260); lines.push([r[0], ls]); });
+    var img = new Image();
+    img.onload = function () {
+    var sw = Math.min(420, img.width), sh = img.height * sw / img.width;
+    var H = 210 + lines.reduce(function (h, l) { return h + l[1].length * 36 + 16; }, 0) + sh + 140;
+    cv.width = W; cv.height = H;
+    x.fillStyle = '#fff'; x.fillRect(0, 0, W, H);
+    x.fillStyle = '#e41920'; x.font = 'bold 40px Arial'; x.fillText('AIM ENTERPRISES', pad, 70);
+    x.fillStyle = '#383838'; x.font = '22px Arial'; x.fillText('Canon Authorised Partner · Sri Vijaya Puram · +91 94342 82223', pad, 105);
+    x.fillStyle = '#000'; x.font = 'bold 32px Arial'; x.fillText('Service Report', pad, 165);
+    var y = 210;
+    lines.forEach(function (l) {
+      x.fillStyle = '#757575'; x.font = '24px Arial'; x.fillText(l[0], pad, y);
+      x.fillStyle = '#000'; x.font = '26px Arial';
+      l[1].forEach(function (t, k) { x.fillText(t, pad + 260, y + k * 36); });
+      y += l[1].length * 36 + 16;
+    });
+      y += 10;
+      x.drawImage(img, pad, y, sw, sh); y += sh + 8;
+      x.strokeStyle = '#383838'; x.beginPath(); x.moveTo(pad, y); x.lineTo(pad + 420, y); x.stroke();
+      x.fillStyle = '#000'; x.font = '26px Arial'; x.fillText('Customer signature: ' + (c.signedBy || ''), pad, y + 40);
+      x.fillStyle = '#757575'; x.font = '22px Arial'; x.fillText('I confirm the above work was carried out to my satisfaction.', pad, y + 76);
+      cv.toBlob(function (blob) {
+        var file = new File([blob], j.id + '.png', { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: 'Service Report ' + j.id, text: 'AIM Enterprises service report ' + j.id }).catch(function () {});
+        } else {
+          var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+        }
+      }, 'image/png');
+    };
+    img.src = c.signature;
   }
 
   // Finger, stylus or mouse signature on a canvas; exported as a small white-background PNG
