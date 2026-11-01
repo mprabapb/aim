@@ -211,6 +211,8 @@ def page(path, title, desc, body, active='', scripts=(), noindex=False):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>{E(title)}</title>
 <meta name="description" content="{E(desc)}">
 {'<meta name="robots" content="noindex, nofollow">' if noindex else f'<link rel="canonical" href="{E(canonical)}">'}
@@ -708,8 +710,16 @@ def build():
       <label class="eng-who small">Show jobs for <select id="eng-who"><option value="">All engineers</option></select></label>
       <span class="small" id="eng-count"></span>
       <button class="btn btn-ghost" id="eng-refresh" type="button">Refresh</button>
+      <button class="btn btn-ghost" id="eng-pin" type="button">Change PIN</button>
       <button class="btn btn-ghost" id="eng-logout" type="button">Sign Out</button>
     </div>
+    <form class="form eng-login" id="eng-pin-form" hidden>
+      <h2>Change Staff PIN</h2>
+      <label>New PIN<input name="newPin" type="password" required autocomplete="new-password" minlength="8"></label>
+      <label>Type the new PIN again<input name="newPin2" type="password" required autocomplete="new-password" minlength="8"></label>
+      <p class="form-msg" hidden></p>
+      <div class="form-actions"><button class="btn" type="submit">Save New PIN</button><button class="btn btn-ghost" id="eng-pin-cancel" type="button">Cancel</button></div>
+    </form>
     <div id="eng-list" class="job-list"></div>
   </div>
   <div id="eng-detail" hidden>

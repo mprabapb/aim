@@ -5,7 +5,8 @@
 //   GET  /api/jobs/:id?phone=...         check a booking (phone must match)
 // Staff (header "x-staff-pin" must equal the staff PIN: the STAFF_PIN environment variable if set,
 // otherwise the PIN saved once from the engineer page):
-//   POST /api/jobs/staff-pin             { pin } first-time set-up, only while no PIN exists
+//   POST /api/jobs/staff-pin             { pin } first-time set-up, only while no PIN exists;
+//                                        once set, staff send { newPin } with their PIN to change it
 //   GET  /api/jobs                       list jobs, newest first
 //   POST /api/jobs/:id/assign            { engineer, visitDate } -> status "Assigned"
 //   POST /api/jobs/:id/close             { engineer, workDone, ..., signature } -> status "Closed"
@@ -26,6 +27,16 @@ export const deps = {
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60e3;
 const PIN_KEY = 'config-staff-pin';
+// Spam guard: at most 3 bookings a day from one phone number and 100 a day in total
+const MAX_PER_PHONE = 3;
+const MAX_PER_DAY = 100;
+// A strong PIN: 8 to 64 characters, no spaces, with at least one letter and one number
+const pinOk = (pin) => /^\S{8,64}$/.test(pin) && /[A-Za-z]/.test(pin) && /[0-9]/.test(pin);
+const PIN_RULE = 'Use at least 8 characters with letters and numbers, and no spaces.';
+const savePin = (pin) => {
+  const salt = randomBytes(16).toString('hex');
+  return deps.locks().setJSON(PIN_KEY, { salt, hash: hashPin(pin, salt), setAt: new Date().toISOString() });
+};
 const hashPin = (pin, salt) => scryptSync(String(pin), Buffer.from(salt, 'hex'), 32).toString('hex');
 
 const CORS = {
@@ -120,14 +131,22 @@ export default async function handler(req, context) {
     return null;
   };
 
-  // ---- First-time staff PIN (only while none is set) ----
+  // ---- Staff PIN: first-time set-up (only while none is set), or a change by signed-in staff ----
   if (method === 'POST' && id === 'staff-pin') {
-    if (staffPin) return fail('A staff PIN is already set.', 409);
     const b = body || {};
+    if (staffPin) {
+      if (!sentPin) return fail('A staff PIN is already set.', 409);
+      const denied = await needStaff();
+      if (denied) return denied;
+      if (envPin) return fail('This PIN is set in the Netlify settings (STAFF_PIN). Change it there.', 409);
+      const np = String(b.newPin || '');
+      if (!pinOk(np)) return fail(PIN_RULE);
+      await savePin(np);
+      return json({ ok: true });
+    }
     const pin = String(b.pin || '');
-    if (!/^\S{4,64}$/.test(pin)) return fail('Use at least 4 characters for the PIN, with no spaces.');
-    const salt = randomBytes(16).toString('hex');
-    await deps.locks().setJSON(PIN_KEY, { salt, hash: hashPin(pin, salt), setAt: new Date().toISOString() });
+    if (!pinOk(pin)) return fail(PIN_RULE);
+    await savePin(pin);
     return json({ ok: true }, 201);
   }
 
@@ -145,6 +164,13 @@ export default async function handler(req, context) {
     if (digits(job.phone).length < 10) return fail('Please enter a 10 digit phone number.');
     if (!job.problem) return fail('Please describe the problem.');
     if (job.preferredDate && !/^\d{4}-\d{2}-\d{2}$/.test(job.preferredDate)) job.preferredDate = '';
+    const day = new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10);
+    const counts = (await deps.locks().get('book-' + day, { type: 'json' })) || { total: 0, phones: {} };
+    const ph = digits(job.phone);
+    if ((counts.phones[ph] || 0) >= MAX_PER_PHONE) return fail(`This phone number already has ${MAX_PER_PHONE} bookings today. Please call or WhatsApp us.`, 429);
+    if (counts.total >= MAX_PER_DAY) return fail('Online booking is busy today. Please call or WhatsApp us.', 429);
+    counts.total += 1; counts.phones[ph] = (counts.phones[ph] || 0) + 1;
+    await deps.locks().setJSON('book-' + day, counts);
     let jid = newId();
     for (let i = 0; i < 5 && (await store.get(jid)); i++) jid = newId();
     Object.assign(job, { id: jid, status: 'Booked', createdAt: new Date().toISOString(), history: [{ at: new Date().toISOString(), status: 'Booked' }] });

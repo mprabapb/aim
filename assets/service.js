@@ -3,6 +3,8 @@
 // netlify/functions/jobs.mjs. Where the API is not reachable
 // (for example on the GitHub Pages copy), booking falls back to WhatsApp.
 (function () {
+  // Folder this script was loaded from (used for the PDF libraries kept in assets/vendor)
+  var HERE = ((document.currentScript && document.currentScript.src) || '').replace(/[^\/]*$/, '');
   // data-api may list several servers (comma separated); the first one that answers is used.
   // On a Netlify site the page's own server is tried first.
   var BASES = (document.body.dataset.api || '').split(',').map(function (b) { return b.trim().replace(/\/$/, ''); }).filter(Boolean);
@@ -59,7 +61,7 @@
       if (!isGas(base)) return fetch(base + '/api/jobs' + path, init);
       // Apps Script: map the REST-style path to {action, id, ...}; replies always come back as HTTP 200
       var m = path.match(/^\/([^\/?]+)(?:\/(assign|close|cancel))?(?:\?phone=(.*))?$/), b = Object.assign({}, body || {});
-      if (path === '/staff-pin') b.action = 'setpin';
+      if (path === '/staff-pin') b.action = opts.pin ? 'changepin' : 'setpin';
       else if (!m) b.action = opts.pin ? 'list' : 'book';
       else if (m[3] !== undefined) {
         return fetch(base + '?action=status&id=' + m[1] + '&phone=' + m[3], { method: 'GET' });
@@ -185,7 +187,8 @@
       setMsg(trackMsg, 'Checking…'); out.hidden = true;
       call('/' + encodeURIComponent(id) + '?phone=' + encodeURIComponent(track.elements.phone.value)).then(function (res) {
         setMsg(trackMsg, '');
-        out.innerHTML = reportHtml(res.job, false) + '<p class="no-print"><button class="btn btn-ghost" type="button" onclick="print()">Print or save as PDF</button></p>';
+        out.innerHTML = reportHtml(res.job, false) + '<p class="no-print"><button class="btn btn-ghost js-print" type="button">Print or save as PDF</button></p>';
+        $('.js-print', out).addEventListener('click', function () { window.print(); });
         out.hidden = false;
       }, function (err) { setMsg(trackMsg, err.offline ? 'Status check is not available right now. Please call or WhatsApp us.' : err.message, true); });
     });
@@ -194,6 +197,8 @@
   // ---------- Engineer page ----------
   var app = document.getElementById('engineer-app');
   if (!app) return;
+  // Never run the staff page inside another site's frame (stops click-jacking tricks)
+  if (window.top !== window.self) { app.innerHTML = '<p>Please open this page directly.</p>'; return; }
   if (OFFLINE) { jobSheet(); return; }
   var store = { get: function (k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }, set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
   var pin = '';
@@ -249,20 +254,50 @@
     load().then(function () {
       try { sessionStorage.setItem('aim-pin', pin); } catch (e) {}
       login.hidden = true; board.hidden = false; setMsg(loginMsg, '');
+      if (!pinOk(pin)) openPinForm('Your staff PIN is too easy to guess. Please choose a new one now: at least 8 characters with letters and numbers.');
     }, function (err) {
       pin = ''; login.hidden = false; board.hidden = true;
       if (err.data && err.data.setup) {
         showSetup(true);
-        setMsg(loginMsg, 'No staff PIN has been set yet. Choose one now (at least 4 characters). Engineers will use it to sign in.');
+        setMsg(loginMsg, 'No staff PIN has been set yet. Choose one now: at least 8 characters with letters and numbers. Engineers will use it to sign in.');
         return;
       }
       setMsg(loginMsg, err.offline ? 'The job server is not reachable. Details for support: ' + (apiTried.join(' | ') || 'no server tried') : err.message, true);
+    });
+  }
+  function pinOk(p) { return /^\S{8,64}$/.test(p) && /[A-Za-z]/.test(p) && /[0-9]/.test(p); }
+  // Change PIN (staff only): the new PIN replaces the old one for every engineer
+  var pinForm = $('#eng-pin-form'), pinMsg = pinForm && $('.form-msg', pinForm);
+  function openPinForm(note) {
+    if (!pinForm) return;
+    pinForm.reset(); pinForm.hidden = false;
+    setMsg(pinMsg, note || 'The new PIN replaces the old one for all engineers. Tell them the new PIN.', !!note);
+    pinForm.elements.newPin.focus();
+  }
+  if (pinForm) {
+    $('#eng-pin').addEventListener('click', function () { openPinForm(); });
+    $('#eng-pin-cancel').addEventListener('click', function () { pinForm.hidden = true; });
+    pinForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var np = pinForm.elements.newPin.value;
+      if (!pinOk(np)) { setMsg(pinMsg, 'Use at least 8 characters with letters and numbers, and no spaces.', true); return; }
+      if (np !== pinForm.elements.newPin2.value) { setMsg(pinMsg, 'The two PINs do not match.', true); return; }
+      setMsg(pinMsg, 'Saving…');
+      call('/staff-pin', { method: 'POST', pin: pin, body: { newPin: np } }).then(function () {
+        pin = np;
+        try { sessionStorage.setItem('aim-pin', pin); } catch (err) {}
+        pinForm.hidden = true;
+        alert('Staff PIN changed. Tell your engineers the new PIN.');
+      }, function (err) {
+        setMsg(pinMsg, err.status === 404 ? 'The job server needs the latest update before the PIN can be changed. Please ask the office.' : err.message, true);
+      });
     });
   }
   login.addEventListener('submit', function (e) {
     e.preventDefault();
     pin = login.elements.pin.value;
     if (!setupMode) { enter(); return; }
+    if (!pinOk(pin)) { setMsg(loginMsg, 'Use at least 8 characters with letters and numbers, and no spaces.', true); return; }
     setMsg(loginMsg, 'Saving…');
     call('/staff-pin', { method: 'POST', body: { pin: pin } }).then(function () { showSetup(false); enter(); },
       function (err) { setMsg(loginMsg, err.message, true); if (err.status === 409) showSetup(false); });
@@ -492,8 +527,9 @@
   }
   function pdfReady() {
     if (!pdfLibs) {
-      pdfLibs = loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
-        .then(function () { return loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'); })
+      // Kept on our own site (assets/vendor) instead of an outside server
+      pdfLibs = loadScript(HERE + 'vendor/jspdf.umd.min.js?v=2.5.1')
+        .then(function () { return loadScript(HERE + 'vendor/jspdf.plugin.autotable.min.js?v=3.8.2'); })
         .catch(function (e) { pdfLibs = null; throw e; });
     }
     return pdfLibs;

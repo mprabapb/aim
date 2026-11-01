@@ -8,6 +8,9 @@
  * It creates a Google Sheet "AIM Service Jobs" (one row per job) and a Drive folder
  * "AIM Service Signatures" (one PNG per signed job) in the owner's Google account.
  *
+ * To change the staff PIN later: sign in on the Engineer page and use "Change PIN". If the PIN is lost,
+ * delete PIN_HASH and PIN_SALT under Project settings > Script properties, then create a new one.
+ *
  * Every call is a GET (?action=...) or a POST with a JSON body {action, ...}; the reply is JSON
  * with "status" (HTTP-like code) and either the data or "error".
  */
@@ -15,6 +18,8 @@ var COLS = ['id', 'status', 'createdAt', 'name', 'org', 'phone', 'email', 'addre
   'preferredDate', 'slot', 'engineer', 'visitDate', 'cancelReason', 'closedAt', 'workDone', 'parts', 'meter',
   'charges', 'payment', 'remarks', 'signedBy', 'signatureFile', 'history'];
 var MAX_FAILS = 10, LOCK_SECONDS = 900;
+// Spam guard: at most 3 bookings a day from one phone number and 100 a day in total
+var MAX_PER_PHONE = 3, MAX_PER_DAY = 100;
 var ALPHA = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 
 function doGet(e) { return handle_(e.parameter || {}); }
@@ -99,21 +104,33 @@ function newId_(sh) {
   }
   return 'SR-' + ymd + '-' + Utilities.getUuid().slice(0, 4).toUpperCase();
 }
+// A strong PIN: 8 to 64 characters, no spaces, with at least one letter and one number
+function pinOk_(pin) { return /^\S{8,64}$/.test(pin) && /[A-Za-z]/.test(pin) && /[0-9]/.test(pin); }
+var PIN_RULE = 'Use at least 8 characters with letters and numbers, and no spaces.';
+function setPin_(pin) {
+  var salt = Utilities.getUuid();
+  props_().setProperties({ PIN_SALT: salt, PIN_HASH: hash_(pin, salt) });
+}
 function hash_(pin, salt) {
   return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + ':' + pin, Utilities.Charset.UTF_8));
 }
 
-// Staff check: one PIN for the shop, saved as a salted hash; locks for 15 min after 10 wrong tries
+// Staff check: one PIN for the shop, saved as a salted hash; locks for 15 min after 10 wrong tries.
+// The count is read and written under a lock, so many guesses sent at once cannot slip past it.
 function staff_(b) {
   var p = props_(), h = p.getProperty('PIN_HASH');
   if (!h) return { res: out_({ status: 503, error: 'No staff PIN yet. Create one to start.', setup: true }) };
-  var cache = CacheService.getScriptCache(), fails = Number(cache.get('pin-fails') || 0);
-  if (fails >= MAX_FAILS) return { res: fail_('Too many wrong PINs. Sign-in is locked for 15 minutes.', 429) };
-  if (!b._pin || hash_(String(b._pin), p.getProperty('PIN_SALT')) !== h) {
-    cache.put('pin-fails', String(fails + 1), LOCK_SECONDS);
-    Utilities.sleep(800);
-    return { res: fail_('Wrong PIN.', 401) };
-  }
+  var cache = CacheService.getScriptCache(), wrong = false;
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    var fails = Number(cache.get('pin-fails') || 0);
+    if (fails >= MAX_FAILS) return { res: fail_('Too many wrong PINs. Sign-in is locked for 15 minutes.', 429) };
+    if (!b._pin || hash_(String(b._pin), p.getProperty('PIN_SALT')) !== h) {
+      cache.put('pin-fails', String(fails + 1), LOCK_SECONDS);
+      wrong = true;
+    }
+  } finally { lock.releaseLock(); }
+  if (wrong) { Utilities.sleep(800); return { res: fail_('Wrong PIN.', 401) }; }
   return { ok: true };
 }
 
@@ -127,9 +144,8 @@ function handle_(b) {
       try {
         if (props_().getProperty('PIN_HASH')) return fail_('A staff PIN is already set.', 409);
         var pin = String(b.pin || '');
-        if (!/^\S{4,64}$/.test(pin)) return fail_('Use at least 4 characters for the PIN, with no spaces.');
-        var salt = Utilities.getUuid();
-        props_().setProperties({ PIN_SALT: salt, PIN_HASH: hash_(pin, salt) });
+        if (!pinOk_(pin)) return fail_(PIN_RULE);
+        setPin_(pin);
         return out_({ status: 201, ok: true });
       } finally { lock0.releaseLock(); }
     }
@@ -144,6 +160,12 @@ function handle_(b) {
       if (job.preferredDate && !/^\d{4}-\d{2}-\d{2}$/.test(job.preferredDate)) job.preferredDate = '';
       var lock = LockService.getScriptLock(); lock.waitLock(20000);
       try {
+        var day = Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyMMdd'), cache = CacheService.getScriptCache();
+        var kPhone = 'book-' + day + '-' + digits_(job.phone), kDay = 'book-' + day;
+        var nPhone = Number(cache.get(kPhone) || 0), nDay = Number(cache.get(kDay) || 0);
+        if (nPhone >= MAX_PER_PHONE) return fail_('This phone number already has ' + MAX_PER_PHONE + ' bookings today. Please call or WhatsApp us.', 429);
+        if (nDay >= MAX_PER_DAY) return fail_('Online booking is busy today. Please call or WhatsApp us.', 429);
+        cache.put(kPhone, String(nPhone + 1), 21600); cache.put(kDay, String(nDay + 1), 21600);
         var sh = sheet_(), now = new Date().toISOString();
         job.id = newId_(sh); job.status = 'Booked'; job.createdAt = now; job.history = [{ at: now, status: 'Booked' }];
         sh.appendRow(jobToRow_(job));
@@ -161,6 +183,15 @@ function handle_(b) {
     // Everything below is for staff only
     var s = staff_(b);
     if (!s.ok) return s.res;
+
+    if (action === 'changepin') {
+      var np = String(b.newPin || '');
+      if (!pinOk_(np)) return fail_(PIN_RULE);
+      var lock1 = LockService.getScriptLock(); lock1.waitLock(10000);
+      try { setPin_(np); CacheService.getScriptCache().remove('pin-fails'); } finally { lock1.releaseLock(); }
+      return out_({ ok: true });
+    }
+
     var sh2 = sheet_();
 
     if (action === 'list') {
@@ -205,6 +236,7 @@ function handle_(b) {
       return out_({ job: withSignature_(rowToJob_(jobToRow_(j).map(function (v) { return String(v).replace(/^'/, ''); }))) });
     } finally { lock2.releaseLock(); }
   } catch (err) {
-    return fail_('Server error: ' + (err && err.message || err), 500);
+    console.error(err);  // details stay in Apps Script > Executions; the visitor sees a plain message
+    return fail_('Something went wrong on the server. Please try again.', 500);
   }
 }
