@@ -705,6 +705,7 @@ def build():
   <div id="eng-board" hidden>
     <div class="eng-toolbar">
       <div id="eng-tabs" class="chips"><button class="chip" data-filter="open" aria-pressed="true">Open</button><button class="chip" data-filter="Closed" aria-pressed="false">Closed</button><button class="chip" data-filter="Cancelled" aria-pressed="false">Cancelled</button><button class="chip" data-filter="all" aria-pressed="false">All</button></div>
+      <label class="eng-who small">Show jobs for <select id="eng-who"><option value="">All engineers</option></select></label>
       <span class="small" id="eng-count"></span>
       <button class="btn btn-ghost" id="eng-refresh" type="button">Refresh</button>
       <button class="btn btn-ghost" id="eng-logout" type="button">Sign Out</button>

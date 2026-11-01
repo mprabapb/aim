@@ -203,9 +203,31 @@
   var login = $('#eng-login'), board = $('#eng-board'), list = $('#eng-list'), detail = $('#eng-detail');
   var loginMsg = $('.form-msg', login);
 
+  // Engineer names: everyone who appears on a job, plus names typed on this phone
+  function engineerNames() {
+    var saved = []; try { saved = JSON.parse(store.get('aim-engineers') || '[]'); } catch (e) {}
+    var all = saved.concat(jobs.map(function (j) { return j.engineer; }));
+    var seen = {}, out = [];
+    all.forEach(function (n) { n = String(n || '').trim(); if (n && !seen[n.toLowerCase()]) { seen[n.toLowerCase()] = 1; out.push(n); } });
+    return out.sort(function (a, b) { return a.localeCompare(b); });
+  }
+  function rememberEngineer(n) {
+    if (!n) return;
+    var saved = []; try { saved = JSON.parse(store.get('aim-engineers') || '[]'); } catch (e) {}
+    if (saved.indexOf(n) < 0) { saved.push(n); store.set('aim-engineers', JSON.stringify(saved.slice(-30))); }
+  }
+  function engineerList() { return '<datalist id="eng-names">' + engineerNames().map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>'; }
+  var who = store.get('aim-show-engineer');
+  function whoSelect() {
+    var sel = $('#eng-who'); if (!sel) return;
+    var names = engineerNames();
+    sel.innerHTML = '<option value="">All engineers</option>' + names.map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
+    sel.value = names.indexOf(who) >= 0 ? who : '';
+  }
   function badge(s) { return '<span class="sr-status s-' + esc(s.toLowerCase()) + '">' + esc(s) + '</span>'; }
   function renderList() {
-    var shown = jobs.filter(function (j) { return filter === 'all' || (filter === 'open' ? j.status === 'Booked' || j.status === 'Assigned' : j.status === filter); });
+    whoSelect();
+    var shown = jobs.filter(function (j) { return !who || j.engineer === who; }).filter(function (j) { return filter === 'all' || (filter === 'open' ? j.status === 'Booked' || j.status === 'Assigned' : j.status === filter); });
     $('#eng-count').textContent = jobs.filter(function (j) { return j.status === 'Booked' || j.status === 'Assigned'; }).length + ' open';
     list.innerHTML = shown.length ? shown.map(function (j) {
       return '<button class="job-row" data-id="' + esc(j.id) + '"><span><b>' + esc(j.name) + '</b>' + (j.org ? ' · ' + esc(j.org) : '') +
@@ -248,6 +270,7 @@
   if (pin) enter();
   $('#eng-logout').addEventListener('click', function () { try { sessionStorage.removeItem('aim-pin'); } catch (e) {} location.reload(); });
   $('#eng-refresh').addEventListener('click', function () { load(); });
+  $('#eng-who').addEventListener('change', function () { who = this.value; store.set('aim-show-engineer', who); renderList(); });
   document.querySelectorAll('#eng-tabs button').forEach(function (b) {
     b.addEventListener('click', function () {
       filter = b.dataset.filter;
@@ -269,7 +292,7 @@
     window.scrollTo(0, 0);
   }
 
-  function showJob(j) {
+  function showJob(j, flash) {
     var body = $('#eng-job');
     var open = j.status === 'Booked' || j.status === 'Assigned';
     var me = store.get('aim-engineer');
@@ -280,11 +303,11 @@
     if (open) {
       h += contact +
         '<form class="form" id="eng-assign"><h2>Assign Engineer</h2><div class="form-row">' +
-        '<label>Engineer<input name="engineer" required value="' + esc(j.engineer || me) + '"></label>' +
+        '<label>Engineer<input name="engineer" list="eng-names" autocomplete="off" required placeholder="Type or pick a name" value="' + esc(j.engineer || '') + '"></label>' +
         '<label>Visit date<input name="visitDate" type="date" value="' + esc(j.visitDate || j.preferredDate || '') + '"></label></div>' +
-        '<p class="form-msg" hidden></p><div class="form-actions"><button class="btn btn-ghost" type="submit">Save</button></div></form>' +
+        '<p class="form-msg" hidden></p><div class="form-actions"><button class="btn" type="submit">Save Engineer</button></div></form>' +
         '<form class="form" id="eng-close"><h2>Close Job</h2>' +
-        '<label>Engineer<input name="engineer" required value="' + esc(j.engineer || me) + '"></label>' +
+        '<label>Engineer<input name="engineer" list="eng-names" autocomplete="off" required value="' + esc(j.engineer || me) + '"></label>' +
         '<label>Work done<textarea name="workDone" rows="3" required placeholder="Fault found and what was fixed"></textarea></label>' +
         '<label>Parts replaced<input name="parts" placeholder="e.g. Fixing film, pickup roller"></label>' +
         '<div class="form-row"><label>Meter reading<input name="meter" inputmode="numeric"></label>' +
@@ -297,19 +320,36 @@
         '<p class="form-msg" hidden></p><div class="form-actions"><button class="btn" type="submit">Close Job with Signature</button>' +
         '<button class="btn btn-ghost" type="button" id="eng-cancel">Cancel Booking</button></div></form>';
     } else {
-      h += '<p class="eng-actions no-print"><button class="btn" type="button" onclick="print()">Print or save as PDF</button>' +
+      h += '<p class="eng-actions no-print"><button class="btn" type="button" id="eng-pdf">Download PDF</button>' +
         '<a class="btn btn-wa" target="_blank" rel="noopener" href="' + esc(waText(j.phone, reportSummary(j))) + '">Send report on WhatsApp</a></p>';
     }
-    body.innerHTML = h;
-    if (!open) return;
+    body.innerHTML = engineerList() + h;
+    if (flash) { var fl = document.createElement('p'); fl.className = 'form-msg ok-msg'; fl.textContent = flash; body.insertBefore(fl, body.firstChild.nextSibling); }
+    if (!open) { $('#eng-pdf').addEventListener('click', function () { reportPdf(j); }); return; }
 
     var assign = $('#eng-assign'), close = $('#eng-close');
     assign.addEventListener('submit', function (e) {
       e.preventDefault();
-      var m = $('.form-msg', assign);
-      store.set('aim-engineer', assign.elements.engineer.value.trim());
-      call('/' + j.id + '/assign', { method: 'POST', pin: pin, body: { engineer: assign.elements.engineer.value, visitDate: assign.elements.visitDate.value } })
-        .then(function (res) { showJob(res.job); }, function (err) { setMsg(m, err.message, true); });
+      var m = $('.form-msg', assign), btn = $('button[type="submit"]', assign);
+      var name = assign.elements.engineer.value.trim().replace(/\s+/g, ' '), visit = assign.elements.visitDate.value;
+      if (!name) { setMsg(m, 'Type the engineer name first.', true); assign.elements.engineer.focus(); return; }
+      rememberEngineer(name);
+      btn.disabled = true; setMsg(m, 'Saving…');
+      call('/' + j.id + '/assign', { method: 'POST', pin: pin, body: { engineer: name, visitDate: visit } })
+        .then(function (res) {
+          btn.disabled = false;
+          // Read the job back so we only say "saved" when the Google Sheet really has the name
+          if (!res.job || res.job.engineer !== name) {
+            setMsg(m, 'The job server answered but did not store the engineer. Please send this screen to support.', true); return;
+          }
+          var at = jobs.findIndex(function (x) { return x.id === res.job.id; });
+          if (at >= 0) jobs[at] = res.job;
+          showJob(res.job, 'Saved. ' + name + ' is assigned to ' + res.job.id + (visit ? ' for ' + fmtDate(visit) : '') + '.');
+          window.scrollTo(0, 0);
+        }, function (err) {
+          btn.disabled = false;
+          setMsg(m, err.offline ? 'Not saved: the job server could not be reached. Check the internet and press Save Engineer again.' : 'Not saved: ' + err.message, true);
+        });
     });
     $('#eng-cancel').addEventListener('click', function () {
       var reason = prompt('Reason for cancelling ' + j.id + '?');
@@ -324,10 +364,10 @@
       if (pad.isEmpty()) { setMsg(m, 'The customer needs to sign before you close the job.', true); return; }
       var f = close.elements, data = { signature: pad.toDataURL() };
       ['engineer', 'workDone', 'parts', 'meter', 'charges', 'payment', 'remarks', 'signedBy'].forEach(function (k) { data[k] = f[k].value.trim(); });
-      store.set('aim-engineer', data.engineer);
+      store.set('aim-engineer', data.engineer); rememberEngineer(data.engineer);
       var btn = $('button[type="submit"]', close);
       btn.disabled = true; setMsg(m, 'Saving…');
-      call('/' + j.id + '/close', { method: 'POST', pin: pin, body: data }).then(function (res) { showJob(res.job); window.scrollTo(0, 0); },
+      call('/' + j.id + '/close', { method: 'POST', pin: pin, body: data }).then(function (res) { showJob(res.job, 'Job closed with the customer signature. Press Download PDF for the job sheet.'); window.scrollTo(0, 0); },
         function (err) { btn.disabled = false; setMsg(m, err.message, true); });
     });
   }
@@ -388,8 +428,9 @@
         '<p class="eng-actions no-print"><button class="btn" type="button" id="share-img">Share signed report</button>' +
         '<a class="btn btn-wa" target="_blank" rel="noopener" href="' + esc(waText(j.phone, reportSummary(j))) + '">Send summary to customer</a>' +
         '<a class="btn btn-wa" target="_blank" rel="noopener" href="https://wa.me/' + esc(WA) + '?text=' + encodeURIComponent(reportSummary(j)) + '">Send to office</a>' +
-        '<button class="btn btn-ghost" type="button" onclick="print()">Print or save as PDF</button>' +
+        '<button class="btn btn-ghost" type="button" id="sheet-pdf">Download PDF</button>' +
         '<button class="btn btn-ghost" type="button" id="new-sheet">New Job Sheet</button></p>';
+      $('#sheet-pdf').addEventListener('click', function () { reportPdf(j); });
       $('#new-sheet').addEventListener('click', function () { form(); window.scrollTo(0, 0); });
       $('#share-img').addEventListener('click', function () { reportImage(j); });
       window.scrollTo(0, 0);
@@ -442,6 +483,77 @@
       }, 'image/png');
     };
     img.src = c.signature;
+  }
+
+  // ---------- Service report PDF (A4 job sheet on the AIM letterhead) ----------
+  var pdfLibs = null;
+  function loadScript(src) {
+    return new Promise(function (ok, bad) { var s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = function () { bad(new Error('Could not load ' + src)); }; document.head.appendChild(s); });
+  }
+  function pdfReady() {
+    if (!pdfLibs) {
+      pdfLibs = loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+        .then(function () { return loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'); })
+        .catch(function (e) { pdfLibs = null; throw e; });
+    }
+    return pdfLibs;
+  }
+  function reportPdf(j) {
+    var c = j.closure || {};
+    return pdfReady().then(function () {
+      var doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
+      var W = 210, M = 12, R = [228, 25, 32], G = [90, 90, 90], y = 12;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(22); doc.setTextColor(R[0], R[1], R[2]); doc.text('AIM ENTERPRISES', M, y + 6);
+      doc.setFontSize(8.5); doc.setTextColor(30, 30, 30); doc.text('Canon Authorized Premium Business Partner  |  Canon Service Edge (CSP)', M, y + 11);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(G[0], G[1], G[2]);
+      ['Shop No. 3, Opp. BJP Bhawan, No. 112 Middle Point,', 'MG Road, Sri Vijaya Puram - 744101', 'Ph: +91 94342 82223, +91 3192 220900',
+        'info@aimenterprises.net  |  GSTIN: 35AKEPP1123F1ZM'].forEach(function (t, i) { doc.text(t, W - M, y + i * 3.4, { align: 'right' }); });
+      y += 14; doc.setDrawColor(R[0], R[1], R[2]); doc.setLineWidth(0.8); doc.line(M, y, W - M, y);
+      y += 7; doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(0, 0, 0); doc.text('SERVICE REPORT / JOB SHEET', W / 2, y, { align: 'center' });
+      y += 3;
+      var head = { fillColor: R, textColor: 255, fontStyle: 'bold', fontSize: 8.5 };
+      var base = { fontSize: 8.5, cellPadding: 1.6, lineColor: [170, 170, 170], lineWidth: 0.2, textColor: [20, 20, 20], valign: 'top' };
+      var lab = { fontStyle: 'bold', fillColor: [243, 244, 246], cellWidth: 34 };
+      var t = function (s) { return s == null ? '' : String(s); };
+      var grid = function (title, rows) {
+        doc.autoTable({ startY: y, margin: { left: M, right: M }, theme: 'grid', styles: base, headStyles: head, head: [[{ content: title, colSpan: 4 }]],
+          body: rows.map(function (r) { return [{ content: r[0], styles: lab }, t(r[1]), { content: r[2], styles: lab }, t(r[3])]; }) });
+        y = doc.lastAutoTable.finalY + 3;
+      };
+      grid('CALL DETAILS', [['Job No.', j.id, 'Booked On', fmtDate(j.createdAt, true)], ['Status', j.status, 'Closed On', fmtDate(c.closedAt, true)],
+        ['Preferred Visit', [fmtDate(j.preferredDate), j.slot].filter(Boolean).join(', '), 'Payment', c.payment]]);
+      grid('CUSTOMER DETAILS', [['Customer', j.name, 'Organisation', j.org], ['Phone', j.phone, 'Email', j.email], ['Address', j.address, '', '']]);
+      grid('MACHINE DETAILS', [['Model', j.model, 'Serial No.', j.serial], ['Meter Reading', c.meter, '', '']]);
+      grid('ENGINEER VISIT', [['Engineer', c.engineer || j.engineer, 'Visit Date', fmtDate(j.visitDate)]]);
+      doc.autoTable({ startY: y, margin: { left: M, right: M }, theme: 'grid', styles: base, headStyles: head, bodyStyles: { minCellHeight: 9 },
+        head: [[{ content: 'WORK DONE', colSpan: 2 }]],
+        body: [[{ content: 'Problem Reported', styles: lab }, t(j.problem)], [{ content: 'Work Done', styles: lab }, t(c.workDone)],
+          [{ content: 'Parts Replaced', styles: lab }, t(c.parts) || 'None'], [{ content: 'Charges (Rs.)', styles: lab }, t(c.charges) || '0'],
+          [{ content: 'Remarks', styles: lab }, t(c.remarks)]] });
+      y = doc.lastAutoTable.finalY + 5;
+      if (y > 245) { doc.addPage(); y = 20; }
+      var bw = (W - 2 * M - 8) / 2;
+      doc.setDrawColor(150, 150, 150); doc.setLineWidth(0.2); doc.rect(M, y, bw, 32); doc.rect(M + bw + 8, y, bw, 32);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(20, 20, 20);
+      doc.text('For AIM ENTERPRISES', M + 2, y + 5); doc.text('Customer Signature & Office Seal', M + bw + 10, y + 5);
+      if (c.signature) { try { doc.addImage(c.signature, 'PNG', M + bw + 10, y + 7, 56, 17); } catch (e) {} }
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(G[0], G[1], G[2]);
+      doc.text('Engineer: ' + t(c.engineer || j.engineer), M + 2, y + 28);
+      doc.text('Name: ' + t(c.signedBy), M + bw + 10, y + 28);
+      if (c.signedBy) doc.text('I confirm the above work was carried out to my satisfaction.', M + bw + 10, y + 31);
+      var ph = doc.internal.pageSize.getHeight(), n = doc.getNumberOfPages();
+      for (var i = 1; i <= n; i++) {
+        doc.setPage(i); doc.setFontSize(7); doc.setTextColor(G[0], G[1], G[2]);
+        doc.text('Computer-generated service report. Service calls: +91 94342 82223  |  Mon-Fri 9 am-6 pm, Sat 9 am-1 pm', W / 2, ph - 7, { align: 'center' });
+      }
+      var name = 'Service Report ' + j.id + (j.name ? ' ' + j.name : '');
+      name = name.replace(/[^\w .-]+/g, '').slice(0, 80) + '.pdf';
+      var blob = doc.output('blob'), file = new File([blob], name, { type: 'application/pdf' });
+      if (navigator.canShare && /Android|iPhone|iPad/i.test(navigator.userAgent) && navigator.canShare({ files: [file] })) {
+        return navigator.share({ files: [file], title: 'Service Report ' + j.id }).catch(function () { doc.save(name); });
+      }
+      doc.save(name);
+    }).catch(function (e) { alert('Could not make the PDF. Check the internet connection and try again. (' + e.message + ')'); });
   }
 
   // Finger, stylus or mouse signature on a canvas; exported as a small white-background PNG

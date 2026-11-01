@@ -381,6 +381,9 @@ address { font-style: normal; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-msg { margin: 0; font-size: 15px; color: var(--ink); }
 .form-msg.bad { color: var(--red-dark); }
+.form-msg.ok-msg { color: #1e7b3a; font-weight: 700; background: #e6f4ea; padding: 10px 12px; border-radius: 5px; margin-bottom: 14px; }
+.eng-who { display: flex; align-items: center; gap: 8px; }
+.eng-who select { font: inherit; padding: 6px 8px; border: 1px solid #d0d2d6; border-radius: 5px; background: #fff; }
 .form .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .book-col { display: grid; gap: 24px; }
 .booked { text-align: center; }
