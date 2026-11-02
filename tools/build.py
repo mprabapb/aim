@@ -695,17 +695,37 @@ def build():
 <section class="page-head"><div class="wrap">
   <p class="eyebrow">Staff only</p>
   <h1>Engineer Jobs</h1>
-  <p>Check in and out each day, and close each service job on site with the customer's signature.</p>
+  <p>Sign in with your own username and password. You will see the menus the owner has given you.</p>
 </div></section>
 <div class="wrap section" id="engineer-app">
   <form class="form eng-login" id="eng-login" data-online>
     <h2>Sign In</h2>
-    <label>Staff PIN<input name="pin" type="password" required autocomplete="current-password"></label>
+    <p class="small" data-setup hidden>No staff logins yet. Create the owner login now. You will then add each staff member and choose which menus they can see.</p>
+    <label data-setup hidden>Your name<input name="name" autocomplete="name" maxlength="60"></label>
+    <label>Username<input name="username" required autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30"></label>
+    <label>Password<input name="password" type="password" required autocomplete="current-password"></label>
+    <label data-setup hidden>Type the password again<input name="password2" type="password" autocomplete="new-password"></label>
+    <label data-oldpin hidden>Old staff PIN (to prove you are the owner)<input name="pin" type="password" autocomplete="off"></label>
     <p class="form-msg" hidden></p>
-    <div class="form-actions"><button class="btn" type="submit">Open Jobs</button></div>
+    <div class="form-actions"><button class="btn" type="submit">Sign In</button></div>
   </form>
   <div id="eng-board" hidden>
-    <form class="att-card" id="att-today">
+    <div class="eng-toolbar eng-userbar">
+      <span class="small" id="eng-me"></span>
+      <button class="btn btn-ghost" id="eng-att-open" type="button" data-perm="register" hidden>Attendance Register</button>
+      <button class="btn btn-ghost" id="eng-users-open" type="button" data-perm="admin" hidden>Staff Logins</button>
+      <button class="btn btn-ghost" id="eng-pw" type="button">Change Password</button>
+      <button class="btn btn-ghost" id="eng-logout" type="button">Sign Out</button>
+    </div>
+    <form class="form eng-login" id="eng-pw-form" hidden>
+      <h2>Change Your Password</h2>
+      <label>Current password<input name="oldPassword" type="password" required autocomplete="current-password"></label>
+      <label>New password<input name="newPassword" type="password" required autocomplete="new-password" minlength="8"></label>
+      <label>Type the new password again<input name="newPassword2" type="password" required autocomplete="new-password" minlength="8"></label>
+      <p class="form-msg" hidden></p>
+      <div class="form-actions"><button class="btn" type="submit">Save New Password</button><button class="btn btn-ghost" id="eng-pw-cancel" type="button">Cancel</button></div>
+    </form>
+    <form class="att-card" id="att-today" data-perm="attendance register" hidden>
       <h2>Today's Attendance</h2>
       <div class="att-row">
         <label>Your name<input name="me" list="att-names" autocomplete="off" required placeholder="Type or pick your name"></label>
@@ -716,30 +736,49 @@ def build():
       <p class="form-msg" hidden></p>
       <datalist id="att-names"></datalist>
     </form>
+    <div id="eng-jobs" data-perm="service" hidden>
+    <h2>Service Jobs</h2>
     <div class="eng-toolbar">
       <div id="eng-tabs" class="chips"><button class="chip" data-filter="open" aria-pressed="true">Open</button><button class="chip" data-filter="Closed" aria-pressed="false">Closed</button><button class="chip" data-filter="Cancelled" aria-pressed="false">Cancelled</button><button class="chip" data-filter="all" aria-pressed="false">All</button></div>
       <label class="eng-who small">Show jobs for <select id="eng-who"><option value="">All engineers</option></select></label>
       <span class="small" id="eng-count"></span>
       <button class="btn btn-ghost" id="eng-refresh" type="button">Refresh</button>
-      <button class="btn btn-ghost" id="eng-att-open" type="button">Attendance Register</button>
-      <button class="btn btn-ghost" id="eng-pin" type="button">Change PIN</button>
-      <button class="btn btn-ghost" id="eng-logout" type="button">Sign Out</button>
     </div>
-    <form class="form eng-login" id="eng-pin-form" hidden>
-      <h2>Change Staff PIN</h2>
-      <label>New PIN<input name="newPin" type="password" required autocomplete="new-password" minlength="8"></label>
-      <label>Type the new PIN again<input name="newPin2" type="password" required autocomplete="new-password" minlength="8"></label>
-      <p class="form-msg" hidden></p>
-      <div class="form-actions"><button class="btn" type="submit">Save New PIN</button><button class="btn btn-ghost" id="eng-pin-cancel" type="button">Cancel</button></div>
-    </form>
     <div id="eng-list" class="job-list"></div>
+    </div>
+    <p class="small" id="eng-nomenu" hidden>No menus are switched on for your login yet. Please ask the owner.</p>
+  </div>
+  <div id="eng-users" hidden>
+    <p class="no-print"><button class="btn btn-ghost" id="users-back" type="button">Back</button></p>
+    <h2>Staff Logins</h2>
+    <p class="small">Each person signs in with their own username and password and sees only the menus ticked for them. A change takes effect at once: the person is signed out and signs in again.</p>
+    <p class="form-msg" id="users-msg" hidden></p>
+    <div class="ctable-wrap"><table class="ctable" id="users-table"></table></div>
+    <form class="form" id="user-form">
+      <h3 id="user-form-title">Add a Staff Login</h3>
+      <div class="form-row">
+        <label>Name<input name="name" required maxlength="60" placeholder="e.g. Ravi Kumar"></label>
+        <label>Username<input name="username" required maxlength="30" autocapitalize="none" spellcheck="false" placeholder="e.g. ravi"></label>
+      </div>
+      <label><span id="user-pw-label">Password</span><input name="password" type="text" autocomplete="off" placeholder="At least 8 letters and numbers"></label>
+      <fieldset class="perm-list">
+        <legend>Menus this person can see</legend>
+        <label class="check"><input type="checkbox" name="perm" value="service"> Service Jobs <span class="small">(job list, assign, close with signature)</span></label>
+        <label class="check"><input type="checkbox" name="perm" value="attendance"> My Attendance <span class="small">(check in and out, own name only)</span></label>
+        <label class="check"><input type="checkbox" name="perm" value="register"> Attendance Register <span class="small">(everyone's attendance, office marks)</span></label>
+        <label class="check"><input type="checkbox" name="perm" value="admin"> Staff Logins <span class="small">(owner: everything, and add or change logins)</span></label>
+      </fieldset>
+      <label class="check"><input type="checkbox" name="active" checked> Login active (untick to block this person)</label>
+      <p class="form-msg" hidden></p>
+      <div class="form-actions"><button class="btn" type="submit">Save Login</button><button class="btn btn-ghost" id="user-new" type="button">Clear</button></div>
+    </form>
   </div>
   <div id="eng-detail" hidden>
     <p class="no-print"><button class="btn btn-ghost" id="eng-back" type="button">Back to Jobs</button></p>
     <div id="eng-job"></div>
   </div>
   <div id="eng-att" hidden>
-    <p class="no-print"><button class="btn btn-ghost" id="att-back" type="button">Back to Jobs</button></p>
+    <p class="no-print"><button class="btn btn-ghost" id="att-back" type="button">Back</button></p>
     <h2>Attendance Register</h2>
     <div class="eng-toolbar no-print">
       <label class="eng-who small">Month <input type="month" id="att-month"></label>

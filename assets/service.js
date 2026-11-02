@@ -51,7 +51,7 @@
     // Plain GETs and text/plain POSTs only, so browsers send them across sites without a preflight
     var method = opts.method || 'GET', body = opts.body;
     if (opts.pin) {
-      body = Object.assign({}, body || {}, { _pin: opts.pin });
+      body = Object.assign({}, body || {}, { _token: opts.pin });
       if (method === 'GET') { body._get = true; method = 'POST'; }
     }
     var init = { method: method };
@@ -61,8 +61,9 @@
       if (!isGas(base)) return fetch(base + '/api/jobs' + path, init);
       // Apps Script: map the REST-style path to {action, id, ...}; replies always come back as HTTP 200
       var m = path.match(/^\/([^\/?]+)(?:\/(assign|close|cancel))?(?:\?phone=(.*))?$/), b = Object.assign({}, body || {});
-      if (path === '/attendance') b.action = b._get ? 'attlist' : 'attend';
-      else if (path === '/staff-pin') b.action = opts.pin ? 'changepin' : 'setpin';
+      var auth = path.match(/^\/auth\/(\w+)$/);
+      if (auth) b.action = auth[1] === 'ping' ? 'authping' : auth[1];
+      else if (path === '/attendance') b.action = b._get ? 'attlist' : 'attend';
       else if (!m) b.action = opts.pin ? 'list' : 'book';
       else if (m[3] !== undefined) {
         return fetch(base + '?action=status&id=' + m[1] + '&phone=' + m[3], { method: 'GET' });
@@ -202,12 +203,16 @@
   if (window.top !== window.self) { app.innerHTML = '<p>Please open this page directly.</p>'; return; }
   if (OFFLINE) { jobSheet(); return; }
   var store = { get: function (k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }, set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
-  var pin = '';
-  try { pin = sessionStorage.getItem('aim-pin') || ''; } catch (e) {}
+  // Each person signs in with their own username and password. The server answers with a token
+  // (kept for this browser tab only) and the menus this person may use; the server checks the
+  // same permissions on every call, so a hidden menu cannot be used by calling the server directly.
+  var pin = '', user = null;
+  try { pin = sessionStorage.getItem('aim-token') || ''; user = JSON.parse(sessionStorage.getItem('aim-user') || 'null'); } catch (e) {}
   var jobs = [];
   var filter = 'open';
   var login = $('#eng-login'), board = $('#eng-board'), list = $('#eng-list'), detail = $('#eng-detail');
   var loginMsg = $('.form-msg', login);
+  function can(p) { return !!user && (user.perms.indexOf(p) >= 0 || user.perms.indexOf('admin') >= 0); }
 
   // Engineer names: everyone who appears on a job, plus names typed on this phone
   function engineerNames() {
@@ -241,71 +246,169 @@
     }).join('') : '<p class="small">No jobs here.</p>';
   }
   function load() {
+    if (!can('service')) return Promise.resolve();
     return call('', { pin: pin }).then(function (res) { jobs = res.jobs; renderList(); });
   }
-  var setupMode = false;
-  function showSetup(on) {
-    setupMode = on;
-    $('h2', login).textContent = on ? 'Create Staff PIN' : 'Sign In';
-    $('button[type="submit"]', login).textContent = on ? 'Save PIN' : 'Open Jobs';
-    login.elements.pin.setAttribute('autocomplete', on ? 'new-password' : 'current-password');
+  function keepSession(res) {
+    pin = res.token || pin; user = res.user || user;
+    try { sessionStorage.setItem('aim-token', pin); sessionStorage.setItem('aim-user', JSON.stringify(user)); } catch (e) {}
+  }
+  function signOut(note) {
+    pin = ''; user = null;
+    try { sessionStorage.removeItem('aim-token'); sessionStorage.removeItem('aim-user'); } catch (e) {}
+    ['#eng-board', '#eng-detail', '#eng-att', '#eng-users'].forEach(function (s) { var el = $(s); if (el) el.hidden = true; });
+    login.hidden = false; login.reset();
+    setMsg(loginMsg, note || '', !!note);
+  }
+  // Shows only the menus this login has
+  function applyPerms() {
+    $('#eng-me').innerHTML = 'Signed in as <b>' + esc(user.name) + '</b> (' + esc(user.username) + ')';
+    var any = false;
+    app.querySelectorAll('[data-perm]').forEach(function (el) {
+      var ok = el.dataset.perm.split(' ').some(can);
+      el.hidden = !ok;
+      if (ok && el.id !== 'eng-users-open') any = true;
+    });
+    $('#eng-nomenu').hidden = any;
+    if (attForm) {
+      var me = attForm.elements.me;
+      if (!can('register')) { me.value = user.name; me.readOnly = true; me.removeAttribute('list'); }
+      else { me.readOnly = false; me.setAttribute('list', 'att-names'); if (!me.value) me.value = user.name; }
+    }
   }
   function enter() {
     setMsg(loginMsg, 'Checking…');
-    load().then(function () {
-      try { sessionStorage.setItem('aim-pin', pin); } catch (e) {}
+    // A stale or ended session (password changed, menus changed, login blocked) comes back 401
+    call('/auth/me', { method: 'POST', pin: pin }).then(function (res) {
+      keepSession(res);
       login.hidden = true; board.hidden = false; setMsg(loginMsg, '');
-      attToday();
-      if (!pinOk(pin)) openPinForm('Your staff PIN is too easy to guess. Please choose a new one now: at least 8 characters with letters and numbers.');
-    }, function (err) {
-      pin = ''; login.hidden = false; board.hidden = true;
-      if (err.data && err.data.setup) {
-        showSetup(true);
-        setMsg(loginMsg, 'No staff PIN has been set yet. Choose one now: at least 8 characters with letters and numbers. Engineers will use it to sign in.');
-        return;
-      }
+      applyPerms();
+      if (can('attendance') || can('register')) attToday();
+      return load();
+    }).catch(function (err) {
+      if (err.status === 401) { signOut('You have been signed out. Please sign in again.'); return; }
+      if (!board.hidden) { alert(err.offline ? 'The job server is not reachable. Please try again.' : err.message); return; }
       setMsg(loginMsg, err.offline ? 'The job server is not reachable. Details for support: ' + (apiTried.join(' | ') || 'no server tried') : err.message, true);
     });
   }
-  function pinOk(p) { return /^\S{8,64}$/.test(p) && /[A-Za-z]/.test(p) && /[0-9]/.test(p); }
-  // Change PIN (staff only): the new PIN replaces the old one for every engineer
-  var pinForm = $('#eng-pin-form'), pinMsg = pinForm && $('.form-msg', pinForm);
-  function openPinForm(note) {
-    if (!pinForm) return;
-    pinForm.reset(); pinForm.hidden = false;
-    setMsg(pinMsg, note || 'The new PIN replaces the old one for all engineers. Tell them the new PIN.', !!note);
-    pinForm.elements.newPin.focus();
+  // A failed call because the session ended: back to the sign-in form
+  function authFail(err) { if (err && err.status === 401) { signOut('You have been signed out. Please sign in again.'); return true; } return false; }
+
+  // First visit: no logins exist yet, so the form creates the owner login (all menus)
+  var setupMode = false;
+  function showSetup(on, needPin) {
+    setupMode = on;
+    login.querySelectorAll('[data-setup]').forEach(function (el) { el.hidden = !on; });
+    $('[data-oldpin]', login).hidden = !(on && needPin);
+    $('h2', login).textContent = on ? 'Create the Owner Login' : 'Sign In';
+    $('button[type="submit"]', login).textContent = on ? 'Create Login' : 'Sign In';
+    login.elements.password.setAttribute('autocomplete', on ? 'new-password' : 'current-password');
   }
-  if (pinForm) {
-    $('#eng-pin').addEventListener('click', function () { openPinForm(); });
-    $('#eng-pin-cancel').addEventListener('click', function () { pinForm.hidden = true; });
-    pinForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var np = pinForm.elements.newPin.value;
-      if (!pinOk(np)) { setMsg(pinMsg, 'Use at least 8 characters with letters and numbers, and no spaces.', true); return; }
-      if (np !== pinForm.elements.newPin2.value) { setMsg(pinMsg, 'The two PINs do not match.', true); return; }
-      setMsg(pinMsg, 'Saving…');
-      call('/staff-pin', { method: 'POST', pin: pin, body: { newPin: np } }).then(function () {
-        pin = np;
-        try { sessionStorage.setItem('aim-pin', pin); } catch (err) {}
-        pinForm.hidden = true;
-        alert('Staff PIN changed. Tell your engineers the new PIN.');
-      }, function (err) {
-        setMsg(pinMsg, err.status === 404 ? 'The job server needs the latest update before the PIN can be changed. Please ask the office.' : err.message, true);
-      });
+  function pwOk(p) { return /^\S{8,64}$/.test(p) && /[A-Za-z]/.test(p) && /[0-9]/.test(p); }
+  var PW_RULE = 'Password: at least 8 characters with letters and numbers, and no spaces.';
+  function checkSetup() {
+    call('/auth/ping').then(function (res) {
+      if (!res.auth) { setMsg(loginMsg, 'The job server needs the latest update before staff logins work. Please ask the office.', true); return; }
+      showSetup(!!res.setup, !!res.needPin);
+    }, function (err) {
+      if (err.status === 404 || err.status === 401 || err.status === 503) setMsg(loginMsg, 'The job server needs the latest update before staff logins work. Please ask the office.', true);
     });
   }
   login.addEventListener('submit', function (e) {
     e.preventDefault();
-    pin = login.elements.pin.value;
-    if (!setupMode) { enter(); return; }
-    if (!pinOk(pin)) { setMsg(loginMsg, 'Use at least 8 characters with letters and numbers, and no spaces.', true); return; }
-    setMsg(loginMsg, 'Saving…');
-    call('/staff-pin', { method: 'POST', body: { pin: pin } }).then(function () { showSetup(false); enter(); },
-      function (err) { setMsg(loginMsg, err.message, true); if (err.status === 409) showSetup(false); });
+    var f = login.elements, body = { username: f.username.value.trim().toLowerCase(), password: f.password.value };
+    if (setupMode) {
+      if (!/^[a-z0-9._-]{3,30}$/.test(body.username)) { setMsg(loginMsg, 'Username: 3 to 30 letters or numbers, no spaces.', true); return; }
+      if (!pwOk(body.password)) { setMsg(loginMsg, PW_RULE, true); return; }
+      if (body.password !== f.password2.value) { setMsg(loginMsg, 'The two passwords do not match.', true); return; }
+      body.name = f.name.value.trim(); body.pin = f.pin.value;
+    }
+    setMsg(loginMsg, setupMode ? 'Creating…' : 'Signing in…');
+    call(setupMode ? '/auth/setup' : '/auth/login', { method: 'POST', body: body }).then(function (res) {
+      keepSession(res); showSetup(false); enter();
+    }, function (err) {
+      if (err.status === 409 && setupMode) showSetup(false);
+      setMsg(loginMsg, err.status === 404 ? 'The job server needs the latest update before staff logins work. Please ask the office.' :
+        err.offline ? 'The job server is not reachable. Please check the internet and try again.' : err.message, true);
+    });
   });
-  if (pin) enter();
-  $('#eng-logout').addEventListener('click', function () { try { sessionStorage.removeItem('aim-pin'); } catch (e) {} location.reload(); });
+  if (pin) enter(); else checkSetup();
+  $('#eng-logout').addEventListener('click', function () {
+    var t = pin; signOut(''); checkSetup();
+    if (t) call('/auth/logout', { method: 'POST', pin: t }).catch(function () {});
+  });
+
+  // Change your own password
+  var pwForm = $('#eng-pw-form'), pwMsg = $('.form-msg', pwForm);
+  $('#eng-pw').addEventListener('click', function () { pwForm.reset(); setMsg(pwMsg, ''); pwForm.hidden = false; pwForm.elements.oldPassword.focus(); });
+  $('#eng-pw-cancel').addEventListener('click', function () { pwForm.hidden = true; });
+  pwForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = pwForm.elements;
+    if (!pwOk(f.newPassword.value)) { setMsg(pwMsg, PW_RULE, true); return; }
+    if (f.newPassword.value !== f.newPassword2.value) { setMsg(pwMsg, 'The two passwords do not match.', true); return; }
+    setMsg(pwMsg, 'Saving…');
+    call('/auth/password', { method: 'POST', pin: pin, body: { oldPassword: f.oldPassword.value, newPassword: f.newPassword.value } }).then(function (res) {
+      keepSession(res); pwForm.hidden = true; alert('Password changed.');
+    }, function (err) { if (!authFail(err)) setMsg(pwMsg, err.message, true); });
+  });
+
+  // ---------- Staff logins (owner) ----------
+  var usersView = $('#eng-users'), usersMsg = $('#users-msg'), userForm = $('#user-form'), uMsg = $('.form-msg', userForm), staff = [];
+  var PERM_NAMES = { service: 'Service Jobs', attendance: 'My Attendance', register: 'Attendance Register', admin: 'Staff Logins (owner)' };
+  function renderUsers() {
+    $('#users-table').innerHTML = '<thead><tr><th>Name</th><th>Username</th><th>Menus</th><th>Status</th><th>Last sign-in</th><th></th></tr></thead><tbody>' +
+      staff.map(function (u, i) {
+        return '<tr><td>' + esc(u.name) + '</td><td>' + esc(u.username) + '</td><td>' + esc(u.perms.map(function (p) { return PERM_NAMES[p] || p; }).join(', ')) + '</td>' +
+          '<td>' + (u.active ? 'Active' : '<b>Blocked</b>') + '</td><td>' + esc(fmtDate(u.lastLogin, true)) + '</td>' +
+          '<td class="users-btns"><button class="btn btn-ghost" type="button" data-edit="' + i + '">Edit</button>' +
+          (u.username === user.username ? '' : '<button class="btn btn-ghost" type="button" data-del="' + i + '">Delete</button>') + '</td></tr>';
+      }).join('') + '</tbody>';
+  }
+  function userFormFor(u) {
+    var f = userForm.elements;
+    userForm.reset(); setMsg(uMsg, '');
+    userForm.dataset.edit = u ? u.username : '';
+    $('#user-form-title').textContent = u ? 'Change ' + u.name : 'Add a Staff Login';
+    $('#user-pw-label').textContent = u ? 'New password (leave empty to keep the old one)' : 'Password';
+    f.username.readOnly = !!u;
+    if (u) { f.name.value = u.name; f.username.value = u.username; f.active.checked = u.active; }
+    userForm.querySelectorAll('input[name="perm"]').forEach(function (c) { c.checked = u ? u.perms.indexOf(c.value) >= 0 : c.value === 'service'; });
+  }
+  function usersDone(res) {
+    if (res.token) keepSession({ token: res.token });
+    staff = res.users || []; renderUsers();
+  }
+  function loadUsers() {
+    setMsg(usersMsg, 'Loading…');
+    return call('/auth/users', { method: 'POST', pin: pin }).then(function (res) { setMsg(usersMsg, ''); usersDone(res); },
+      function (err) { if (!authFail(err)) setMsg(usersMsg, err.message, true); });
+  }
+  $('#eng-users-open').addEventListener('click', function () { board.hidden = true; usersView.hidden = false; userFormFor(null); loadUsers(); window.scrollTo(0, 0); });
+  $('#users-back').addEventListener('click', function () { usersView.hidden = true; board.hidden = false; });
+  $('#user-new').addEventListener('click', function () { userFormFor(null); });
+  $('#users-table').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.edit) { userFormFor(staff[+b.dataset.edit]); userForm.scrollIntoView({ behavior: 'smooth' }); return; }
+    var u = staff[+b.dataset.del];
+    if (!u || !confirm('Delete the login of ' + u.name + ' (' + u.username + ')? They will not be able to sign in.')) return;
+    call('/auth/userdel', { method: 'POST', pin: pin, body: { username: u.username } }).then(function (res) { usersDone(res); setMsg(usersMsg, 'Deleted ' + u.name + '.'); },
+      function (err) { if (!authFail(err)) setMsg(usersMsg, err.message, true); });
+  });
+  userForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = userForm.elements, isNew = !userForm.dataset.edit;
+    var data = { isNew: isNew, name: f.name.value.trim(), username: f.username.value.trim().toLowerCase(), password: f.password.value.trim(), active: f.active.checked,
+      perms: Array.prototype.filter.call(userForm.querySelectorAll('input[name="perm"]'), function (c) { return c.checked; }).map(function (c) { return c.value; }) };
+    if (!/^[a-z0-9._-]{3,30}$/.test(data.username)) { setMsg(uMsg, 'Username: 3 to 30 letters or numbers, no spaces.', true); return; }
+    if ((isNew || data.password) && !pwOk(data.password)) { setMsg(uMsg, PW_RULE, true); return; }
+    if (!data.perms.length) { setMsg(uMsg, 'Tick at least one menu.', true); return; }
+    setMsg(uMsg, 'Saving…');
+    call('/auth/usersave', { method: 'POST', pin: pin, body: data }).then(function (res) {
+      usersDone(res); userFormFor(null);
+      setMsg(uMsg, 'Saved ' + data.name + '.' + (data.password ? ' Give them the username "' + data.username + '" and the password you typed.' : '')); uMsg.classList.add('ok-msg');
+    }, function (err) { if (!authFail(err)) setMsg(uMsg, err.message, true); });
+  });
   $('#eng-refresh').addEventListener('click', function () { load(); });
   $('#eng-who').addEventListener('change', function () { who = this.value; store.set('aim-show-engineer', who); renderList(); });
   document.querySelectorAll('#eng-tabs button').forEach(function (b) {

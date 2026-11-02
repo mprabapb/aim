@@ -8,8 +8,11 @@
  * It creates a Google Sheet "AIM Service Jobs" (one row per job) and a Drive folder
  * "AIM Service Signatures" (one PNG per signed job) in the owner's Google account.
  *
- * To change the staff PIN later: sign in on the Engineer page and use "Change PIN". If the PIN is lost,
- * delete PIN_HASH and PIN_SALT under Project settings > Script properties, then create a new one.
+ * Staff logins: each person signs in on the Engineer page with their own username and password.
+ * The first login made becomes the owner (all menus); the owner adds the others under "Staff Logins"
+ * and ticks the menus each may use: Service Jobs, My Attendance, Attendance Register, Staff Logins.
+ * If the owner password is lost: Project settings > Script properties > delete USERS, then create the
+ * owner login again on the Engineer page (all other logins must then be added again).
  *
  * Engineer attendance is kept in a second tab "Attendance" of the same Sheet (one row per check-in,
  * check-out or office mark). Staff actions: attend {op: in|out|mark, ...} and attlist {month: yyyy-MM}.
@@ -20,7 +23,6 @@
 var COLS = ['id', 'status', 'createdAt', 'name', 'org', 'phone', 'email', 'address', 'model', 'serial', 'problem',
   'preferredDate', 'slot', 'engineer', 'visitDate', 'cancelReason', 'closedAt', 'workDone', 'parts', 'meter',
   'charges', 'payment', 'remarks', 'signedBy', 'signatureFile', 'history'];
-var MAX_FAILS = 10, LOCK_SECONDS = 900;
 // Spam guard: at most 3 bookings a day from one phone number and 100 a day in total
 var MAX_PER_PHONE = 3, MAX_PER_DAY = 100;
 var ALPHA = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
@@ -97,13 +99,14 @@ function attend_(b) {
   } finally { lock.releaseLock(); }
   return out_({ status: 201, entry: a });
 }
-function attList_(b) {
+function attList_(b, only) {
   var month = clean_(b.month, 7);
   if (!/^\d{4}-\d{2}$/.test(month)) month = Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyyy-MM');
   var sh = attSheet_(), last = sh.getLastRow();
   if (last < 2) return out_({ month: month, entries: [] });
   var rows = sh.getRange(2, 1, last - 1, ATT_COLS.length).getValues();
-  return out_({ month: month, entries: rows.map(attRow_).filter(function (a) { return a.id && a.date.slice(0, 7) === month; }) });
+  var mine = function (a) { return !only || a.engineer.toLowerCase() === String(only).toLowerCase(); };
+  return out_({ month: month, entries: rows.map(attRow_).filter(function (a) { return a.id && a.date.slice(0, 7) === month && mine(a); }) });
 }
 function folder_() {
   var p = props_(), id = p.getProperty('FOLDER_ID');
@@ -158,51 +161,152 @@ function newId_(sh) {
   }
   return 'SR-' + ymd + '-' + Utilities.getUuid().slice(0, 4).toUpperCase();
 }
-// A strong PIN: 8 to 64 characters, no spaces, with at least one letter and one number
-function pinOk_(pin) { return /^\S{8,64}$/.test(pin) && /[A-Za-z]/.test(pin) && /[0-9]/.test(pin); }
-var PIN_RULE = 'Use at least 8 characters with letters and numbers, and no spaces.';
-function setPin_(pin) {
-  var salt = Utilities.getUuid();
-  props_().setProperties({ PIN_SALT: salt, PIN_HASH: hash_(pin, salt) });
+// ---------- Staff logins ----------
+// Each person has their own username and password (kept only as a salted hash) and a list of the
+// menus they may use. The owner ("Staff Logins" permission) adds people and ticks their menus.
+// Every staff call is checked here on the server, so hiding a menu on the page is not the only guard.
+var PERMS = ['service', 'attendance', 'register', 'admin'];
+var PW_RULE = 'Use at least 8 characters with letters and numbers, and no spaces.';
+var MAX_FAILS = 5, LOCK_SECONDS = 900, SESSION_SECONDS = 21600, HASH_ROUNDS = 300;
+function pwOk_(pw) { return /^\S{8,64}$/.test(pw) && /[A-Za-z]/.test(pw) && /[0-9]/.test(pw); }
+function hash_(pw, salt) {
+  var h = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + ':' + pw, Utilities.Charset.UTF_8);
+  for (var i = 0; i < HASH_ROUNDS; i++) h = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, h.concat(Utilities.newBlob(salt).getBytes()));
+  return Utilities.base64Encode(h);
 }
-function hash_(pin, salt) {
-  return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + ':' + pin, Utilities.Charset.UTF_8));
+function users_() { try { return JSON.parse(props_().getProperty('USERS') || '{}'); } catch (e) { return {}; } }
+function saveUsers_(u) { props_().setProperty('USERS', JSON.stringify(u)); }
+function userName_(v) { return String(v || '').trim().toLowerCase(); }
+function nameOk_(u) { return /^[a-z0-9._-]{3,30}$/.test(u); }
+function cleanPerms_(list) { return PERMS.filter(function (p) { return (list || []).indexOf(p) >= 0; }); }
+function setPassword_(rec, pw) { rec.salt = Utilities.getUuid(); rec.hash = hash_(pw, rec.salt); rec.ver = (rec.ver || 0) + 1; }
+function publicUser_(id, r) { return { username: id, name: r.name, perms: r.perms, active: r.active !== false, createdAt: r.createdAt || '', lastLogin: r.lastLogin || '' }; }
+function newSession_(id, rec) {
+  var token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
+  CacheService.getScriptCache().put('sess-' + token, JSON.stringify({ u: id, v: rec.ver }), SESSION_SECONDS);
+  return token;
 }
+// The signed-in person for this call, or null. A password reset, a menu change or a disabled
+// login ends that person's old sessions at once (the version number no longer matches).
+function session_(b) {
+  var token = String(b._token || '');
+  if (!/^[a-f0-9]{64}$/.test(token)) return null;
+  var cache = CacheService.getScriptCache(), raw = cache.get('sess-' + token), s;
+  if (!raw) return null;
+  try { s = JSON.parse(raw); } catch (e) { return null; }
+  var rec = users_()[s.u];
+  if (!rec || rec.active === false || rec.ver !== s.v) { cache.remove('sess-' + token); return null; }
+  cache.put('sess-' + token, raw, SESSION_SECONDS);  // stays signed in while in use
+  return { id: s.u, rec: rec, token: token, can: function (p) { return rec.perms.indexOf(p) >= 0 || rec.perms.indexOf('admin') >= 0; } };
+}
+function denied_() { return fail_('You do not have permission for this. Ask the owner.', 403); }
 
-// Staff check: one PIN for the shop, saved as a salted hash; locks for 15 min after 10 wrong tries.
-// The count is read and written under a lock, so many guesses sent at once cannot slip past it.
-function staff_(b) {
-  var p = props_(), h = p.getProperty('PIN_HASH');
-  if (!h) return { res: out_({ status: 503, error: 'No staff PIN yet. Create one to start.', setup: true }) };
-  var cache = CacheService.getScriptCache(), wrong = false;
-  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+// Login and account actions; returns null when the action is not one of these
+function authAction_(action, b) {
+  var cache = CacheService.getScriptCache(), lock, u, rec;
+  if (action === 'authping') {
+    var none = !Object.keys(users_()).length;
+    return out_({ ok: true, auth: 2, setup: none, needPin: none && !!props_().getProperty('PIN_HASH') });
+  }
+  if (action === 'setup') {
+    // First login only, while nobody has one: becomes the owner with every menu.
+    // If the old shared staff PIN is set, it must be given, so a stranger cannot claim the owner login.
+    lock = LockService.getScriptLock(); lock.waitLock(20000);
+    try {
+      var all = users_();
+      if (Object.keys(all).length) return fail_('The owner login already exists. Please sign in.', 409);
+      var oldHash = props_().getProperty('PIN_HASH');
+      if (oldHash) {
+        var tries = Number(cache.get('setup-fails') || 0);
+        if (tries >= MAX_FAILS) return fail_('Too many wrong PINs. Try again in 15 minutes.', 429);
+        if (oldPinHash_(String(b.pin || ''), props_().getProperty('PIN_SALT')) !== oldHash) {
+          cache.put('setup-fails', String(tries + 1), LOCK_SECONDS); Utilities.sleep(800);
+          return fail_('The old staff PIN is wrong.', 401);
+        }
+      }
+      u = userName_(b.username);
+      if (!nameOk_(u)) return fail_('Username: 3 to 30 letters or numbers (no spaces).');
+      if (!pwOk_(String(b.password || ''))) return fail_(PW_RULE);
+      rec = { name: clean_(b.name, 60) || u, perms: PERMS.slice(), active: true, createdAt: new Date().toISOString(), lastLogin: new Date().toISOString() };
+      setPassword_(rec, String(b.password));
+      all[u] = rec; saveUsers_(all);
+      props_().deleteProperty('PIN_HASH'); props_().deleteProperty('PIN_SALT');  // the shared PIN stops working
+      return out_({ status: 201, token: newSession_(u, rec), user: publicUser_(u, rec) });
+    } finally { lock.releaseLock(); }
+  }
+  if (action === 'login') {
+    u = userName_(b.username);
+    var key = 'fail-' + u.replace(/[^a-z0-9._-]/g, '').slice(0, 30), bad = false;
+    lock = LockService.getScriptLock(); lock.waitLock(20000);
+    try {
+      var n = Number(cache.get(key) || 0);
+      if (n >= MAX_FAILS) return fail_('Too many wrong passwords for this login. Try again in 15 minutes.', 429);
+      rec = users_()[u];
+      if (!rec || rec.active === false || hash_(String(b.password || ''), rec.salt) !== rec.hash) { cache.put(key, String(n + 1), LOCK_SECONDS); bad = true; }
+      else cache.remove(key);
+    } finally { lock.releaseLock(); }
+    if (bad) { Utilities.sleep(800); return fail_('Wrong username or password.', 401); }
+    lock = LockService.getScriptLock(); lock.waitLock(20000);
+    try { var all2 = users_(); if (all2[u]) { all2[u].lastLogin = new Date().toISOString(); saveUsers_(all2); } } finally { lock.releaseLock(); }
+    return out_({ token: newSession_(u, rec), user: publicUser_(u, rec) });
+  }
+  if (['me', 'logout', 'password', 'users', 'usersave', 'userdel'].indexOf(action) < 0) return null;
+  var s = session_(b);
+  if (!s) return fail_('Please sign in again.', 401);
+  if (action === 'me') return out_({ user: publicUser_(s.id, s.rec) });
+  if (action === 'logout') { cache.remove('sess-' + s.token); return out_({ ok: true }); }
+  if (action === 'password') {
+    if (hash_(String(b.oldPassword || ''), s.rec.salt) !== s.rec.hash) { Utilities.sleep(800); return fail_('Your current password is wrong.', 400); }
+    if (!pwOk_(String(b.newPassword || ''))) return fail_(PW_RULE);
+    lock = LockService.getScriptLock(); lock.waitLock(20000);
+    try { var a3 = users_(); setPassword_(a3[s.id], String(b.newPassword)); saveUsers_(a3); return out_({ token: newSession_(s.id, a3[s.id]), user: publicUser_(s.id, a3[s.id]) }); }
+    finally { lock.releaseLock(); }
+  }
+  if (!s.can('admin')) return denied_();
+  if (action === 'users') {
+    var list = users_();
+    return out_({ users: Object.keys(list).sort().map(function (k) { return publicUser_(k, list[k]); }) });
+  }
+  lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
-    var fails = Number(cache.get('pin-fails') || 0);
-    if (fails >= MAX_FAILS) return { res: fail_('Too many wrong PINs. Sign-in is locked for 15 minutes.', 429) };
-    if (!b._pin || hash_(String(b._pin), p.getProperty('PIN_SALT')) !== h) {
-      cache.put('pin-fails', String(fails + 1), LOCK_SECONDS);
-      wrong = true;
+    var all4 = users_(); u = userName_(b.username);
+    if (action === 'userdel') {
+      if (!all4[u]) return fail_('No such login.', 404);
+      if (u === s.id) return fail_('You cannot delete your own login.', 409);
+      delete all4[u];
+    } else {
+      // Add a person, or change their name, menus, active / disabled, or set a new password
+      if (!nameOk_(u)) return fail_('Username: 3 to 30 letters or numbers (no spaces).');
+      rec = all4[u];
+      if (b.isNew && rec) return fail_('That username is taken. Pick another.', 409);
+      var perms = cleanPerms_(b.perms), pw = String(b.password || '');
+      if (!perms.length) return fail_('Tick at least one menu.');
+      if (!rec) { if (!pwOk_(pw)) return fail_('Password: ' + PW_RULE); rec = { createdAt: new Date().toISOString() }; }
+      else if (pw && !pwOk_(pw)) return fail_('Password: ' + PW_RULE);
+      if (u === s.id && (perms.indexOf('admin') < 0 || b.active === false)) return fail_('You cannot remove your own Staff Logins menu or disable yourself.', 409);
+      var changed = !rec.perms || rec.perms.join() !== perms.join() || (rec.active !== false) !== (b.active !== false);
+      rec.name = clean_(b.name, 60) || u; rec.perms = perms; rec.active = b.active !== false;
+      if (pw) setPassword_(rec, pw); else if (changed) rec.ver = (rec.ver || 0) + 1;
+      all4[u] = rec;
     }
+    if (!Object.keys(all4).some(function (k) { return all4[k].active !== false && all4[k].perms.indexOf('admin') >= 0; })) return fail_('Keep at least one owner login with Staff Logins.', 409);
+    saveUsers_(all4);
+    var keepMe = all4[s.id];
+    return out_({ users: Object.keys(all4).sort().map(function (k) { return publicUser_(k, all4[k]); }),
+      token: keepMe && keepMe.ver !== s.rec.ver ? newSession_(s.id, keepMe) : undefined });
   } finally { lock.releaseLock(); }
-  if (wrong) { Utilities.sleep(800); return { res: fail_('Wrong PIN.', 401) }; }
-  return { ok: true };
+}
+// The old shared staff PIN (before staff logins) was stored as one SHA-256 of salt:pin
+function oldPinHash_(pin, salt) {
+  return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + ':' + pin, Utilities.Charset.UTF_8));
 }
 
 function handle_(b) {
   var action = String(b.action || '');
   try {
-    if (action === 'ping') return out_({ ok: true, setup: !props_().getProperty('PIN_HASH') });
-
-    if (action === 'setpin') {
-      var lock0 = LockService.getScriptLock(); lock0.waitLock(10000);
-      try {
-        if (props_().getProperty('PIN_HASH')) return fail_('A staff PIN is already set.', 409);
-        var pin = String(b.pin || '');
-        if (!pinOk_(pin)) return fail_(PIN_RULE);
-        setPin_(pin);
-        return out_({ status: 201, ok: true });
-      } finally { lock0.releaseLock(); }
-    }
+    if (action === 'ping') action = 'authping';
+    var authRes = authAction_(action, b);
+    if (authRes) return authRes;
 
     if (action === 'book') {
       if (b.website) return out_({ id: 'SR-OK' });
@@ -234,20 +338,21 @@ function handle_(b) {
       return out_({ job: publicView_(withSignature_(f.job)) });
     }
 
-    // Everything below is for staff only
-    var s = staff_(b);
-    if (!s.ok) return s.res;
+    // Everything below is for signed-in staff, each action only with its menu permission
+    var me = session_(b);
+    if (!me) return fail_('Please sign in again.', 401);
 
-    if (action === 'changepin') {
-      var np = String(b.newPin || '');
-      if (!pinOk_(np)) return fail_(PIN_RULE);
-      var lock1 = LockService.getScriptLock(); lock1.waitLock(10000);
-      try { setPin_(np); CacheService.getScriptCache().remove('pin-fails'); } finally { lock1.releaseLock(); }
-      return out_({ ok: true });
+    if (action === 'attend') {
+      if (b.op === 'mark' ? !me.can('register') : !(me.can('attendance') || me.can('register'))) return denied_();
+      if (!me.can('register')) b.engineer = me.rec.name;  // staff can only check themselves in and out
+      return attend_(b);
     }
-
-    if (action === 'attend') return attend_(b);
-    if (action === 'attlist') return attList_(b);
+    if (action === 'attlist') {
+      if (me.can('register')) return attList_(b);
+      if (!me.can('attendance')) return denied_();
+      return attList_(b, me.rec.name);
+    }
+    if (!me.can('service')) return denied_();
 
     var sh2 = sheet_();
 
@@ -288,7 +393,7 @@ function handle_(b) {
       } else {
         return fail_('Not found.', 404);
       }
-      j.history = (j.history || []).concat([{ at: nowIso, status: j.status }]);
+      j.history = (j.history || []).concat([{ at: nowIso, status: j.status, by: me.id }]);
       sh2.getRange(hit.row, 1, 1, COLS.length).setValues([jobToRow_(j)]);
       return out_({ job: withSignature_(rowToJob_(jobToRow_(j).map(function (v) { return String(v).replace(/^'/, ''); }))) });
     } finally { lock2.releaseLock(); }

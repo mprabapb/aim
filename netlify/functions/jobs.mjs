@@ -3,17 +3,22 @@
 // Public (customers):
 //   POST /api/jobs                       book a service visit -> { id }
 //   GET  /api/jobs/:id?phone=...         check a booking (phone must match)
-// Staff (header "x-staff-pin" must equal the staff PIN: the STAFF_PIN environment variable if set,
-// otherwise the PIN saved once from the engineer page):
-//   POST /api/jobs/staff-pin             { pin } first-time set-up, only while no PIN exists;
-//                                        once set, staff send { newPin } with their PIN to change it
-//   GET  /api/jobs                       list jobs, newest first
-//   POST /api/jobs/:id/assign            { engineer, visitDate } -> status "Assigned"
-//   POST /api/jobs/:id/close             { engineer, workDone, ..., signature } -> status "Closed"
-//   POST /api/jobs/:id/cancel            { reason } -> status "Cancelled"
-//   POST /api/jobs/attendance            { op: "in"|"out", engineer, lat, lng, acc } check-in / check-out (server time)
-//                                        { op: "mark", engineer, date, mark, inTime, outTime, note } office mark for a day
-//   GET  /api/jobs/attendance            { month: "yyyy-MM" } (staff POST with _get) -> { entries }
+// Staff log in with their own username and password; the token they get back goes in the JSON body
+// as _token. Each staff route needs its menu permission (service, attendance, register, admin):
+//   GET  /api/jobs/auth/ping             { auth: 2, setup } setup is true while no login exists yet
+//   POST /api/jobs/auth/setup            { name, username, password, pin } first (owner) login; pin = old staff PIN if one was set
+//   POST /api/jobs/auth/login            { username, password } -> { token, user }
+//   POST /api/jobs/auth/me | logout | password { oldPassword, newPassword }
+//   POST /api/jobs/auth/users            (admin) list logins
+//   POST /api/jobs/auth/usersave         (admin) { username, name, perms[], active, password, isNew }
+//   POST /api/jobs/auth/userdel          (admin) { username }
+//   GET  /api/jobs                       (service) list jobs, newest first
+//   POST /api/jobs/:id/assign            (service) { engineer, visitDate } -> status "Assigned"
+//   POST /api/jobs/:id/close             (service) { engineer, workDone, ..., signature } -> status "Closed"
+//   POST /api/jobs/:id/cancel            (service) { reason } -> status "Cancelled"
+//   POST /api/jobs/attendance            (attendance) { op: "in"|"out", lat, lng, acc } check-in / check-out (server time)
+//                                        (register) { op: "mark", engineer, date, mark, inTime, outTime, note } office mark for a day
+//   GET  /api/jobs/attendance            { month: "yyyy-MM" } (staff POST with _get) -> { entries } (own only without register)
 import { getStore } from '@netlify/blobs';
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 
@@ -27,26 +32,40 @@ export const deps = {
   pin: () => process.env.STAFF_PIN || '',
 };
 
-// After MAX_FAILS wrong PINs from one address, staff sign-in is blocked there for LOCK_MS
+// After MAX_FAILS wrong passwords for one login, that login is blocked for LOCK_MS
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60e3;
-const PIN_KEY = 'config-staff-pin';
+const SESSION_MS = 12 * 3600e3;
+const PIN_KEY = 'config-staff-pin';   // the old shared staff PIN (before staff logins)
+const USERS_KEY = 'config-users';
+const PERMS = ['service', 'attendance', 'register', 'admin'];
 // Spam guard: at most 3 bookings a day from one phone number and 100 a day in total
 const MAX_PER_PHONE = 3;
 const MAX_PER_DAY = 100;
-// A strong PIN: 8 to 64 characters, no spaces, with at least one letter and one number
-const pinOk = (pin) => /^\S{8,64}$/.test(pin) && /[A-Za-z]/.test(pin) && /[0-9]/.test(pin);
-const PIN_RULE = 'Use at least 8 characters with letters and numbers, and no spaces.';
-const savePin = (pin) => {
-  const salt = randomBytes(16).toString('hex');
-  return deps.locks().setJSON(PIN_KEY, { salt, hash: hashPin(pin, salt), setAt: new Date().toISOString() });
-};
+// A strong password: 8 to 64 characters, no spaces, with at least one letter and one number
+const pwOk = (pw) => /^\S{8,64}$/.test(pw) && /[A-Za-z]/.test(pw) && /[0-9]/.test(pw);
+const PW_RULE = 'Use at least 8 characters with letters and numbers, and no spaces.';
 const hashPin = (pin, salt) => scryptSync(String(pin), Buffer.from(salt, 'hex'), 32).toString('hex');
+const hashMatches = (pw, salt, hash) => {
+  const a = Buffer.from(hashPin(pw, salt), 'hex'), b = Buffer.from(hash, 'hex');
+  return a.length === b.length && timingSafeEqual(a, b);
+};
+const setPassword = (rec, pw) => { rec.salt = randomBytes(16).toString('hex'); rec.hash = hashPin(pw, rec.salt); rec.ver = (rec.ver || 0) + 1; };
+const userName = (v) => String(v || '').trim().toLowerCase();
+const nameOk = (u) => /^[a-z0-9._-]{3,30}$/.test(u);
+const publicUser = (id, r) => ({ username: id, name: r.name, perms: r.perms, active: r.active !== false, createdAt: r.createdAt || '', lastLogin: r.lastLogin || '' });
+const readUsers = async () => (await deps.locks().get(USERS_KEY, { type: 'json' })) || {};
+const saveUsers = (u) => deps.locks().setJSON(USERS_KEY, u);
+async function newSession(id, rec) {
+  const token = randomBytes(32).toString('hex');
+  await deps.locks().setJSON('sess-' + token, { u: id, v: rec.ver, exp: Date.now() + SESSION_MS });
+  return token;
+}
 
 const CORS = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, OPTIONS',
-  'access-control-allow-headers': 'content-type, x-staff-pin',
+  'access-control-allow-headers': 'content-type',
 };
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store', ...CORS } });
@@ -88,7 +107,7 @@ function publicView(j) {
 export default async function handler(req, context) {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   // Pages on another address (aimenterprises.net) send "simple" requests to avoid CORS preflights:
-  // the PIN travels in the JSON body as _pin, and a staff read is a POST with _get: true.
+  // the login token travels in the JSON body as _token, and a staff read is a POST with _get: true.
   const body = req.method === 'POST' ? await readBody(req) : null;
   const method = req.method === 'POST' && body && body._get === true ? 'GET' : req.method;
   const url = new URL(req.url);
@@ -96,62 +115,131 @@ export default async function handler(req, context) {
   const [id, action] = parts;
   const store = deps.store();
 
-  const envPin = deps.pin();
-  // With no STAFF_PIN variable, use the PIN saved from the engineer page (stored only as a salted hash)
-  const saved = envPin ? null : await deps.locks().get(PIN_KEY, { type: 'json' });
-  const staffPin = envPin || (saved && saved.hash ? 'saved' : '');
-  const pinMatches = (p) => {
-    if (envPin) return sameText(p, envPin);
-    const a = Buffer.from(hashPin(p, saved.salt), 'hex'), b = Buffer.from(saved.hash, 'hex');
-    return a.length === b.length && timingSafeEqual(a, b);
-  };
-  const sentPin = req.headers.get('x-staff-pin') || (body && typeof body._pin === 'string' ? body._pin : '');
+  const locks = deps.locks();
   const ip = (context && context.ip) || req.headers.get('x-nf-client-connection-ip') || 'unknown';
-  const lockKey = 'ip-' + ip.replace(/[^0-9a-fA-F:.]/g, '_');
-  let staffOk = null;
-  // Checks the PIN once per request, counting wrong tries per address
-  const isStaff = async () => {
-    if (staffOk !== null) return staffOk;
-    if (!staffPin || !sentPin) return (staffOk = false);
-    const locks = deps.locks();
-    const now = Date.now();
-    let rec = (await locks.get(lockKey, { type: 'json' })) || { fails: 0, since: now };
-    if (now - rec.since > LOCK_MS) rec = { fails: 0, since: now };
-    if (rec.fails >= MAX_FAILS) return (staffOk = 'locked');
-    if (pinMatches(sentPin)) {
-      if (rec.fails) await locks.delete(lockKey);
-      return (staffOk = true);
-    }
-    rec.fails += 1;
-    await locks.setJSON(lockKey, rec);
-    await new Promise((r) => setTimeout(r, 800));
-    return (staffOk = false);
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  // Wrong-password counter for one key (a login name, or the old PIN at set-up)
+  const tooMany = async (key) => {
+    const rec = await locks.get(key, { type: 'json' });
+    return rec && Date.now() - rec.since <= LOCK_MS && rec.fails >= MAX_FAILS;
   };
-  const needStaff = async () => {
-    if (!staffPin) return json({ error: 'No staff PIN yet. Create one to start.', setup: true }, 503);
-    const ok = await isStaff();
-    if (ok === 'locked') return fail('Too many wrong PINs. Sign-in is locked for 15 minutes.', 429);
-    if (!ok) return fail('Wrong PIN.', 401);
+  const countFail = async (key) => {
+    let rec = (await locks.get(key, { type: 'json' })) || { fails: 0, since: Date.now() };
+    if (Date.now() - rec.since > LOCK_MS) rec = { fails: 0, since: Date.now() };
+    rec.fails += 1;
+    await locks.setJSON(key, rec);
+    await wait(800);
+  };
+  // The signed-in person for this request, or null. A password reset, a menu change or a disabled
+  // login ends that person's old sessions at once (the version number no longer matches).
+  const token = body && typeof body._token === 'string' && /^[a-f0-9]{64}$/.test(body._token) ? body._token : '';
+  let me;
+  const session = async () => {
+    if (me !== undefined) return me;
+    me = null;
+    if (!token) return me;
+    const s = await locks.get('sess-' + token, { type: 'json' });
+    if (!s || s.exp < Date.now()) return me;
+    const rec = (await readUsers())[s.u];
+    if (!rec || rec.active === false || rec.ver !== s.v) { await locks.delete('sess-' + token); return me; }
+    if (s.exp - Date.now() < SESSION_MS / 2) await locks.setJSON('sess-' + token, { ...s, exp: Date.now() + SESSION_MS });
+    me = { id: s.u, rec, can: (p) => rec.perms.includes(p) || rec.perms.includes('admin') };
+    return me;
+  };
+  // null when allowed, otherwise the error reply
+  const need = async (...perms) => {
+    const s = await session();
+    if (!s) return fail('Please sign in again.', 401);
+    if (perms.length && !perms.some((p) => s.can(p))) return fail('You do not have permission for this. Ask the owner.', 403);
     return null;
   };
 
-  // ---- Staff PIN: first-time set-up (only while none is set), or a change by signed-in staff ----
-  if (method === 'POST' && id === 'staff-pin') {
+  // ---- Staff logins ----
+  if (id === 'auth') {
     const b = body || {};
-    if (staffPin) {
-      if (!sentPin) return fail('A staff PIN is already set.', 409);
-      const denied = await needStaff();
-      if (denied) return denied;
-      if (envPin) return fail('This PIN is set in the Netlify settings (STAFF_PIN). Change it there.', 409);
-      const np = String(b.newPin || '');
-      if (!pinOk(np)) return fail(PIN_RULE);
-      await savePin(np);
-      return json({ ok: true });
+    if (action === 'ping') {
+      const none = !Object.keys(await readUsers()).length;
+      const oldPin = deps.pin() || (await locks.get(PIN_KEY, { type: 'json' }));
+      return json({ ok: true, auth: 2, setup: none, needPin: none && !!oldPin });
     }
-    const pin = String(b.pin || '');
-    if (!pinOk(pin)) return fail(PIN_RULE);
-    await savePin(pin);
-    return json({ ok: true }, 201);
+    if (req.method !== 'POST') return fail('Not found.', 404);
+    if (action === 'setup') {
+      // First login only, while nobody has one: becomes the owner with every menu.
+      // If the old shared staff PIN is set, it must be given, so a stranger cannot claim the owner login.
+      const all = await readUsers();
+      if (Object.keys(all).length) return fail('The owner login already exists. Please sign in.', 409);
+      const envPin = deps.pin(), saved = envPin ? null : await locks.get(PIN_KEY, { type: 'json' });
+      if (envPin || (saved && saved.hash)) {
+        const key = 'fail-setup-' + ip.replace(/[^0-9a-fA-F:.]/g, '_');
+        if (await tooMany(key)) return fail('Too many wrong PINs. Try again in 15 minutes.', 429);
+        const p = String(b.pin || '');
+        const ok = envPin ? sameText(p, envPin) : hashMatches(p, saved.salt, saved.hash);
+        if (!ok) { await countFail(key); return fail('The old staff PIN is wrong.', 401); }
+      }
+      const u = userName(b.username);
+      if (!nameOk(u)) return fail('Username: 3 to 30 letters or numbers (no spaces).');
+      if (!pwOk(String(b.password || ''))) return fail(PW_RULE);
+      const rec = { name: clean(b.name, 60) || u, perms: [...PERMS], active: true, createdAt: new Date().toISOString(), lastLogin: new Date().toISOString() };
+      setPassword(rec, String(b.password));
+      all[u] = rec;
+      await saveUsers(all);
+      if (saved) await locks.delete(PIN_KEY);
+      return json({ token: await newSession(u, rec), user: publicUser(u, rec) }, 201);
+    }
+    if (action === 'login') {
+      const u = userName(b.username);
+      const key = 'fail-' + u.replace(/[^a-z0-9._-]/g, '').slice(0, 30);
+      if (await tooMany(key)) return fail('Too many wrong passwords for this login. Try again in 15 minutes.', 429);
+      const all = await readUsers(), rec = all[u];
+      if (!rec || rec.active === false || !hashMatches(String(b.password || ''), rec.salt, rec.hash)) {
+        await countFail(key);
+        return fail('Wrong username or password.', 401);
+      }
+      await locks.delete(key);
+      rec.lastLogin = new Date().toISOString();
+      await saveUsers(all);
+      return json({ token: await newSession(u, rec), user: publicUser(u, rec) });
+    }
+    const denied = await need();
+    if (denied) return denied;
+    if (action === 'me') return json({ user: publicUser(me.id, me.rec) });
+    if (action === 'logout') { await locks.delete('sess-' + token); return json({ ok: true }); }
+    if (action === 'password') {
+      if (!hashMatches(String(b.oldPassword || ''), me.rec.salt, me.rec.hash)) { await wait(800); return fail('Your current password is wrong.', 400); }
+      if (!pwOk(String(b.newPassword || ''))) return fail(PW_RULE);
+      const all = await readUsers();
+      setPassword(all[me.id], String(b.newPassword));
+      await saveUsers(all);
+      return json({ token: await newSession(me.id, all[me.id]), user: publicUser(me.id, all[me.id]) });
+    }
+    if (!me.can('admin')) return fail('You do not have permission for this. Ask the owner.', 403);
+    const all = await readUsers();
+    const list = () => Object.keys(all).sort().map((k) => publicUser(k, all[k]));
+    if (action === 'users') return json({ users: list() });
+    const u = userName(b.username);
+    if (action === 'userdel') {
+      if (!all[u]) return fail('No such login.', 404);
+      if (u === me.id) return fail('You cannot delete your own login.', 409);
+      delete all[u];
+    } else if (action === 'usersave') {
+      // Add a person, or change their name, menus, active / disabled, or set a new password
+      if (!nameOk(u)) return fail('Username: 3 to 30 letters or numbers (no spaces).');
+      let rec = all[u];
+      if (b.isNew && rec) return fail('That username is taken. Pick another.', 409);
+      const perms = PERMS.filter((p) => Array.isArray(b.perms) && b.perms.includes(p)), pw = String(b.password || '');
+      if (!perms.length) return fail('Tick at least one menu.');
+      if (!rec) { if (!pwOk(pw)) return fail('Password: ' + PW_RULE); rec = { createdAt: new Date().toISOString() }; }
+      else if (pw && !pwOk(pw)) return fail('Password: ' + PW_RULE);
+      if (u === me.id && (!perms.includes('admin') || b.active === false)) return fail('You cannot remove your own Staff Logins menu or disable yourself.', 409);
+      const changed = !rec.perms || rec.perms.join() !== perms.join() || (rec.active !== false) !== (b.active !== false);
+      rec.name = clean(b.name, 60) || u; rec.perms = perms; rec.active = b.active !== false;
+      if (pw) setPassword(rec, pw); else if (changed) rec.ver = (rec.ver || 0) + 1;
+      all[u] = rec;
+    } else return fail('Not found.', 404);
+    if (!Object.values(all).some((r) => r.active !== false && r.perms.includes('admin'))) return fail('Keep at least one owner login with Staff Logins.', 409);
+    await saveUsers(all);
+    const mine = all[me.id];
+    return json({ users: list(), token: mine && mine.ver !== me.rec.ver ? await newSession(me.id, mine) : undefined });
   }
 
   // ---- Book a service (public) ----
@@ -184,7 +272,7 @@ export default async function handler(req, context) {
 
   // ---- Staff: list ----
   if (method === 'GET' && !id) {
-    const denied = await needStaff();
+    const denied = await need('service');
     if (denied) return denied;
     const { blobs } = await store.list();
     const keys = blobs.map((b) => b.key).sort().reverse().slice(0, 300);
@@ -195,9 +283,12 @@ export default async function handler(req, context) {
 
   // ---- Engineer attendance (staff only) ----
   if (id === 'attendance') {
-    const denied = await needStaff();
-    if (denied) return denied;
     const b = body || {};
+    const denied = await need(...(method === 'POST' && b.op === 'mark' ? ['register'] : ['attendance', 'register']));
+    if (denied) return denied;
+    // Without the register menu, staff see and check in only themselves
+    const own = me.can('register') ? '' : me.rec.name;
+    if (own) b.engineer = own;
     const att = deps.attendance();
     if (method === 'GET') {
       let month = clean(b.month || url.searchParams.get('month'), 7);
@@ -205,7 +296,7 @@ export default async function handler(req, context) {
       const { blobs } = await att.list({ prefix: month + '/' });
       const entries = (await Promise.all(blobs.map((x) => att.get(x.key, { type: 'json' })))).filter(Boolean);
       entries.sort((x, y) => (x.at < y.at ? -1 : 1));
-      return json({ month, entries });
+      return json({ month, entries: own ? entries.filter((e) => String(e.engineer).toLowerCase() === own.toLowerCase()) : entries });
     }
     if (method !== 'POST') return fail('Not found.', 404);
     const now = new Date();
@@ -239,8 +330,8 @@ export default async function handler(req, context) {
 
   // ---- Check one job: customer with phone, or staff ----
   if (method === 'GET' && !action) {
-    if (sentPin) {
-      const denied = await needStaff();
+    if (token) {
+      const denied = await need('service');
       if (denied) return denied;
       return job ? json({ job }) : fail('Not found.', 404);
     }
@@ -253,7 +344,7 @@ export default async function handler(req, context) {
   }
 
   if (method !== 'POST') return fail('Not found.', 404);
-  const denied = await needStaff();
+  const denied = await need('service');
   if (denied) return denied;
   if (!job) return fail('Not found.', 404);
   const b = body || {};
@@ -287,7 +378,7 @@ export default async function handler(req, context) {
   } else {
     return fail('Not found.', 404);
   }
-  job.history = [...(job.history || []), { at: now, status: job.status }];
+  job.history = [...(job.history || []), { at: now, status: job.status, by: me.id }];
   await store.setJSON(id, job);
   return json({ job });
 }

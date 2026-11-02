@@ -440,3 +440,14 @@ address { font-style: normal; }
   .two-col > .prose { display: none; }
   .sr-report { border: 0; padding: 0; }
 }
+/* Staff logins */
+.eng-userbar { justify-content: flex-end; border-bottom: 1px solid #e8e9eb; padding-bottom: 12px; }
+.eng-userbar #eng-me { margin-right: auto; }
+#eng-jobs > h2 { margin: 28px 0 12px; }
+.perm-list { border: 1px solid #d0d2d6; border-radius: 5px; padding: 10px 14px; margin: 0; display: grid; gap: 8px; }
+.perm-list legend { padding: 0 6px; font-size: 14px; color: var(--grey); }
+label.check { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-weight: 400; }
+label.check input { width: auto; margin: 0; }
+.users-btns { white-space: nowrap; }
+.users-btns .btn { padding: 4px 10px; margin-right: 6px; }
+#eng-users .ctable-wrap { margin-bottom: 26px; }
