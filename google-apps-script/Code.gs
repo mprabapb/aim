@@ -11,6 +11,9 @@
  * To change the staff PIN later: sign in on the Engineer page and use "Change PIN". If the PIN is lost,
  * delete PIN_HASH and PIN_SALT under Project settings > Script properties, then create a new one.
  *
+ * Engineer attendance is kept in a second tab "Attendance" of the same Sheet (one row per check-in,
+ * check-out or office mark). Staff actions: attend {op: in|out|mark, ...} and attlist {month: yyyy-MM}.
+ *
  * Every call is a GET (?action=...) or a POST with a JSON body {action, ...}; the reply is JSON
  * with "status" (HTTP-like code) and either the data or "error".
  */
@@ -50,6 +53,57 @@ function sheet_() {
     sh.setFrozenRows(1);
   }
   return ss.getSheetByName('Jobs') || ss.getSheets()[0];
+}
+var ATT_COLS = ['id', 'at', 'date', 'engineer', 'kind', 'inTime', 'outTime', 'lat', 'lng', 'acc', 'note', 'by'];
+var ATT_MARKS = ['Present', 'Half day', 'Leave', 'Absent', 'Holiday'];
+function attSheet_() {
+  var ss = sheet_().getParent(), sh = ss.getSheetByName('Attendance');
+  if (!sh) {
+    sh = ss.insertSheet('Attendance');
+    sh.getRange(1, 1, 1, ATT_COLS.length).setValues([ATT_COLS]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+function attRow_(r) {
+  var a = {};
+  ATT_COLS.forEach(function (c, i) { a[c] = r[i] instanceof Date ? r[i].toISOString() : String(r[i] == null ? '' : r[i]); });
+  return a;
+}
+// One check-in / check-out from the engineer's phone (time is the server's, in IST), or an office mark for a day
+function attend_(b) {
+  var op = String(b.op || ''), now = new Date();
+  var a = { id: Utilities.getUuid().slice(0, 8), at: now.toISOString(), engineer: clean_(b.engineer, 60).replace(/\s+/g, ' '),
+    note: clean_(b.note, 200), inTime: '', outTime: '', lat: '', lng: '', acc: '' };
+  if (!a.engineer) return fail_('Pick your name first.');
+  if (op === 'in' || op === 'out') {
+    a.kind = op === 'in' ? 'In' : 'Out'; a.by = 'phone';
+    a.date = Utilities.formatDate(now, 'Asia/Kolkata', 'yyyy-MM-dd');
+    var lat = Number(b.lat), lng = Number(b.lng), acc = Number(b.acc);
+    if (b.lat !== '' && b.lat != null && isFinite(lat) && isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+      a.lat = lat.toFixed(6); a.lng = lng.toFixed(6); a.acc = isFinite(acc) ? String(Math.round(acc)) : '';
+    }
+  } else if (op === 'mark') {
+    a.kind = clean_(b.mark, 20); a.by = 'office'; a.date = clean_(b.date, 10);
+    if (ATT_MARKS.indexOf(a.kind) < 0) return fail_('Pick Present, Half day, Leave, Absent or Holiday.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(a.date)) return fail_('Pick the date.');
+    var t = /^([01]\d|2[0-3]):[0-5]\d$/;
+    a.inTime = t.test(String(b.inTime || '')) ? String(b.inTime) : '';
+    a.outTime = t.test(String(b.outTime || '')) ? String(b.outTime) : '';
+  } else return fail_('Not found.', 404);
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    attSheet_().appendRow(ATT_COLS.map(function (c) { var v = a[c] == null ? '' : String(a[c]); return v === '' ? '' : "'" + v; }));
+  } finally { lock.releaseLock(); }
+  return out_({ status: 201, entry: a });
+}
+function attList_(b) {
+  var month = clean_(b.month, 7);
+  if (!/^\d{4}-\d{2}$/.test(month)) month = Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyyy-MM');
+  var sh = attSheet_(), last = sh.getLastRow();
+  if (last < 2) return out_({ month: month, entries: [] });
+  var rows = sh.getRange(2, 1, last - 1, ATT_COLS.length).getValues();
+  return out_({ month: month, entries: rows.map(attRow_).filter(function (a) { return a.id && a.date.slice(0, 7) === month; }) });
 }
 function folder_() {
   var p = props_(), id = p.getProperty('FOLDER_ID');
@@ -191,6 +245,9 @@ function handle_(b) {
       try { setPin_(np); CacheService.getScriptCache().remove('pin-fails'); } finally { lock1.releaseLock(); }
       return out_({ ok: true });
     }
+
+    if (action === 'attend') return attend_(b);
+    if (action === 'attlist') return attList_(b);
 
     var sh2 = sheet_();
 

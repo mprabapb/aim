@@ -410,6 +410,22 @@ address { font-style: normal; }
 .job-row:hover { border-color: var(--black); }
 #eng-job { display: grid; gap: 24px; max-width: 760px; }
 .eng-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; }
+.att-card { background: var(--panel); border-radius: 8px; padding: 18px 20px; margin-bottom: 20px; }
+.att-card h2 { margin: 0 0 10px; font-size: 24px; }
+.att-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 12px; }
+.att-row label { display: grid; gap: 6px; font-size: 14px; color: var(--grey); flex: 1 1 220px; }
+.att-row input { font: inherit; padding: 12px; border: 1px solid #d0d2d6; border-radius: var(--radius); background: #fff; color: var(--ink); }
+.att-row .btn { flex: 0 0 auto; }
+.btn-dark { background: var(--black); border-color: var(--black); }
+#att-state { margin: 10px 0 0; }
+#att-state b { color: var(--black); }
+#eng-att h3 { margin: 26px 0 10px; }
+#eng-att .eng-toolbar input { font: inherit; padding: 6px 8px; border: 1px solid #d0d2d6; border-radius: 5px; background: #fff; }
+.att-table { font-size: 15px; }
+.att-table th, .att-table td { padding: 8px 10px; }
+.att-table tr.att-off td { color: var(--grey); }
+.att-table .att-late { color: var(--red); font-weight: 700; }
+#att-mark { max-width: 560px; margin-top: 30px; }
 .sig { border: 0; padding: 0; margin: 0; }
 .sig legend { font-size: 14px; color: var(--grey); margin-bottom: 6px; }
 #sig-pad { display: block; width: 100%; height: 200px; background: var(--white); border: 1px dashed #9a9ca1; border-radius: var(--radius); touch-action: none; cursor: crosshair; }

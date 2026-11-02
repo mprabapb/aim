@@ -11,6 +11,9 @@
 //   POST /api/jobs/:id/assign            { engineer, visitDate } -> status "Assigned"
 //   POST /api/jobs/:id/close             { engineer, workDone, ..., signature } -> status "Closed"
 //   POST /api/jobs/:id/cancel            { reason } -> status "Cancelled"
+//   POST /api/jobs/attendance            { op: "in"|"out", engineer, lat, lng, acc } check-in / check-out (server time)
+//                                        { op: "mark", engineer, date, mark, inTime, outTime, note } office mark for a day
+//   GET  /api/jobs/attendance            { month: "yyyy-MM" } (staff POST with _get) -> { entries }
 import { getStore } from '@netlify/blobs';
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 
@@ -19,6 +22,7 @@ export const config = { path: ['/api/jobs', '/api/jobs/*'] };
 // Swappable for tests
 export const deps = {
   store: () => getStore({ name: 'service-jobs', consistency: 'strong' }),
+  attendance: () => getStore({ name: 'engineer-attendance', consistency: 'strong' }),
   locks: () => getStore({ name: 'staff-signin-locks', consistency: 'strong' }),
   pin: () => process.env.STAFF_PIN || '',
 };
@@ -187,6 +191,47 @@ export default async function handler(req, context) {
     const jobs = (await Promise.all(keys.map((k) => store.get(k, { type: 'json' })))).filter(Boolean);
     // The list leaves out signatures to stay small; the close/detail call carries them
     return json({ jobs: jobs.map((j) => (j.closure ? { ...j, closure: { ...j.closure, signature: undefined, hasSignature: !!j.closure.signature } } : j)) });
+  }
+
+  // ---- Engineer attendance (staff only) ----
+  if (id === 'attendance') {
+    const denied = await needStaff();
+    if (denied) return denied;
+    const b = body || {};
+    const att = deps.attendance();
+    if (method === 'GET') {
+      let month = clean(b.month || url.searchParams.get('month'), 7);
+      if (!/^\d{4}-\d{2}$/.test(month)) month = new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 7);
+      const { blobs } = await att.list({ prefix: month + '/' });
+      const entries = (await Promise.all(blobs.map((x) => att.get(x.key, { type: 'json' })))).filter(Boolean);
+      entries.sort((x, y) => (x.at < y.at ? -1 : 1));
+      return json({ month, entries });
+    }
+    if (method !== 'POST') return fail('Not found.', 404);
+    const now = new Date();
+    const a = { id: randomBytes(4).toString('hex'), at: now.toISOString(), engineer: clean(b.engineer, 60).replace(/\s+/g, ' '),
+      note: clean(b.note, 200), inTime: '', outTime: '', lat: '', lng: '', acc: '' };
+    if (!a.engineer) return fail('Pick your name first.');
+    if (b.op === 'in' || b.op === 'out') {
+      a.kind = b.op === 'in' ? 'In' : 'Out';
+      a.by = 'phone';
+      a.date = new Date(now.getTime() + 5.5 * 3600e3).toISOString().slice(0, 10);
+      const lat = Number(b.lat), lng = Number(b.lng), acc = Number(b.acc);
+      if (b.lat !== '' && b.lat != null && Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+        a.lat = lat.toFixed(6); a.lng = lng.toFixed(6); a.acc = Number.isFinite(acc) ? String(Math.round(acc)) : '';
+      }
+    } else if (b.op === 'mark') {
+      a.kind = clean(b.mark, 20);
+      a.by = 'office';
+      a.date = clean(b.date, 10);
+      if (!['Present', 'Half day', 'Leave', 'Absent', 'Holiday'].includes(a.kind)) return fail('Pick Present, Half day, Leave, Absent or Holiday.');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(a.date)) return fail('Pick the date.');
+      const t = /^([01]\d|2[0-3]):[0-5]\d$/;
+      a.inTime = t.test(String(b.inTime || '')) ? String(b.inTime) : '';
+      a.outTime = t.test(String(b.outTime || '')) ? String(b.outTime) : '';
+    } else return fail('Not found.', 404);
+    await att.setJSON(`${a.date.slice(0, 7)}/${a.date}-${now.getTime()}-${a.id}`, a);
+    return json({ entry: a }, 201);
   }
 
   if (!id || !/^SR-\d{6}-[A-Z0-9]{4}$/.test(id)) return fail('Not found.', 404);

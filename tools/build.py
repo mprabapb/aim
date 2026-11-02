@@ -695,7 +695,7 @@ def build():
 <section class="page-head"><div class="wrap">
   <p class="eyebrow">Staff only</p>
   <h1>Engineer Jobs</h1>
-  <p>Close each service job on site with the customer's signature, then share the signed report.</p>
+  <p>Check in and out each day, and close each service job on site with the customer's signature.</p>
 </div></section>
 <div class="wrap section" id="engineer-app">
   <form class="form eng-login" id="eng-login" data-online>
@@ -705,11 +705,23 @@ def build():
     <div class="form-actions"><button class="btn" type="submit">Open Jobs</button></div>
   </form>
   <div id="eng-board" hidden>
+    <form class="att-card" id="att-today">
+      <h2>Today's Attendance</h2>
+      <div class="att-row">
+        <label>Your name<input name="me" list="att-names" autocomplete="off" required placeholder="Type or pick your name"></label>
+        <button class="btn" type="submit" data-op="in">Check In</button>
+        <button class="btn btn-dark" type="submit" data-op="out">Check Out</button>
+      </div>
+      <p class="small" id="att-state"></p>
+      <p class="form-msg" hidden></p>
+      <datalist id="att-names"></datalist>
+    </form>
     <div class="eng-toolbar">
       <div id="eng-tabs" class="chips"><button class="chip" data-filter="open" aria-pressed="true">Open</button><button class="chip" data-filter="Closed" aria-pressed="false">Closed</button><button class="chip" data-filter="Cancelled" aria-pressed="false">Cancelled</button><button class="chip" data-filter="all" aria-pressed="false">All</button></div>
       <label class="eng-who small">Show jobs for <select id="eng-who"><option value="">All engineers</option></select></label>
       <span class="small" id="eng-count"></span>
       <button class="btn btn-ghost" id="eng-refresh" type="button">Refresh</button>
+      <button class="btn btn-ghost" id="eng-att-open" type="button">Attendance Register</button>
       <button class="btn btn-ghost" id="eng-pin" type="button">Change PIN</button>
       <button class="btn btn-ghost" id="eng-logout" type="button">Sign Out</button>
     </div>
@@ -725,6 +737,38 @@ def build():
   <div id="eng-detail" hidden>
     <p class="no-print"><button class="btn btn-ghost" id="eng-back" type="button">Back to Jobs</button></p>
     <div id="eng-job"></div>
+  </div>
+  <div id="eng-att" hidden>
+    <p class="no-print"><button class="btn btn-ghost" id="att-back" type="button">Back to Jobs</button></p>
+    <h2>Attendance Register</h2>
+    <div class="eng-toolbar no-print">
+      <label class="eng-who small">Month <input type="month" id="att-month"></label>
+      <label class="eng-who small">Engineer <select id="att-who"><option value="">All engineers</option></select></label>
+      <button class="btn btn-ghost" id="att-reload" type="button">Refresh</button>
+      <button class="btn" id="att-pdf" type="button">Download PDF</button>
+      <button class="btn btn-ghost" id="att-csv" type="button">Download Excel (CSV)</button>
+    </div>
+    <p class="form-msg" id="att-msg" hidden></p>
+    <h3>Monthly Summary</h3>
+    <div class="ctable-wrap"><table class="ctable att-table" id="att-summary"></table></div>
+    <h3>Day by Day</h3>
+    <div class="ctable-wrap"><table class="ctable att-table" id="att-days"></table></div>
+    <form class="form no-print" id="att-mark">
+      <h3>Office: Mark a Day</h3>
+      <p class="small">Use this for leave, holidays, absence, or to fix a missed check-in or check-out. The office mark replaces the phone entries for that day.</p>
+      <div class="form-row">
+        <label>Engineer<input name="engineer" list="att-names" autocomplete="off" required></label>
+        <label>Date<input name="date" type="date" required></label>
+      </div>
+      <label>Mark<select name="mark"><option>Present</option><option>Half day</option><option>Leave</option><option>Absent</option><option>Holiday</option></select></label>
+      <div class="form-row">
+        <label>In time (optional)<input name="inTime" type="time"></label>
+        <label>Out time (optional)<input name="outTime" type="time"></label>
+      </div>
+      <label>Note<input name="note" maxlength="200" placeholder="e.g. Sick leave, forgot to check out"></label>
+      <p class="form-msg" hidden></p>
+      <div class="form-actions"><button class="btn" type="submit">Save Mark</button></div>
+    </form>
   </div>
 </div>
 '''

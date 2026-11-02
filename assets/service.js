@@ -61,7 +61,8 @@
       if (!isGas(base)) return fetch(base + '/api/jobs' + path, init);
       // Apps Script: map the REST-style path to {action, id, ...}; replies always come back as HTTP 200
       var m = path.match(/^\/([^\/?]+)(?:\/(assign|close|cancel))?(?:\?phone=(.*))?$/), b = Object.assign({}, body || {});
-      if (path === '/staff-pin') b.action = opts.pin ? 'changepin' : 'setpin';
+      if (path === '/attendance') b.action = b._get ? 'attlist' : 'attend';
+      else if (path === '/staff-pin') b.action = opts.pin ? 'changepin' : 'setpin';
       else if (!m) b.action = opts.pin ? 'list' : 'book';
       else if (m[3] !== undefined) {
         return fetch(base + '?action=status&id=' + m[1] + '&phone=' + m[3], { method: 'GET' });
@@ -254,6 +255,7 @@
     load().then(function () {
       try { sessionStorage.setItem('aim-pin', pin); } catch (e) {}
       login.hidden = true; board.hidden = false; setMsg(loginMsg, '');
+      attToday();
       if (!pinOk(pin)) openPinForm('Your staff PIN is too easy to guess. Please choose a new one now: at least 8 characters with letters and numbers.');
     }, function (err) {
       pin = ''; login.hidden = false; board.hidden = true;
@@ -318,6 +320,261 @@
     if (r) openJob(r.dataset.id);
   });
   $('#eng-back').addEventListener('click', function () { detail.hidden = true; board.hidden = false; load(); });
+
+  // ---------- Engineer attendance ----------
+  // Check-in / check-out from the engineer's phone (server time + GPS location when allowed),
+  // office marks for leave, holidays and fixes, and a monthly register (PDF / CSV).
+  var attCache = {};
+  var attForm = $('#att-today'), attView = $('#eng-att'), attMsg = $('#att-msg');
+  var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  function ist(iso) { return new Date(new Date(iso).getTime() + 5.5 * 3600e3).toISOString(); }
+  function todayIst() { return ist(new Date().toISOString()).slice(0, 10); }
+  function hhmm(iso) { return ist(iso).slice(11, 16); }
+  function ampm(t) {
+    if (!t) return '';
+    var h = +t.slice(0, 2), m = t.slice(3, 5);
+    return (h % 12 || 12) + ':' + m + (h < 12 ? ' am' : ' pm');
+  }
+  function mins(t) { return +t.slice(0, 2) * 60 + +t.slice(3, 5); }
+  function fmtHours(m) { return m ? Math.floor(m / 60) + 'h ' + ('0' + (m % 60)).slice(-2) + 'm' : ''; }
+  function attLoad(month, fresh) {
+    if (attCache[month] && !fresh) return Promise.resolve(attCache[month]);
+    return call('/attendance', { pin: pin, body: { month: month } }).then(function (res) { return (attCache[month] = res.entries || []); });
+  }
+  function attNames(entries) {
+    var seen = {}, out = [];
+    (entries || []).map(function (e) { return e.engineer; }).concat(engineerNames()).forEach(function (n) {
+      n = String(n || '').trim(); if (n && !seen[n.toLowerCase()]) { seen[n.toLowerCase()] = 1; out.push(n); }
+    });
+    return out.sort(function (a, b) { return a.localeCompare(b); });
+  }
+  function fillNames(entries) {
+    $('#att-names').innerHTML = attNames(entries).map(function (n) { return '<option value="' + esc(n) + '">'; }).join('');
+  }
+  var same = function (a, b) { return String(a).toLowerCase() === String(b).toLowerCase(); };
+  // One engineer's day: office mark wins for the status; its times (if given) replace the phone times
+  function dayInfo(entries, name, date) {
+    var es = entries.filter(function (e) { return e.date === date && same(e.engineer, name); });
+    var marks = es.filter(function (e) { return e.by === 'office'; }), mark = marks[marks.length - 1];
+    var ins = es.filter(function (e) { return e.kind === 'In'; }), outs = es.filter(function (e) { return e.kind === 'Out'; });
+    var firstIn = ins[0], lastOut = outs[outs.length - 1];
+    var inT = (mark && mark.inTime) || (firstIn ? hhmm(firstIn.at) : '');
+    var outT = (mark && mark.outTime) || (lastOut ? hhmm(lastOut.at) : '');
+    var status = mark ? mark.kind : firstIn ? 'Present' : '';
+    var worked = inT && outT && mins(outT) > mins(inT) ? mins(outT) - mins(inT) : 0;
+    var late = (status === 'Present' || status === 'Half day') && inT && mins(inT) > 9 * 60 + 15;
+    return { date: date, name: name, status: status, inT: inT, outT: outT, worked: worked, late: late,
+      inLoc: firstIn && firstIn.lat ? firstIn : null, outLoc: lastOut && lastOut.lat ? lastOut : null,
+      note: mark ? mark.note : '', count: es.length };
+  }
+  function mapLink(e, label) {
+    return e ? '<a target="_blank" rel="noopener" href="https://www.google.com/maps?q=' + encodeURIComponent(e.lat + ',' + e.lng) + '">' + label + '</a>' : '';
+  }
+
+  // Today's card on the job list
+  if (attForm) {
+    var attOp = 'in', attFMsg = $('.form-msg', attForm);
+    attForm.elements.me.value = store.get('aim-engineer');
+    attForm.querySelectorAll('button[data-op]').forEach(function (b) { b.addEventListener('click', function () { attOp = b.dataset.op; }); });
+    attForm.elements.me.addEventListener('change', function () { showToday(attCache[todayIst().slice(0, 7)] || []); });
+    attForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var me = attForm.elements.me.value.trim().replace(/\s+/g, ' '), op = attOp;
+      if (!me) { setMsg(attFMsg, 'Type or pick your name first.', true); return; }
+      var d = dayInfo(attCache[todayIst().slice(0, 7)] || [], me, todayIst());
+      if (op === 'in' && d.inT && !d.outT && !confirm(me + ' already checked in today at ' + ampm(d.inT) + '. Check in again?')) return;
+      if (op === 'out' && !d.inT && !confirm(me + ' has not checked in today. Check out anyway?')) return;
+      store.set('aim-engineer', me); rememberEngineer(me);
+      var btns = attForm.querySelectorAll('button'); btns.forEach(function (b) { b.disabled = true; });
+      setMsg(attFMsg, 'Getting your location…');
+      getLocation().then(function (loc) {
+        setMsg(attFMsg, 'Saving…');
+        return call('/attendance', { method: 'POST', pin: pin, body: { op: op, engineer: me, lat: loc ? loc.lat : '', lng: loc ? loc.lng : '', acc: loc ? loc.acc : '' } })
+          .then(function (res) {
+            var a = res.entry, m = a.date.slice(0, 7);
+            attCache[m] = (attCache[m] || []).concat([a]);
+            showToday(attCache[m]);
+            setMsg(attFMsg, (op === 'in' ? 'Checked in' : 'Checked out') + ' at ' + ampm(hhmm(a.at)) + '. ' +
+              (a.lat ? 'Location saved.' : 'Location NOT saved: allow location for this site and turn on GPS next time.'), !a.lat);
+            if (a.lat) attFMsg.classList.add('ok-msg');
+          });
+      }).catch(function (err) {
+        setMsg(attFMsg, err.status === 404 ? 'The job server needs the latest update before attendance works. Please ask the office.' :
+          err.offline ? 'Not saved: no internet. Please try again.' : 'Not saved: ' + err.message, true);
+      }).then(function () { btns.forEach(function (b) { b.disabled = false; }); });
+    });
+  }
+  function getLocation() {
+    return new Promise(function (ok) {
+      if (!navigator.geolocation) return ok(null);
+      navigator.geolocation.getCurrentPosition(function (p) { ok({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }); },
+        function () { ok(null); }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+    });
+  }
+  function showToday(entries) {
+    if (!attForm) return;
+    fillNames(entries);
+    var me = attForm.elements.me.value.trim(), el = $('#att-state');
+    if (!me) { el.textContent = 'Pick your name, then tap Check In when you start work and Check Out when you finish.'; return; }
+    var d = dayInfo(entries, me, todayIst());
+    el.innerHTML = 'Today, ' + esc(fmtDate(todayIst())) + ': ' + (d.status && !d.inT && !d.outT ? '<b>' + esc(d.status) + '</b>' :
+      d.inT ? 'In <b>' + esc(ampm(d.inT)) + '</b>' + (d.late ? ' (late)' : '') + (d.outT ? ', Out <b>' + esc(ampm(d.outT)) + '</b>, ' + esc(fmtHours(d.worked)) : ', not checked out yet') :
+      'not checked in yet');
+  }
+  function attToday() {
+    if (!attForm) return;
+    showToday([]);
+    attLoad(todayIst().slice(0, 7), true).then(showToday, function (err) {
+      if (err.status === 404) $('#att-state').textContent = 'Attendance needs the latest job server update. Please ask the office.';
+    });
+  }
+
+  // Monthly register
+  var attMonth = $('#att-month'), attWho = $('#att-who'), attRows = [], attSum = [];
+  function monthDays(month) {
+    var y = +month.slice(0, 4), m = +month.slice(5, 7), n = new Date(Date.UTC(y, m, 0)).getUTCDate(), t = todayIst(), out = [];
+    for (var d = 1; d <= n; d++) {
+      var iso = month + '-' + ('0' + d).slice(-2);
+      if (iso > t) break;
+      out.push({ iso: iso, dow: new Date(Date.UTC(y, m - 1, d)).getUTCDay() });
+    }
+    return out;
+  }
+  function monthName(month) { return new Date(month + '-01T00:00:00').toLocaleString('en-IN', { month: 'long', year: 'numeric' }); }
+  function renderRegister(entries) {
+    var month = attMonth.value, who = attWho.value;
+    var names = attNames(entries.length ? entries : []).filter(function (n) { return entries.some(function (e) { return same(e.engineer, n); }); });
+    var keep = who;
+    attWho.innerHTML = '<option value="">All engineers</option>' + names.map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
+    attWho.value = names.indexOf(keep) >= 0 ? keep : '';
+    who = attWho.value;
+    var people = who ? [who] : names, days = monthDays(month);
+    attRows = []; attSum = [];
+    people.forEach(function (n) {
+      var s = { name: n, Present: 0, 'Half day': 0, Leave: 0, Absent: 0, Holiday: 0, none: 0, late: 0, mins: 0 };
+      days.forEach(function (d) {
+        var x = dayInfo(entries, n, d.iso); x.dow = d.dow;
+        if (x.status) s[x.status] = (s[x.status] || 0) + 1; else if (d.dow !== 0) s.none++;
+        if (x.late) s.late++;
+        s.mins += x.worked;
+        attRows.push(x);
+      });
+      attSum.push(s);
+    });
+    attRows.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : a.name.localeCompare(b.name); });
+    $('#att-summary').innerHTML = people.length ? '<thead><tr><th>Engineer</th><th class="num">Present</th><th class="num">Half day</th><th class="num">Leave</th><th class="num">Absent</th><th class="num">Holiday</th><th class="num">Not marked</th><th class="num">Late</th><th class="num">Hours</th></tr></thead><tbody>' +
+      attSum.map(function (s) {
+        return '<tr><th>' + esc(s.name) + '</th>' + [s.Present, s['Half day'], s.Leave, s.Absent, s.Holiday, s.none, s.late].map(function (v) { return '<td class="num">' + v + '</td>'; }).join('') +
+          '<td class="num">' + esc(fmtHours(s.mins) || '0h') + '</td></tr>';
+      }).join('') + '</tbody>' : '<tbody><tr><td>No attendance yet for ' + esc(monthName(month)) + '.</td></tr></tbody>';
+    var shown = attRows.filter(function (x) { return x.status || x.count || x.dow !== 0; });
+    $('#att-days').innerHTML = shown.length ? '<thead><tr><th>Date</th>' + (who ? '' : '<th>Engineer</th>') + '<th>Status</th><th>In</th><th>Out</th><th class="num">Hours</th><th>Location</th><th>Note</th></tr></thead><tbody>' +
+      shown.map(function (x) {
+        return '<tr' + (x.dow === 0 && !x.status ? ' class="att-off"' : '') + '><td>' + esc(DAYS[x.dow] + ' ' + fmtDate(x.date)) + '</td>' + (who ? '' : '<td>' + esc(x.name) + '</td>') +
+          '<td>' + esc(x.status || (x.dow === 0 ? 'Sunday' : 'Not marked')) + '</td>' +
+          '<td' + (x.late ? ' class="att-late" title="After 9:15 am"' : '') + '>' + esc(ampm(x.inT)) + '</td><td>' + esc(ampm(x.outT)) + '</td>' +
+          '<td class="num">' + esc(fmtHours(x.worked)) + '</td><td>' + [mapLink(x.inLoc, 'In'), mapLink(x.outLoc, 'Out')].filter(Boolean).join(' · ') + '</td>' +
+          '<td>' + esc(x.note) + '</td></tr>';
+      }).join('') + '</tbody>' : '';
+  }
+  function loadRegister(fresh) {
+    setMsg(attMsg, 'Loading…');
+    return attLoad(attMonth.value, fresh).then(function (entries) { setMsg(attMsg, ''); fillNames(entries); renderRegister(entries); },
+      function (err) { setMsg(attMsg, err.status === 404 ? 'The job server needs the latest update before attendance works.' : err.message, true); });
+  }
+  if (attView) {
+    $('#eng-att-open').addEventListener('click', function () {
+      board.hidden = true; attView.hidden = false;
+      if (!attMonth.value) attMonth.value = todayIst().slice(0, 7);
+      attMonth.max = todayIst().slice(0, 7);
+      var mf = $('#att-mark');
+      if (!mf.elements.date.value) mf.elements.date.value = todayIst();
+      mf.elements.date.max = todayIst().slice(0, 4) + '-12-31';
+      loadRegister(true); window.scrollTo(0, 0);
+    });
+    $('#att-back').addEventListener('click', function () { attView.hidden = true; board.hidden = false; attToday(); });
+    attMonth.addEventListener('change', function () { if (/^\d{4}-\d{2}$/.test(attMonth.value)) loadRegister(false); });
+    attWho.addEventListener('change', function () { renderRegister(attCache[attMonth.value] || []); });
+    $('#att-reload').addEventListener('click', function () { loadRegister(true); });
+    $('#att-csv').addEventListener('click', attCsv);
+    $('#att-pdf').addEventListener('click', attPdf);
+    var mf = $('#att-mark'), mMsg = $('.form-msg', mf);
+    mf.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var f = mf.elements, data = { op: 'mark' };
+      ['engineer', 'date', 'mark', 'inTime', 'outTime', 'note'].forEach(function (k) { data[k] = f[k].value.trim(); });
+      data.engineer = data.engineer.replace(/\s+/g, ' ');
+      if (data.inTime && data.outTime && data.outTime <= data.inTime) { setMsg(mMsg, 'Out time must be after In time.', true); return; }
+      var btn = $('button[type="submit"]', mf); btn.disabled = true; setMsg(mMsg, 'Saving…');
+      call('/attendance', { method: 'POST', pin: pin, body: data }).then(function (res) {
+        btn.disabled = false;
+        var a = res.entry, m = a.date.slice(0, 7);
+        if (attCache[m]) attCache[m] = attCache[m].concat([a]);
+        setMsg(mMsg, 'Saved: ' + a.engineer + ', ' + fmtDate(a.date) + ', ' + a.kind + '.'); mMsg.classList.add('ok-msg');
+        f.inTime.value = ''; f.outTime.value = ''; f.note.value = '';
+        if (m === attMonth.value) renderRegister(attCache[m] || []); else { attMonth.value = m; loadRegister(true); }
+      }, function (err) { btn.disabled = false; setMsg(mMsg, 'Not saved: ' + err.message, true); });
+    });
+  }
+  function attTableRows() {
+    var who = attWho.value;
+    return attRows.filter(function (x) { return x.status || x.count || x.dow !== 0; }).map(function (x) {
+      var r = [DAYS[x.dow] + ' ' + fmtDate(x.date)];
+      if (!who) r.push(x.name);
+      return r.concat([x.status || (x.dow === 0 ? 'Sunday' : 'Not marked'), ampm(x.inT) + (x.late ? ' (late)' : ''), ampm(x.outT), fmtHours(x.worked),
+        [x.inLoc ? 'In ' + x.inLoc.lat + ',' + x.inLoc.lng : '', x.outLoc ? 'Out ' + x.outLoc.lat + ',' + x.outLoc.lng : ''].filter(Boolean).join(' / '), x.note || '']);
+    });
+  }
+  function attHead() { return ['Date'].concat(attWho.value ? [] : ['Engineer'], ['Status', 'In', 'Out', 'Hours', 'Location', 'Note']); }
+  function attFileName(ext) { return ('Attendance ' + monthName(attMonth.value) + (attWho.value ? ' ' + attWho.value : '')).replace(/[^\w .-]+/g, '') + '.' + ext; }
+  function saveBlob(blob, name) {
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  }
+  function attCsv() {
+    var q = function (v) { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+    var lines = [['Engineer', 'Present', 'Half day', 'Leave', 'Absent', 'Holiday', 'Not marked', 'Late', 'Hours']].concat(attSum.map(function (s) {
+      return [s.name, s.Present, s['Half day'], s.Leave, s.Absent, s.Holiday, s.none, s.late, fmtHours(s.mins) || '0h'];
+    }), [[]], [attHead()], attTableRows());
+    saveBlob(new Blob(['﻿' + lines.map(function (r) { return r.map(q).join(','); }).join('\r\n')], { type: 'text/csv' }), attFileName('csv'));
+  }
+  function attPdf() {
+    pdfReady().then(function () {
+      var doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
+      var W = 210, M = 12, R = [228, 25, 32], G = [90, 90, 90], y = 12;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(R[0], R[1], R[2]); doc.text('AIM ENTERPRISES', M, y + 6);
+      doc.setFontSize(8.5); doc.setTextColor(30, 30, 30); doc.text('Canon Authorized Premium Business Partner  |  Canon Service Edge (CSP)', M, y + 11);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(G[0], G[1], G[2]);
+      ['Shop No. 3, Opp. BJP Bhawan, MG Road,', 'Sri Vijaya Puram - 744101', 'GSTIN: 35AKEPP1123F1ZM'].forEach(function (t, i) { doc.text(t, W - M, y + i * 3.4, { align: 'right' }); });
+      y += 14; doc.setDrawColor(R[0], R[1], R[2]); doc.setLineWidth(0.8); doc.line(M, y, W - M, y);
+      y += 7; doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(0, 0, 0);
+      doc.text('ENGINEER ATTENDANCE REGISTER: ' + monthName(attMonth.value).toUpperCase() + (attWho.value ? ' (' + attWho.value + ')' : ''), W / 2, y, { align: 'center' });
+      y += 4;
+      var head = { fillColor: R, textColor: 255, fontStyle: 'bold', fontSize: 8 };
+      var base = { fontSize: 8, cellPadding: 1.4, lineColor: [170, 170, 170], lineWidth: 0.2, textColor: [20, 20, 20], valign: 'top' };
+      doc.autoTable({ startY: y, margin: { left: M, right: M }, theme: 'grid', styles: base, headStyles: head,
+        head: [['Engineer', 'Present', 'Half day', 'Leave', 'Absent', 'Holiday', 'Not marked', 'Late', 'Hours']],
+        body: attSum.map(function (s) { return [s.name, s.Present, s['Half day'], s.Leave, s.Absent, s.Holiday, s.none, s.late, fmtHours(s.mins) || '0h']; }) });
+      y = doc.lastAutoTable.finalY + 5;
+      var rows = attTableRows().map(function (r) { return r.slice(0, -2).concat([r[r.length - 2] ? 'Yes' : '', r[r.length - 1]]); });
+      doc.autoTable({ startY: y, margin: { left: M, right: M }, theme: 'grid', styles: base, headStyles: head,
+        head: [attHead().map(function (h) { return h === 'Location' ? 'GPS' : h; })], body: rows,
+        didParseCell: function (d) { if (d.section === 'body' && /Sunday|Holiday/.test(String(d.row.raw[attWho.value ? 1 : 2]))) d.cell.styles.textColor = [130, 130, 130]; } });
+      y = doc.lastAutoTable.finalY + 14;
+      if (y > 270) { doc.addPage(); y = 30; }
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(20, 20, 20);
+      doc.text('For AIM ENTERPRISES', W - M, y, { align: 'right' }); doc.text('Authorised Signatory', W - M, y + 12, { align: 'right' });
+      var ph = doc.internal.pageSize.getHeight(), n = doc.getNumberOfPages();
+      for (var i = 1; i <= n; i++) {
+        doc.setPage(i); doc.setFontSize(7); doc.setTextColor(G[0], G[1], G[2]);
+        doc.text('In/Out times are server times (IST) from the engineer\'s phone unless marked by the office. Late = in after 9:15 am. Page ' + i + ' of ' + n, W / 2, ph - 7, { align: 'center' });
+      }
+      var name = attFileName('pdf'), blob = doc.output('blob'), file = new File([blob], name, { type: 'application/pdf' });
+      if (navigator.canShare && /Android|iPhone|iPad/i.test(navigator.userAgent) && navigator.canShare({ files: [file] })) {
+        return navigator.share({ files: [file], title: name }).catch(function () { doc.save(name); });
+      }
+      doc.save(name);
+    }).catch(function (e) { alert('Could not make the PDF. Check the internet connection and try again. (' + e.message + ')'); });
+  }
 
   function openJob(id) {
     board.hidden = true; detail.hidden = false;
