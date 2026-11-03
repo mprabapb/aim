@@ -9204,6 +9204,44 @@
   ]
  },
  "pixma-g1010": {
+  "specs": [
+   [
+    "Print Head/Consumables\nNumber of Nozzles",
+    "Total 1,472 nozzles"
+   ],
+   [
+    "Ink Bottles (Type/Colours)",
+    "GI-790\n(Pigment Ink/Black),\n(Dye-based Ink/Cyan, Magenta, Yellow)"
+   ],
+   [
+    "Print Heads",
+    "BH-7, CH-7\n(Availability may vary by country)"
+   ],
+   [
+    "Maximum Print Resolution",
+    "4,800 (Horizontal)*1 x 1,200 (Vertical) dpi"
+   ],
+   [
+    "Print Speed*2 (Approx.)Click here for summary report\nClick here for Document Print and Copy Speed Measurement Conditions\nDocument (ESAT/Simplex)*3",
+    "8.8 / 5 image per minute (Mono/Colour)"
+   ],
+   [
+    "Document (FPOT Ready/Simplex)*4",
+    "11 / 17 s (Mono/Colour)"
+   ],
+   [
+    "Photo (4 x 6\") (PP-201/Borderless)*5",
+    "60 s"
+   ],
+   [
+    "Print Width",
+    "Bordered: Up to 203.2 mm (8 inch)\nBorderless: Up to 216 mm (8.5 inch)"
+   ],
+   [
+    "Recommended Printing Area",
+    "Top margin: 31.2 mm\nBottom margin: 32.5 mm"
+   ]
+  ],
   "features": [
    "Print",
    "ISO Standard print speed (A4): 8.8 images per minute (mono) / 5.0 images per minute (colour)",
@@ -9289,6 +9327,44 @@
   ]
  },
  "pixma-g2010": {
+  "specs": [
+   [
+    "Print Head/Consumables\nNumber of Nozzles",
+    "Total 1,472 nozzles"
+   ],
+   [
+    "Ink Bottles (Type/Colours)",
+    "GI-790\n(Pigment Ink/Black),\n(Dye-based Ink/Cyan, Magenta, Yellow)"
+   ],
+   [
+    "Print Heads",
+    "BH-7, CH-7\n(Availability may vary by country)"
+   ],
+   [
+    "Maximum Print Resolution",
+    "4,800 (Horizontal)*1 x 1,200 (Vertical) dpi"
+   ],
+   [
+    "Print Speed*2 (Approx.)Click here for summary report\nClick here for Document Print and Copy Speed Measurement Conditions\nDocument (ESAT/Simplex)*3",
+    "8.8 / 5 image per minute (Mono/Colour)"
+   ],
+   [
+    "Document (FPOT Ready/Simplex)*4",
+    "11 / 17 s (Mono/Colour)"
+   ],
+   [
+    "Photo 105 x 152.4 mm(4 x 6 inch) (PP-201/Borderless)*5",
+    "60 s"
+   ],
+   [
+    "Print Width",
+    "Bordered: Up to 203.2 mm (8 inch)\nBorderless: Up to 216 mm (8.5 inch)"
+   ],
+   [
+    "Recommended Printing Area",
+    "Top margin: 31.2 mm\nBottom margin: 32.5 mm"
+   ]
+  ],
   "features": [
    "Print, Scan & Copy",
    "ISO Standard print speed (A4): 8.8 images per minute (mono) / 5.0 images per minute (colour)",
@@ -9429,63 +9505,67 @@
   "specs": [
    [
     "Print Head / Ink\nNumber of Nozzles",
-    "Total 1 792 nozzles"
+    "Total 1,792 nozzles"
    ],
    [
-    "Ink Bottles (Type / Colours)",
-    "GI-71\n(Pigment Ink / Black),\n(Dye-Based Ink / Cyan, Magenta, Yellow)"
+    "Ink Bottles (Type/Colours)",
+    "GI-71 (Bundle), GI-71S\n(Pigment Ink / Black),\n(Dye-Based Ink / Cyan, Magenta, Yellow)"
    ],
    [
     "Maintenance Cartridge",
     "MC-G04"
    ],
    [
+    "Print Heads",
+    "BH-70, CH-70"
+   ],
+   [
     "Maximum Printing Resolution",
-    "4 800 (horizontal)*1 x 1 200 (vertical) dpi"
+    "4,800 (horizontal)*1 x 1,200 (vertical) dpi"
    ],
    [
-    "Print Speed*2 (Approx.)\nBased on ISO/IEC 24734\nClick here for summary report\nClick here for Document Print and Copy Speed Measurement Conditions\nDocument (ESAT / Simplex)",
-    "11 / 6 images per minute (mono/colour)"
+    "Print Speed*2 (Approx.)\nBased on ISO/IEC 24734\nClick here for summary report\nClick here for Document Print and Copy Speed Measurement Conditions\nDocument (ESAT/Simplex)",
+    "11 / 6 image per minute (mono/colour)"
    ],
    [
-    "Document (FPOT Ready / Simplex)",
-    "9 / 14s (mono/colour)"
+    "Document (FPOT Ready/Simplex)",
+    "9 / 14 s (mono/colour)"
    ],
    [
-    "Photo 10.16x 15.24cm (4 x 6in) (PP-201 / Borderless)",
-    "45s"
+    "Photo 102 x 152.4 mm (4 x 6 inch) (PP-201/Borderless)",
+    "45 s"
    ],
    [
     "Printable Width",
-    "Up to 203.2mm (8in)\nBorderless: Up to 216mm (8.5in)"
+    "Up to 203.2 m (8 inch)\nBorderless: Up to 216 mm (8.5 inch)"
    ],
    [
     "Print Margin\nBorderless Printing*3",
-    "Top/Bottom/Left/Right margin: 0mm"
+    "Top/Bottom/Left/Right margin: 0 mm"
    ],
    [
     "Bordered Printing",
-    "Envelope (COM10 / DL):\nTop/Bottom margin: 12.7mm\nLeft/Right margin: 3.4mm\nEnvelop (C5 / Monarch):\nTop/Bottom margin: 12.7mm\nLeft/Right margin: 5.6mm\nB-Oficio, M-Oficio:\nTop margin: 3mm, Bottom margin: 5mm\nLeft/Right margin: 6.4mm\nLTR, LGL, Foolscap, F4, Oficio2:\nTop margin: 3mm, Bottom margin: 5mm\nLeft margin: 6.3mm, Right margin: 6.4mm\nLegal (India)\nTop margin: 3mm, Bottom margin: 5mm\nLeft/Right margin: 5.9mm\nSquare 127 x 127mm (5 x in) :\nTop/Bottom/Left/Right margin: 6mm\nSquare 89 x 89mm (3.5 x 3.5in):\nTop/Bottom/Left/Right margin: 5mm\nCustom Size:\nWidth 55 - 216mm, Length: 89 - 1 200 mm\nTop margin: 3mm, Bottom margin: 5mm\nLeft margin: 3.4mm, Right margin: 3.4 – 9.4mm\nOthers:\nTop margin: 3mm, Bottom margin: 5mm\nLeft/Right margin: 3.4mm"
+    "Envelope (COM10, DL):\nTop/Bottom margin: 12.7 mm\nLeft/Right margin: 3.4 mm\nEnvelop (C5, Monarch):\nTop/Bottom margin: 12.7 mm\nLeft/Right margin: 5.6 mm\nB-Oficio, M-Oficio:\nTop margin: 3 mm, Bottom margin: 5 mm\nLeft/Right margin: 6.4 mm\nLTR, LGL, Foolscap, F4, Oficio2:\nTop margin: 3 mm, Bottom margin: 5 mm\nLeft margin: 6.3 mm, Right margin: 6.4 mm\nLegal (India)\nTop margin: 3 mm, Bottom margin: 5 mm\nLeft/Right margin: 5.9 mm\nSquare 5 x 5\" (127 x 127 mm):\nTop/Bottom/Left/Right margin: 6 mm\nSquare 89 x 89 mm (3.5 x 3.5 inch) :\nTop/Bottom/Left/Right margin: 5 mm\nCustom Size:\nWidth 55 - 216 mm, Length: 89 - 1,200 mm\nTop margin: 3 mm, Bottom margin: 5 mm\nLeft margin: 3.4 mm, Right margin: 3.4 – 9.4 mm\nOthers:\nTop margin: 3 mm, Bottom margin: 5 mm\nLeft/Right margin: 3.4 mm"
    ],
    [
     "Support Media\nRear Tray",
-    "Plain Paper (64 - 105g/m² (gsm))\nHigh Resolution Paper (HR-101N)\nPhoto Paper Plus Glossy II (PP-201, PP-208)\nPhoto Paper Plus Semi-Gloss (SG-201)\nGlossy Photo Paper \"Everyday Use\" (GP-508)\nPhoto Paper Pro Luster (LU-101)\nMatte Photo Paper (MP-101)\nDouble Matte Photo Paper (MP-101D)\nEnvelope\nPhoto Stickers (PS-208, PS-808)"
+    "Plain Paper (64 - 105 g/m²)\nHigh Resolution Paper (HR-101N)\nPhoto Paper Plus Glossy II (PP-201, PP-208)\nPhoto Paper Plus Semi-Gloss (SG-201)\nPhoto Paper Pro Luster (LU-101)\nMatte Photo Paper (MP-101)\nDouble-Sided Matte Photo Paper (MP-101D)\nEnvelope\nPhoto Stickers (PS-208, PS-808)"
    ],
    [
     "Paper Size\nRear Tray",
-    "A4, A5, A6, B5, LTR, LGL, Executive, Oficio2,\nB-Oficio, M-Oficio, Legal (India), Foolscap, F4,\n8.89 x 8.89cm (3.5 x 3.5in), Envelopes (DL, COM10, C5, Monarch), Square (89 x 89 mm, 127 x 127 mm), Card Size (91 x 55 mm)\n[Custom Size]\nWidth: 55 - 216 mm\nLength: 89 - 1 200 mm"
+    "A4, A5, A6, B5, LTR, LGL, Executive, Oficio2,\nB-Oficio, M-Oficio, Legal (India), Foolscap, F4,\n102 x 152.4 mm (4 x 6 inch), 127 x 178 mm (5 x 7 inch), 178 x 254 mm (7 x 10 inch), 203.2 x 254 mm (8 x 10 inch)\", Envelopes (DL, COM10, C5, Monarch), Square (89 x 89 mm, 127 x 127 mm), Card Size (91 x 55 mm)\n[Custom Size]\nWidth: 55 - 216 mm\nLength: 89 - 1,200 mm"
    ],
    [
     "Paper Size (Borderless)*3",
-    "A4, B5, LTR, 8.89 x 8.89cm (3.5 x 3.5in), Square (89 x 89 mm, 127 x 127 mm), Card Size (91 x 55 mm)"
+    "A4, B5, LTR, 102 x 152.4 mm (4 x 6 inch), 127 x 178 mm (5 x 7 inch), 178 x 254 mm (7 x 10 inch), 203.2 x 254 mm (8 x 10 inch), Square (89 x 89 mm, 127 x 127 mm), Card Size (91 x 55 mm)"
    ],
    [
     "Paper Handling (Maximum Number)\nRear Tray",
-    "[Plain Paper, A4/LTR]\nPlain Paper (64 g/m² (gsm)): 100\nHigh Resolution Paper (HR-101N): 80\n[Photo Paper, 10.16 x 15.24 (4 x 6in)]\nPhoto Paper Plus Glossy II (PP-201, PP-208): 20\nPhoto Paper Plus Semi-Gloss (SG-201): 20\nGlossy Photo Paper \"Everyday Use\" (GP-508): 20\nMatte Photo Paper (MP-101): 20"
+    "[Plain Paper, A4/LTR]\nPlain Paper (64 g/m²): 100\nHigh Resolution Paper (HR-101N): 80\n[Photo Paper, 102 x 152.4 mm (4 x 6 inch)]\nPhoto Paper Plus Glossy II (PP-201, PP-208): 20\nPhoto Paper Plus Semi-Gloss (SG-201): 20\nMatte Photo Paper (MP-101): 20"
    ],
    [
     "Paper Weight\nRear Tray",
-    "Plain Paper: 64 - 105 g/m² (gsm)\nCanon Paper: Max. 275 g/m² (gsm)\n(Photo Paper Plus Glossy, PP-201)"
+    "Plain Paper: 64 - 105 g/m²\nCanon Paper: Max. 265 g/m²\n(Photo Paper Plus Glossy, PP-201)"
    ],
    [
     "Ink End Sensor",
@@ -9511,6 +9591,44 @@
   ]
  },
  "pixma-g3010": {
+  "specs": [
+   [
+    "Print Head/Consumables\nNumber of Nozzles",
+    "Total 1,472 nozzles"
+   ],
+   [
+    "Ink Bottles (Type/Colours)",
+    "GI-790\n(Pigment Ink/Black),\n(Dye-based Ink/Cyan, Magenta, Yellow)"
+   ],
+   [
+    "Print Heads",
+    "BH-7, CH-7\n(Availability may vary by country)"
+   ],
+   [
+    "Maximum Print Resolution",
+    "4,800 (Horizontal)*1 x 1,200 (Vertical) dpi"
+   ],
+   [
+    "Print Speed*2 (Approx.)Click here for summary report\nClick here for Document Print and Copy Speed Measurement Conditions\nDocument (ESAT/Simplex)*3",
+    "8.8 / 5 image per minute (Mono/Colour)"
+   ],
+   [
+    "Document (FPOT Ready/Simplex)*4",
+    "11 / 17 s (Mono/Colour)"
+   ],
+   [
+    "Photo 102 x 152.4 mm (4 x 6 inch) (PP-201/Borderless)*5",
+    "60 s"
+   ],
+   [
+    "Print Width",
+    "Bordered: Up to 203.2 mm (8 inch)\nBorderless: Up to 216 mm (8.5 inch)"
+   ],
+   [
+    "Recommended Printing Area",
+    "Top margin: 31.2 mm\nBottom margin: 32.5 mm"
+   ]
+  ],
   "features": [
    "Print, Scan & Copy",
    "ISO Standard print speed (A4): 8.8 images per minute (mono) / 5.0 images per minute (colour)",
@@ -9655,63 +9773,67 @@
   "specs": [
    [
     "Print Head / Ink\nNumber of Nozzles",
-    "Total 1 792 nozzles"
+    "Total 1,792 nozzles"
    ],
    [
-    "Ink Bottles (Type / Colours)",
-    "GI-71\n(Pigment Ink / Black),\n(Dye-Based Ink / Cyan, Magenta, Yellow)"
+    "Ink Bottles (Type/Colours)",
+    "GI-71 (Bundled), GI-71S\n(Pigment Ink/Black),\n(Dye-based Ink/Cyan, Magenta, Yellow)"
    ],
    [
     "Maintenance Cartridge",
     "MC-G04"
    ],
    [
+    "Print Heads",
+    "BH-70, CH-70\n(Availability may vary by country)"
+   ],
+   [
     "Maximum Printing Resolution",
-    "4 800 (horizontal)*1 x 1 200 (vertical) dpi"
+    "4,800 (Horizontal)*1 x 1,200 (Vertical) dpi"
    ],
    [
-    "Print Speed*2 (Approx.)\nBased on ISO/IEC 24734\nClick here for summary report\nClick here for Document Print and Copy Speed Measurement Conditions\nDocument (ESAT / Simplex)",
-    "11 / 6 images per minute (mono/colour)"
+    "Print Speed*2 (Approx.)Click here for summary report\nClick here for Document Print and Copy Speed Measurement Conditions\nDocument (ESAT/Simplex)*3",
+    "11 / 6 image per minute (Mono/Colour)"
    ],
    [
-    "Document (FPOT Ready / Simplex)",
-    "9 / 14s (mono/colour)"
+    "Document (FPOT Ready/Simplex)*4",
+    "9 / 14 s (Mono/Colour)"
    ],
    [
-    "Photo 10.16x 15.24cm (4 x 6in) (PP-201 / Borderless)",
-    "45s"
+    "Photo 102 x 152.4 mm (4 x 6 inch) (PP-201/Borderless)*5",
+    "45 s"
    ],
    [
     "Printable Width",
-    "Up to 203.2mm (8in)\nBorderless: Up to 216mm (8.5in)"
+    "Up to 203.2 m (8 inch)\nBorderless: Up to 216 mm (8.5 inch)"
    ],
    [
-    "Print Margin\nBorderless Printing*3",
-    "Top/Bottom/Left/Right margin: 0mm"
+    "Print Margin\nBorderless Printing*6",
+    "Top/Bottom/Left/Right margin: 0 mm"
    ],
    [
     "Bordered Printing",
-    "Envelope (COM10 / DL):\nTop/Bottom margin: 12.7mm\nLeft/Right margin: 3.4mm\nEnvelop (C5 / Monarch):\nTop/Bottom margin: 12.7mm\nLeft/Right margin: 5.6mm\nB-Oficio, M-Oficio:\nTop margin: 3mm, Bottom margin: 5mm\nLeft/Right margin: 6.4mm\nLTR, LGL, Foolscap, F4, Oficio2:\nTop margin: 3mm, Bottom margin: 5mm\nLeft margin: 6.3mm, Right margin: 6.4mm\nLegal (India)\nTop margin: 3mm, Bottom margin: 5mm\nLeft/Right margin: 5.9mm\nSquare 127 x 127 mm (5 x 5in) :\nTop/Bottom/Left/Right margin: 6 mm\nSquare 89 x 89 mm (3.5 x 3.5in):\nTop/Bottom/Left/Right margin: 5 mm\nCustom Size:\nWidth 55 - 216 mm, Length: 89 - 1,200 mm\nTop margin: 3 mm, Bottom margin: 5 mm\nLeft margin: 3.4 mm, Right margin: 3.4 – 9.4 mm\nOthers:\nTop margin: 3 mm, Bottom margin: 5 mm\nLeft/Right margin: 3.4 mm"
+    "Envelope (COM10 / DL):\nTop/Bottom margin: 12.7 mm\nLeft/Right margin: 3.4 mm\nEnvelop (C5 / Monarch):\nTop/Bottom margin: 12.7 mm\nLeft/Right margin: 5.6 mm\nB-Oficio, M-Oficio:\nTop margin: 3 mm, Bottom margin: 5 mm\nLeft/Right margin: 6.4 mm\nLTR, LGL, Foolscap, F4, Oficio2:\nTop margin: 3 mm, Bottom margin: 5 mm\nLeft margin: 6.3 mm, Right margin: 6.4 mm\nLegal (India)\nTop margin: 3 mm, Bottom margin: 5 mm\nLeft/Right margin: 5.9 mm\nSquare 127 x 127 mm : (5 x 5 inch)\nTop/Bottom/Left/Right margin: 6 mm\nSquare 89 x 89 mm (3.5 x 3.5 inch):\nTop/Bottom/Left/Right margin: 5 mm\nCustom Size:\nWidth 55 - 216 mm, Length: 89 - 1,200 mm\nTop margin: 3 mm, Bottom margin: 5 mm\nLeft margin: 3.4 mm, Right margin: 3.4 – 9.4 mm\nOthers:\nTop margin: 3 mm, Bottom margin: 5 mm\nLeft/Right margin: 3.4 mm"
    ],
    [
     "Support Media\nRear Tray",
-    "Plain Paper (64 - 105 g/m² (gsm))\nHigh Resolution Paper (HR-101N)\nPhoto Paper Plus Glossy II (PP-201, PP-208)\nPhoto Paper Plus Semi-Gloss (SG-201)\nGlossy Photo Paper \"Everyday Use\" (GP-508)\nPhoto Paper Pro Luster (LU-101)\nMatte Photo Paper (MP-101)\nDouble-Sided Matte Photo Paper (MP-101D)\nEnvelope\nPhoto Stickers (PS-208, PS-808)"
+    "Plain Paper (64 - 105 g/m²)\nHigh Resolution Paper (HR-101N)\nPhoto Paper Plus Glossy II (PP-201, PP-208)\nPhoto Paper Plus Semi-Gloss (SG-201)\nPhoto Paper Pro Luster (LU-101)\nMatte Photo Paper (MP-101)\nDouble-Sided Matte Photo Paper (MP-101D)\nEnvelope\nPhoto Stickers (PS-208, PS-808)"
    ],
    [
     "Paper Size\nRear Tray",
-    "A4, A5, A6, B5, LTR, LGL, Executive, Oficio2,\nB-Oficio, M-Oficio, Legal (India), Foolscap, F4,\n10.16 x 15.24 (4 x 6in), 12.7 x 17.78cm (5 x 7in), 17.78 x 25.4cm (7 x 10in), 20.32 x 25.4cm (8 x 10in), Envelopes (DL, COM10, C5, Monarch), Square (89 x 89 mm, 127 x 127 mm), Card Size (91 x 55 mm)\n[Custom Size]\nWidth: 55 - 216 mm\nLength: 89 - 1,200 mm"
+    "A4, A5, A6, B5, LTR, LGL, Executive, Oficio2,\nB-Oficio, M-Oficio, Legal (India), Foolscap, F4,\n102 x 152.4 mm (4 x 6 inch), 127 x 178 mm (5 x 7 inch), 178 x 254 mm (7 x 10 inch), 203.2 x 254 mm (8 x 10 inch), Envelopes (DL, COM10, C5, Monarch), Square (89 x 89 mm, 127 x 127 mm), Card Size (91 x 55 mm)\n[Custom Size]\nWidth: 55 - 216 mm\nLength: 89 - 1,200 mm"
    ],
    [
-    "Paper Size (Borderless)*3",
-    "A4, B5, LTR, 10.16 x 15.24 (4 x 6in), 12.7 x 17.78cm (5 x 7in), 17.78 x 25.4cm (7 x 10in), 20.32 x 25.4cm (8 x 10in), Square (89 x 89 mm, 127 x 127 mm), Card Size (91 x 55 mm)"
+    "Paper Size (Borderless)*6",
+    "A4, B5, LTR, 102 x 152.4 mm (4 x 6 inch), 127 x 178 mm (5 x 7 inch), 178 x 254 mm (7 x 10 inch), 203.2 x 254 mm (8 x 10 inch), Square (89 x 89 mm, 127 x 127 mm), Card Size (91 x 55 mm)"
    ],
    [
     "Paper Handling (Maximum Number)\nRear Tray",
-    "[Plain Paper, A4/LTR]\nPlain Paper (64 g/m² (gsm)): 100\nHigh Resolution Paper (HR-101N): 80\n[Photo Paper, 10.16 x 15.24 (4 x 6in)]\nPhoto Paper Plus Glossy II (PP-201): 20 Photo Paper Plus Glossy II (PP-208): 10\nPhoto Paper Plus Semi-Gloss (SG-201): 20\nGlossy Photo Paper \"Everyday Use\" (GP-508): 20\nMatte Photo Paper (MP-101): 20"
+    "[Plain Paper, A4/LTR]\nPlain Paper (64 g/m²): 100\nHigh Resolution Paper (HR-101N): 80\n[Photo Paper, 102 x 152.4 mm (4 x 6 inch)]\nPhoto Paper Plus Glossy II (PP-201): 20\nPhoto Paper Plus Glossy II (PP-208): 10\nPhoto Paper Plus Semi-Gloss (SG-201): 20\nMatte Photo Paper (MP-101): 20"
    ],
    [
     "Paper Weight\nRear Tray",
-    "Plain Paper: 64 - 105 g/m² (gsm)\nCanon Paper: Max. 265 g/m² (gsm)\n(Photo Paper Plus Glossy, PP-201)"
+    "Plain Paper: 64 - 105 g/m²\nCanon Paper: Max. 265 g/m²\n(Photo Paper Plus Glossy, PP-201)"
    ],
    [
     "Ink End Sensor",
