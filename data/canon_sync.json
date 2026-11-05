@@ -1,8 +1,11 @@
 {
- "last_checked": "2026-11-03 07:21 UTC",
- "models": 297,
+ "last_checked": "2026-11-05 07:26 UTC",
+ "models": 299,
  "last_changes": {
-  "added": [],
+  "added": [
+   "Timer Remote Controller TC-E3 / TC-N3 (Price on request)",
+   "Digital Microphone DM-E10D (Price on request)"
+  ],
   "price": [],
   "photo": [],
   "removed": [],
@@ -60,6 +63,7 @@
   "cooling-fan-cf-r20ep": "https://in.canon/media/image/2024/07/04/ac6d882c876447d68613785169b7ec8d_Battery%20Grip%20CF-R20EP%20Slant.png",
   "cr-120-cr-120uv": "https://in.canon/media/image/2018/04/10/73e30ffd5c6846eda72d33638114e65c_Cr-120-l1.png",
   "cr-190i-ii-cr-190i-ii-uv": "https://in.canon/media/migration/shared/live/products/EN/cr-190i190iuv-b1.png",
+  "digital-microphone-dm-e10d": "https://in.canon/media/image/2026/10/08/49efa713463443159b549d138d8706af_Digital%20Microphone%20DM-E10D%2001.png",
   "eos-1500d": "https://in.canon/media/image/2018/03/25/937d6225816f49538c9dac956e8b8a8c_eos-1500d_b1.png",
   "eos-c100": "https://in.canon/media/migration/shared/live/products/EN/eos-c100-b1.png",
   "eos-c100-mark-ii": "https://in.canon/media/migration/shared/live/products/EN/eos-c100-markii-b1.png",
@@ -296,6 +300,7 @@
   "selphy-qx20": "https://in.canon/media/image/2024/09/04/91e02d2fc05544ca8dbe93c3cc49e79f_SELPHY%20SQUARE%20QX20%20GY%20Front%20Slant.png",
   "speedlite-430ex-iii-rt": "https://in.canon/media/migration/shared/live/products/EN/speedlight-430ex-iiirt-b1.png",
   "speedlite-transmitter-st-e10": "https://in.canon/media/image/2021/09/13/6c62e20afcd74daa85f8489b45179a49_ST-E10%20Front%20Slant.png",
+  "timer-remote-controller-tc-e3-tc-n3": "https://in.canon/media/image/2026/10/08/9f62a9f282214722bc3f4fcb4be5e344_Timer%20Remote%20Controller%20TC-E3%20TC-N3%2001.png",
   "tripod-grip-hg-1000tbr": "https://in.canon/media/image/2026/09/08/d29488bdac144fad9fd215887131c4f1_Tripod%20Grip%20HG-1000TBR%2001.png",
   "tripod-grip-hg-100tbr": "https://in.canon/media/image/2019/10/24/3801d25211524ccf841d8aa97ff4e9e1_HG-100TBR%20Straight.png",
   "tripod-grip-hg-200tbr": "https://in.canon/media/image/2026/05/06/2ed4e45d4d7b46a1b5544db213aefdc5_Tripod%20Grip%2001.png",

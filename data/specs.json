@@ -755,6 +755,59 @@
    "3 sorting pockets"
   ]
  },
+ "digital-microphone-dm-e10d": {
+  "specs": [
+   [
+    "Type",
+    "Monaural"
+   ],
+   [
+    "Directivity",
+    "Supercardioid"
+   ],
+   [
+    "Frequency (Hz)",
+    "60 to 20000"
+   ],
+   [
+    "Sensitivity",
+    "-16 dB FS (94 dB SPL @ 1 kHz)"
+   ],
+   [
+    "Attenuator",
+    "Available"
+   ],
+   [
+    "Wind filter",
+    "Available"
+   ],
+   [
+    "Output terminal",
+    "Multi-function shoe"
+   ],
+   [
+    "Output method",
+    "Digital"
+   ],
+   [
+    "Power source",
+    "Multi-function shoe"
+   ],
+   [
+    "Dimensions (W × H × D)",
+    "Approx. 36.8 × 61.0 × 53.7 mm"
+   ],
+   [
+    "Weight",
+    "Approx. 59 g (excluding the windscreen and shoe cover)"
+   ]
+  ],
+  "features": [
+   "Wideband Digital Monaural Microphone",
+   "Compact, Lightweight, Cable-Free, and Battery-Free Design",
+   "Easily Access Your Camera's Audio Settings"
+  ]
+ },
  "eos-1500d": {
   "specs": [
    [
@@ -12502,7 +12555,7 @@
     "11,13"
    ],
    [
-    "Diameter x Length",
+    "Diameter × Length",
     "79.9 × 98.4"
    ],
    [
@@ -12514,7 +12567,7 @@
     "67"
    ],
    [
-    "Maximum Magnification (x)",
+    "Maximum Magnification (×)",
     "0.14x (f=20mm), 0.33x (f=50mm)"
    ],
    [
@@ -12990,7 +13043,7 @@
     "8, 8"
    ],
    [
-    "Diameter x Length",
+    "Diameter × Length",
     "69.6 × 58.0mm (retracted)\n69.6 × 87.4mm (wide)"
    ],
    [
@@ -13002,7 +13055,7 @@
     "58mm"
    ],
    [
-    "Maximum Magnification (x)",
+    "Maximum Magnification (×)",
     "0.11x (f=24mm)\n0.19x (f=55mm)"
    ],
    [
@@ -15145,6 +15198,59 @@
    "Wireless Flash Control via Camera & Smartphone",
    "No Battery Required",
    "Compact & Lightweight"
+  ]
+ },
+ "timer-remote-controller-tc-e3-tc-n3": {
+  "specs": [
+   [
+    "Plug type",
+    "2 models: E3 or N3 terminal"
+   ],
+   [
+    "Time setting",
+    "Available"
+   ],
+   [
+    "Timer (Self-timer)",
+    "Available"
+   ],
+   [
+    "Timer (Specify time)",
+    "Available"
+   ],
+   [
+    "Display panel size (W × H)",
+    "Approx. 26.2 × 15.7 mm"
+   ],
+   [
+    "Backlight",
+    "Orange"
+   ],
+   [
+    "Power source",
+    "AAA batteries ×2 (not included)"
+   ],
+   [
+    "Cable length",
+    "Approx. 80 cm"
+   ],
+   [
+    "Dimensions (W × H × D)",
+    "Approx. 40.0 × 154.0 × 19.6 mm"
+   ],
+   [
+    "Weight",
+    "E3 model: Approx. 80 g (excluding battery)\nN3 model: Approx. 95 g (excluding battery)"
+   ],
+   [
+    "Tripod socket",
+    "Available"
+   ]
+  ],
+  "features": [
+   "Multiple Time Settings Available to Meet a Wide Range of Photography Needs",
+   "Intelligent Design for Improved Visibility and Ease of Use at Night and with Tripods",
+   "Available in Two Versions for Various EOS Cameras"
   ]
  },
  "tripod-grip-hg-1000tbr": {
