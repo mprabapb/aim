@@ -1,11 +1,13 @@
 {
- "last_checked": "2026-11-13 07:19 UTC",
- "models": 299,
+ "last_checked": "2026-11-17 09:37 UTC",
+ "models": 298,
  "last_changes": {
   "added": [],
   "price": [],
   "photo": [],
-  "removed": [],
+  "removed": [
+   "imageRUNNER ADVANCE DX 619i"
+  ],
   "kept": []
  },
  "images": {
@@ -180,7 +182,6 @@
   "imagerunner-2425-ii": "https://in.canon/media/image/2026/08/19/a37b344162794984972eeb3b1aaec4b8_imageRUNNER%202425%20II%2001.png",
   "imagerunner-2900i": "https://in.canon/media/image/2023/04/25/f7be38b2ff9f4cd3a143ae48b253fd8d_05_H_F_AS_2945i_362x320.png",
   "imagerunner-advance-dx-4945i-4935i-4925i": "https://in.canon/media/image/2023/05/29/dba3ca3bbac44892bd2927c391ed1a9d_1_4945i_SP_CFU_F_AS_362x320.png",
-  "imagerunner-advance-dx-619i": "https://in.canon/media/image/2023/05/30/b6b5536024fd4736bf8784db18fab219_301_619i_F_AS.png_362x320.png",
   "imagerunner-advance-dx-c3900i-series": "https://in.canon/media/image/2023/05/15/02c8f735d7a54f758117eea97225095c_001_C3935i_CST_DADF_F_AS_362x320_b.png",
   "imagerunner-c3326i": "https://in.canon/media/image/2023/04/26/49f74099cc6d442e87df08bb604d1329_001_C3326i_CST-_DADF_F_AS-%28488720d1-77fb-4fc4-9334-b9401730979b%29_362x320.png",
   "ixus-285-hs-a": "https://in.canon/media/image/2025/09/09/87f0cde3c8ad4ea7ad380061bf348a9e_IXUS%20285%20HS%20A%20Black%20Front%20Slant.png",
