@@ -52,7 +52,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A data assets/products
+          git add -A data assets/products products
           if git diff --cached --quiet -- data/products.csv data/consumables.csv data/specs.json assets/products; then
             echo "No product changes on Canon India today."; exit 0
           fi
