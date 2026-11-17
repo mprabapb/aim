@@ -451,3 +451,6 @@ label.check input { width: auto; margin: 0; }
 .users-btns { white-space: nowrap; }
 .users-btns .btn { padding: 4px 10px; margin-right: 6px; }
 #eng-users .ctable-wrap { margin-bottom: 26px; }
+.form-alt { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.form-msg.bad .form-alt .btn { color: var(--ink); }
+.form-msg.bad .form-alt .btn-wa { color: #fff; }

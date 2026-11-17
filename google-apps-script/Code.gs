@@ -17,6 +17,11 @@
  * Engineer attendance is kept in a second tab "Attendance" of the same Sheet (one row per check-in,
  * check-out or office mark). Staff actions: attend {op: in|out|mark, ...} and attlist {month: yyyy-MM}.
  *
+ * Website quotation / enquiry form: action "enquiry" emails the enquiry to ENQUIRY_TO (default
+ * info@aimenterprises.net; change it under Project settings > Script properties) and keeps a copy
+ * in a tab "Enquiries" of the same Sheet. After pasting a new version of this file, run the function
+ * "testEnquiryEmail" once from the editor so Google asks for the "send email" permission.
+ *
  * Every call is a GET (?action=...) or a POST with a JSON body {action, ...}; the reply is JSON
  * with "status" (HTTP-like code) and either the data or "error".
  */
@@ -338,6 +343,8 @@ function handle_(b) {
       return out_({ job: publicView_(withSignature_(f.job)) });
     }
 
+    if (action === 'enquiry') return enquiry_(b);
+
     // Everything below is for signed-in staff, each action only with its menu permission
     var me = session_(b);
     if (!me) return fail_('Please sign in again.', 401);
@@ -401,4 +408,68 @@ function handle_(b) {
     console.error(err);  // details stay in Apps Script > Executions; the visitor sees a plain message
     return fail_('Something went wrong on the server. Please try again.', 500);
   }
+}
+
+// ---------- Website enquiries (quotation form) ----------
+var ENQ_COLS = ['at', 'kind', 'name', 'org', 'phone', 'email', 'model', 'qty', 'message', 'page', 'mailed'];
+var ENQ_MAX_PER_PHONE = 5, ENQ_MAX_PER_DAY = 60;
+
+function enquiry_(b) {
+  // Spam guard 1: the hidden "website" box is filled only by robots; pretend it worked
+  if (b.website) return out_({ status: 201, ok: true });
+  // Spam guard 2: a person needs a few seconds to fill the form
+  var took = Number(b.took || 0);
+  if (took && took < 3000) return out_({ status: 201, ok: true });
+  var q = { kind: clean_(b.kind, 40) || 'Quotation request', name: clean_(b.name, 100), org: clean_(b.org, 120),
+    phone: clean_(b.phone, 20), email: clean_(b.email, 120), model: clean_(b.model, 100), qty: clean_(b.qty, 6),
+    message: clean_(b.message, 2000), page: clean_(b.page, 200) };
+  if (!q.name) return fail_('Please enter your name.');
+  if (digits_(q.phone).length < 10) return fail_('Please enter a 10 digit phone number.');
+  if (q.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(q.email)) return fail_('Please check your email address.');
+  if (/https?:\/\/|<a\s|\[url/i.test(q.name + q.org + q.model)) return fail_('Please remove web links from the form.');
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    var day = Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyMMdd'), cache = CacheService.getScriptCache();
+    var kPhone = 'enq-' + day + '-' + digits_(q.phone), kDay = 'enq-' + day;
+    var nPhone = Number(cache.get(kPhone) || 0), nDay = Number(cache.get(kDay) || 0);
+    if (nPhone >= ENQ_MAX_PER_PHONE) return fail_('We already have your enquiries for today. We will call you soon.', 429);
+    if (nDay >= ENQ_MAX_PER_DAY) return fail_('Too many enquiries today. Please call or WhatsApp us.', 429);
+    cache.put(kPhone, String(nPhone + 1), 21600); cache.put(kDay, String(nDay + 1), 21600);
+  } finally { lock.releaseLock(); }
+
+  var to = props_().getProperty('ENQUIRY_TO') || 'info@aimenterprises.net';
+  var lines = [q.kind + ' from the website', '',
+    'Name: ' + q.name, 'Organisation: ' + (q.org || '-'), 'Phone: ' + q.phone, 'Email: ' + (q.email || '-'),
+    'Model: ' + (q.model || '-'), 'Quantity: ' + (q.qty || '-'), '', 'Message:', q.message || '-', '',
+    'Sent from: ' + (q.page || 'website'),
+    'Received: ' + Utilities.formatDate(new Date(), 'Asia/Kolkata', 'dd MMM yyyy, hh:mm a') + ' IST'];
+  var mailed = 'yes';
+  try {
+    var opts = { name: 'AIM Website' };
+    if (q.email) opts.replyTo = q.email;
+    MailApp.sendEmail(to, q.kind + ': ' + q.name + (q.model ? ' - ' + q.model : ''), lines.join('\n'), opts);
+  } catch (err) { console.error(err); mailed = 'no: ' + String(err).slice(0, 100); }
+
+  try {
+    var ss = sheet_().getParent(), sh = ss.getSheetByName('Enquiries');
+    if (!sh) {
+      sh = ss.insertSheet('Enquiries');
+      sh.getRange(1, 1, 1, ENQ_COLS.length).setValues([ENQ_COLS]).setFontWeight('bold');
+      sh.setFrozenRows(1);
+    }
+    // A leading ' stops a value such as =HYPERLINK(...) from running as a formula
+    sh.appendRow(ENQ_COLS.map(function (c) {
+      var v = c === 'at' ? new Date().toISOString() : c === 'mailed' ? mailed : (q[c] || '');
+      return /^[=+\-@]/.test(v) ? "'" + v : v;
+    }));
+  } catch (err2) { console.error(err2); if (mailed !== 'yes') return fail_('Sorry, the enquiry could not be sent. Please call or WhatsApp us.', 500); }
+  if (mailed !== 'yes') console.error('Enquiry saved to the sheet but the email failed: ' + mailed);
+  return out_({ status: 201, ok: true });
+}
+
+// Run this once from the Apps Script editor (select it, press Run) to allow sending email
+// and to check that a test enquiry reaches the inbox.
+function testEnquiryEmail() {
+  var r = enquiry_({ kind: 'Test enquiry', name: 'Test from Apps Script', phone: '9434282223', message: 'If you can read this, the website form works.', page: 'Apps Script editor' });
+  Logger.log(r.getContent());
 }

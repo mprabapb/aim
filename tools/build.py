@@ -973,6 +973,8 @@ def build():
       <datalist id="models">{options}</datalist>
       <label>Quantity<input name="qty" type="number" min="1" value="1"></label>
       <label>Message<textarea name="message" rows="3" placeholder="Accessories, delivery location, GeM bid number…"></textarea></label>
+      <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+      <p class="form-msg" role="status" aria-live="polite" hidden></p>
       <div class="form-actions"><button class="btn btn-wa" type="submit" data-via="whatsapp">Send on WhatsApp</button><button class="btn btn-ghost" type="submit" data-via="email">Send by Email</button></div>
     </form>
   </section>
