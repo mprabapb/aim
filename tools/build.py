@@ -240,7 +240,12 @@ def page(path, title, desc, body, active='', scripts=(), noindex=False):
   <nav class="segments" aria-label="Sections">{segments}</nav>
   <span class="bar-divider" aria-hidden="true"></span>
   <a class="search-link" href="{up}products/index.html#search" aria-label="Search products"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M15.6 15.6 21 21" stroke="currentColor" stroke-width="1.4"/></svg></a>
-  <a class="bar-accent" href="tel:{SITE['phone_tel']}">Call Us</a>
+  <div class="call-wrap"><a class="bar-accent" href="tel:{SITE['phone_tel']}" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" fill="currentColor"/></svg><span>Call Us</span></a>
+  <div class="call-pop" hidden><p class="call-pop-h">Call AIM Enterprises</p>
+    <a href="tel:{SITE['phone_tel']}"><b>{E(SITE['phone_display'])}</b><small>Mobile</small></a>
+    {''.join(f'<a href="tel:{l["tel"]}"><b>{E(l["display"])}</b><small>Landline</small></a>' for l in SITE['landlines'])}
+    <a href="tel:{SITE['canon_virtual']['tel']}"><b>{E(SITE['canon_virtual']['display'])}</b><small>Canon virtual no.</small></a>
+    <p class="call-pop-hours">{'<br>'.join(E(h) for h in SITE['hours_lines'])}</p></div></div>
   <span class="bar-divider" aria-hidden="true"></span>
   <a class="partner-mark" href="{SITE['canon_listing_url']}" target="_blank" rel="noopener" title="Verify on Canon India"><img src="{up}assets/canon-logo.svg?v={ASSET_V}" alt="Canon" width="96" height="20"><span>Authorised Partner</span></a>
   <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
@@ -292,6 +297,7 @@ def page(path, title, desc, body, active='', scripts=(), noindex=False):
 <div class="wrap social-row"><span>Follow Canon India</span>{social_links()}</div>
 <div class="wrap legal">© {date.today().year} AIM Enterprises, Sri Vijaya Puram. Product photos © Canon India. Canon, imageRUNNER, imageFORCE, imageCLASS, PIXMA, MAXIFY, imagePROGRAF, imageFORMULA, EOS, PowerShot and IXUS are trademarks of Canon Inc. MRPs are as published by Canon India and may change without notice.</div>
 </footer>
+<a class="call-float" href="tel:{SITE['phone_tel']}" aria-label="Call AIM Enterprises {E(SITE['phone_display'])}"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" fill="currentColor"/></svg></a>
 <a class="wa-float" href="{wa_link('Hello AIM Enterprises, I have an enquiry.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">{WA_ICON}</a>
 <script src="{up}assets/site.js?v={ASSET_V}" defer></script>{''.join(f'<script src="{up}assets/{n}?v={ASSET_V}" defer></script>' for n in scripts)}
 </body>

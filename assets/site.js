@@ -9,6 +9,28 @@
     });
   }
 
+  // Call Us: phones dial the main mobile straight away; computers (no dialer) get a list of all AIM numbers
+  var callBtn = document.querySelector('.bar-accent');
+  var callPop = document.querySelector('.call-pop');
+  if (callBtn && callPop) {
+    var canDial = function () {
+      return window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    };
+    var setPop = function (open) {
+      callPop.hidden = !open;
+      callBtn.setAttribute('aria-expanded', open);
+    };
+    callBtn.addEventListener('click', function (e) {
+      if (canDial()) return;
+      e.preventDefault();
+      setPop(callPop.hidden);
+    });
+    document.addEventListener('click', function (e) {
+      if (!callPop.hidden && !callPop.contains(e.target) && !callBtn.contains(e.target)) setPop(false);
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setPop(false); });
+  }
+
   var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Home banners: rotate every 6 seconds like Canon's carousel; the dots jump to a banner
