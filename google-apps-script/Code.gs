@@ -22,6 +22,9 @@
  * in a tab "Enquiries" of the same Sheet. After pasting a new version of this file, run the function
  * "testEnquiryEmail" once from the editor so Google asks for the "send email" permission.
  *
+ * Service bookings (action "book") also email the office at ENQUIRY_TO, and send the customer a
+ * confirmation with the job number when they gave an email. Test with "testBookingEmail".
+ *
  * Every call is a GET (?action=...) or a POST with a JSON body {action, ...}; the reply is JSON
  * with "status" (HTTP-like code) and either the data or "error".
  */
@@ -333,6 +336,7 @@ function handle_(b) {
         job.id = newId_(sh); job.status = 'Booked'; job.createdAt = now; job.history = [{ at: now, status: 'Booked' }];
         sh.appendRow(jobToRow_(job));
       } finally { lock.releaseLock(); }
+      bookingEmail_(job);
       return out_({ status: 201, id: job.id });
     }
 
@@ -465,6 +469,44 @@ function enquiry_(b) {
   } catch (err2) { console.error(err2); if (mailed !== 'yes') return fail_('Sorry, the enquiry could not be sent. Please call or WhatsApp us.', 500); }
   if (mailed !== 'yes') console.error('Enquiry saved to the sheet but the email failed: ' + mailed);
   return out_({ status: 201, ok: true });
+}
+
+// ---------- Service booking emails ----------
+// A new online booking emails the office (ENQUIRY_TO, default info@aimenterprises.net) and, when the
+// customer gave an email address, sends them a short confirmation with their job number.
+// A failed email never stops the booking: the job is already saved in the Sheet.
+function bookingEmail_(job) {
+  var to = props_().getProperty('ENQUIRY_TO') || 'info@aimenterprises.net';
+  var when = Utilities.formatDate(new Date(), 'Asia/Kolkata', 'dd MMM yyyy, hh:mm a') + ' IST';
+  var lines = ['New service booking from the website', '',
+    'Job number: ' + job.id, 'Name: ' + job.name, 'Organisation: ' + (job.org || '-'), 'Phone: ' + job.phone,
+    'Email: ' + (job.email || '-'), 'Address: ' + (job.address || '-'), 'Machine model: ' + (job.model || '-'),
+    'Serial no.: ' + (job.serial || '-'), 'Preferred date: ' + (job.preferredDate || '-'), 'Preferred time: ' + (job.slot || '-'),
+    '', 'Problem:', job.problem || '-', '', 'Received: ' + when];
+  try {
+    var opts = { name: 'AIM Website' };
+    if (job.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(job.email)) opts.replyTo = job.email;
+    MailApp.sendEmail(to, 'Service booking ' + job.id + ': ' + job.name + (job.model ? ' - ' + job.model : ''), lines.join('\n'), opts);
+  } catch (err) { console.error('Booking email to office failed: ' + err); }
+  if (job.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(job.email)) {
+    try {
+      MailApp.sendEmail(job.email, 'Your AIM Enterprises service booking ' + job.id, ['Dear ' + job.name + ',', '',
+        'Thank you for booking a service with AIM Enterprises. Your job number is ' + job.id + '.',
+        'We will call you on ' + job.phone + ' to confirm the visit.', '',
+        'Machine: ' + (job.model || '-'), 'Problem: ' + (job.problem || '-'), '',
+        'Check progress any time at https://aimenterprises.net/service.html#track with your job number and phone.', '',
+        'AIM Enterprises, Sri Vijaya Puram', 'Phone: +91 94342 82223 | +91 3192 220900', 'Email: ' + to].join('\n'),
+        { name: 'AIM Enterprises', replyTo: to });
+    } catch (err2) { console.error('Booking confirmation to customer failed: ' + err2); }
+  }
+}
+
+// Run this once from the Apps Script editor (select it, press Run): it sends a test booking email
+// to the office inbox without saving a job.
+function testBookingEmail() {
+  bookingEmail_({ id: 'SR-TEST', name: 'Test from Apps Script', phone: '9434282223', model: 'imageRUNNER 2425',
+    problem: 'If you can read this, service booking emails work.' });
+  Logger.log('Test booking email sent to ' + (props_().getProperty('ENQUIRY_TO') || 'info@aimenterprises.net'));
 }
 
 // Run this once from the Apps Script editor (select it, press Run) to allow sending email
