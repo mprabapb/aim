@@ -5625,6 +5625,78 @@
    "Print speed of up to 33/33 pages per minute (CL/BW)"
   ]
  },
+ "imageforce-c3026": {
+  "specs": [
+   [
+    "Machine type",
+    "A3 colour multifunctional"
+   ],
+   [
+    "Core functions",
+    "Print, copy, scan, send and optional fax"
+   ],
+   [
+    "Processor",
+    "Canon dual custom processor (shared)"
+   ],
+   [
+    "Control panel",
+    "178 mm (7 inch) TFT LCD WVGA colour touch panel"
+   ],
+   [
+    "Memory",
+    "Standard: RAM 3.0 GB"
+   ],
+   [
+    "Storage",
+    "Standard: 64 GB eMMC (available space 30 GB)\nOptional: 256 GB SSD"
+   ],
+   [
+    "Interface connection",
+    "NETWORK\nStandard: 1000Base-T/100Base-TX/10Base-T, Wireless LAN (IEEE 802.11 b/g/n)\nOTHERS\nStandard: USB 2.0 (host) ×2, USB 2.0 (device) ×1"
+   ],
+   [
+    "Paper supply capacity\n(A4, 80 gsm)",
+    "Standard: 1,200 sheets\n100 sheets: Multi-purpose tray ×1\n550 sheets: Standard cassette ×2\nMaximum: 2,300 sheets (with Cassette Feeding Unit-BB1)"
+   ],
+   [
+    "Paper output capacity (A4, 80 gsm)",
+    "Standard: 250 sheets\nMaximum: 645 sheets (with Inner Finisher-N1 and Copy Tray-T2)"
+   ],
+   [
+    "Supported media types",
+    "Multi-purpose tray:\nThin, Plain, Recycled, Colour, Heavy, Coated*1, Tracing, Bond, Transparency, Labels, Pre-punched, Letterhead, Envelope\nUpper cassette:\nThin, Plain, Recycled, Colour, Heavy, Bond, Transparency, Pre-punched, Letterhead, Envelope*2\nLower cassette:\nThin, Plain, Recycled, Colour, Heavy, Bond, Transparency, Pre-punched, Letterhead, Envelope*3"
+   ],
+   [
+    "Supported media sizes",
+    "Multi-purpose tray:\nStandard size: SRA3, A3, A4, A4R, A5, A5R, A6R, B4, B5, B5R\nCustom size: 98.4 × 139.7 mm to 320.0 × 457.2 mm\nFree size: 100.0 × 148.0 mm to 304.8 × 457.2 mm\nEnvelopes: COM10 No.10, Monarch, ISO-C5, DL\nEnvelope custom size: 98.0 × 98.0 mm to 320.0 × 457.2 mm\nUpper cassette:\nStandard size: A4, A5, A5R, A6R, B5\nCustom size: 105.0 × 148.0 mm to 297.0 × 215.9 mm\nEnvelopes: ISO-C5\nLower cassette:\nStandard size: A3, A4, A4R, A5, A5R, A6R, B4, B5, B5R\nCustom size: 105.0 × 148.0 mm to 304.8 × 457.2 mm\nEnvelopes*3: COM10 No.10, Monarch, DL"
+   ],
+   [
+    "Supported media weights",
+    "Multi-purpose tray:\n52 to 300 gsm (only 60 to 300 gsm supported with Media Adjustment Kit-A1*4)\nUpper/lower cassette: 52 to 256 gsm\nDuplex: 52 to 220 gsm"
+   ],
+   [
+    "Warm-up time\n(quick start mode: on)",
+    "4 s or less*5\nFrom power on: 10 s or less*6\nFrom sleep mode: 10 s or less"
+   ],
+   [
+    "Dimensions\n(W × D × H)",
+    "With Platen Cover-Y3: 565 × 712 × 788 mm\nWith Single Pass DADF-F1: 565 × 712 × 862 mm"
+   ],
+   [
+    "Installation space (W × D)",
+    "Basic:\n978 × 1,141 mm (right door & multi-purpose tray opened + paper cassette opened)\nFully configured:\n1,285 × 1,141 mm (with Single Pass DADF-F1 + Inner Finisher tray max extended + Copy Tray-T2 max extended + paper cassette opened)"
+   ],
+   [
+    "Weight*7",
+    "With Platen Cover-Y3: Approx. 73 kg\nWith Single Pass DADF-F1: Approx. 79 kg"
+   ]
+  ],
+  "features": [
+   "A3 colour",
+   "Print speed of up to 26 page per minute"
+  ]
+ },
  "imageforce-c3150-series": {
   "specs": [
    [

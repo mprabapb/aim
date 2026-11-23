@@ -1,8 +1,10 @@
 {
- "last_checked": "2026-11-22 07:30 UTC",
- "models": 298,
+ "last_checked": "2026-11-23 08:16 UTC",
+ "models": 299,
  "last_changes": {
-  "added": [],
+  "added": [
+   "imageFORCE C3026 (Price on request)"
+  ],
   "price": [],
   "photo": [],
   "removed": [],
@@ -134,6 +136,7 @@
   "imageforce-6100-series": "https://in.canon/media/image/2025/06/25/a140059ff1414155b28b1211effd0b76_imageFORCE%20Multi-function%20Device%20F_ASIA%2001.png",
   "imageforce-8100-series": "https://in.canon/media/image/2025/09/05/88f785a0847545ec92d46deabeebbbcd_No_130_8100_CTRAY_F_ASIA_362x320.2.png",
   "imageforce-c1333": "https://in.canon/media/image/2025/12/12/77ceca130fcd4ca19415551e08c1b0e5_Box_imageFORCE%20C1333_MFP_F_362X320.jpg.png",
+  "imageforce-c3026": "https://in.canon/media/image/2026/08/18/c85108eef4e84157bcd38581d4e1996c_imageFORCE%20C3026%2001.webp",
   "imageforce-c3150-series": "https://in.canon/media/image/2025/12/12/537f5e5ef6044f1fb108573bbe0aa456_59_C3150_High_CST_Booklet%20Fin_SPD_F_AS_362X320.jpg.png",
   "imageforce-c5100-series": "https://in.canon/media/image/2025/06/25/2425ce32b7124b7c87abb200301edc91_imageFORCE%20Multi-function%20Device%20F_ASIA%2001.png",
   "imageforce-c611-series": "https://in.canon/media/image/2025/11/13/718732e6f129487ba5029850c28c736d_3_C611_Main_F_AS_362x320.png",
