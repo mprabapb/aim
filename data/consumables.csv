@@ -13,17 +13,17 @@ Ink Bottles,GI-73 GY (Grey),Ink Bottle,8000,890,PIXMA G570; PIXMA G670,https://i
 Ink Bottles,GI-73 M (Magenta),Ink Bottle,8000,890,PIXMA G570; PIXMA G670,https://in.canon/en/consumer/pixma-g570/main/product
 Ink Bottles,GI-73 R (Red),Ink Bottle,8000,890,PIXMA G570; PIXMA G670,https://in.canon/en/consumer/pixma-g570/main/product
 Ink Bottles,GI-73 Y (Yellow),Ink Bottle,8000,890,PIXMA G570; PIXMA G670,https://in.canon/en/consumer/pixma-g570/main/product
-Ink Bottles,GI-75 C (Cyan),Ink Bottle,3000,495,MAXIFY GX1070; MAXIFY GX2070,https://in.canon/en/consumer/maxify-gx1070/main/product
-Ink Bottles,GI-75 M (Magenta),Ink Bottle,3000,495,MAXIFY GX1070; MAXIFY GX2070,https://in.canon/en/consumer/maxify-gx1070/main/product
-Ink Bottles,GI-75 PGBK (Pigment Black),Ink Bottle,3000,445,MAXIFY GX1070; MAXIFY GX2070,https://in.canon/en/consumer/maxify-gx1070/main/product
-Ink Bottles,GI-75 Y (Yellow),Ink Bottle,3000,495,MAXIFY GX1070; MAXIFY GX2070,https://in.canon/en/consumer/maxify-gx1070/main/product
+Ink Bottles,GI-75 C (Cyan),Ink Bottle,3000,495,MAXIFY GX1070,https://in.canon/en/consumer/maxify-gx1070/main/product
+Ink Bottles,GI-75 M (Magenta),Ink Bottle,3000,495,MAXIFY GX1070,https://in.canon/en/consumer/maxify-gx1070/main/product
+Ink Bottles,GI-75 PGBK (Pigment Black),Ink Bottle,3000,445,MAXIFY GX1070,https://in.canon/en/consumer/maxify-gx1070/main/product
+Ink Bottles,GI-75 Y (Yellow),Ink Bottle,3000,495,MAXIFY GX1070,https://in.canon/en/consumer/maxify-gx1070/main/product
 Ink Bottles,GI-76 C (Pigment Cyan),Ink Bottle,14000,2095,MAXIFY GX4070; MAXIFY GX5170; MAXIFY GX5570; MAXIFY GX6170; MAXIFY GX7170,https://in.canon/en/consumer/maxify-gx4070/main/product
 Ink Bottles,GI-76 M (Pigment Magenta),Ink Bottle,14000,2095,MAXIFY GX4070; MAXIFY GX5170; MAXIFY GX5570; MAXIFY GX6170; MAXIFY GX7170,https://in.canon/en/consumer/maxify-gx4070/main/product
 Ink Bottles,GI-76 PGBK (Pigment Black),Ink Bottle,6000,795,MAXIFY GX4070; MAXIFY GX5170; MAXIFY GX5570; MAXIFY GX6170; MAXIFY GX7170,https://in.canon/en/consumer/maxify-gx4070/main/product
 Ink Bottles,GI-76 Y (Pigment Yellow),Ink Bottle,14000,2095,MAXIFY GX4070; MAXIFY GX5170; MAXIFY GX5570; MAXIFY GX6170; MAXIFY GX7170,https://in.canon/en/consumer/maxify-gx4070/main/product
 Ink Bottles,Ink Bottle GI-70 (Cyan),Ink Bottle,7700,655,PIXMA G6070,https://in.canon/en/consumer/pixma-g6070/main/product
 Ink Bottles,Ink Bottle GI-70 (Magenta),Ink Bottle,7700,655,PIXMA G6070,https://in.canon/en/consumer/pixma-g6070/main/product
-Ink Bottles,Ink Bottle GI-70 (Pigment Black),Ink Bottle,6000,875,PIXMA G6070; PIXMA GM2070,https://in.canon/en/consumer/pixma-g6070/main/product
+Ink Bottles,Ink Bottle GI-70 (Pigment Black),Ink Bottle,6000,875,PIXMA G6070; PIXMA GM2070; PIXMA GM4070,https://in.canon/en/consumer/pixma-g6070/main/product
 Ink Bottles,Ink Bottle GI-70 (Yellow),Ink Bottle,7700,655,PIXMA G6070,https://in.canon/en/consumer/pixma-g6070/main/product
 Ink Bottles,Ink Bottle GI-790 (Cyan),Ink Bottle,7000,595,PIXMA G1010; PIXMA G2010; PIXMA G2012; PIXMA G3000; PIXMA G3010; PIXMA G3012,https://in.canon/en/consumer/pixma-g1010/main/product
 Ink Bottles,Ink Bottle GI-790 (Magenta),Ink Bottle,7000,595,PIXMA G1010; PIXMA G2010; PIXMA G2012; PIXMA G3000; PIXMA G3010; PIXMA G3012,https://in.canon/en/consumer/pixma-g1010/main/product
@@ -31,8 +31,8 @@ Ink Bottles,Ink Bottle GI-790 (Pigment Black),Ink Bottle,6000,595,PIXMA G1010; P
 Ink Bottles,Ink Bottle GI-790 (Yellow),Ink Bottle,7000,595,PIXMA G1010; PIXMA G2010; PIXMA G2012; PIXMA G3000; PIXMA G3010; PIXMA G3012,https://in.canon/en/consumer/pixma-g1010/main/product
 Ink Cartridges,CL-57 (Colour),Ink Cartridge,300,1290,PIXMA E3370; PIXMA E4570; PIXMA E470,https://in.canon/en/consumer/pixma-e3370/black/product
 Ink Cartridges,CL-57S (Colour),Ink Cartridge,180,820,PIXMA E3370; PIXMA E4570; PIXMA E470,https://in.canon/en/consumer/pixma-e3370/black/product
-Ink Cartridges,CL-741 (Colour),Ink Cartridge,180,1896,PIXMA GM2070,https://in.canon/en/consumer/pixma-gm2070/main/product
-Ink Cartridges,CL-741XL (Colour),Ink Cartridge,400,2945,PIXMA GM2070,https://in.canon/en/consumer/pixma-gm2070/main/product
+Ink Cartridges,CL-741 (Colour),Ink Cartridge,180,1896,PIXMA GM2070; PIXMA GM4070,https://in.canon/en/consumer/pixma-gm2070/main/product
+Ink Cartridges,CL-741XL (Colour),Ink Cartridge,400,2945,PIXMA GM2070; PIXMA GM4070,https://in.canon/en/consumer/pixma-gm2070/main/product
 Ink Cartridges,CL-746 (Colour),Ink Cartridge,180,1789,PIXMA MG2570S; PIXMA MG2577S; PIXMA MG3070S; PIXMA TS207; PIXMA TS307a,https://in.canon/en/consumer/pixma-mg2570s/main/product
 Ink Cartridges,CL-746XL (Colour),Ink Cartridge,300,2170,PIXMA MG2570S; PIXMA MG2577S; PIXMA MG3070S; PIXMA TS207; PIXMA TS307a,https://in.canon/en/consumer/pixma-mg2570s/main/product
 Ink Cartridges,CLI-36 (Colour),Ink Cartridge,260,1785,PIXMA TR160,https://in.canon/en/consumer/pixma-tr160/main/product
@@ -152,16 +152,16 @@ Maintenance Cartridges,MC-G01,Maintenance Cartridge,,1165,MAXIFY GX5570,https://
 Maintenance Cartridges,MC-G02,Maintenance Cartridge,,795,PIXMA G570; PIXMA G670,https://in.canon/en/consumer/pixma-g570/main/product
 Maintenance Cartridges,MC-G03,Maintenance Cartridge,,995,MAXIFY GX4070,https://in.canon/en/consumer/maxify-gx4070/main/product
 Maintenance Cartridges,MC-G04,Maintenance Cartridge,,765,PIXMA G1730; PIXMA G2730; PIXMA G2770; PIXMA G3730; PIXMA G3770,https://in.canon/en/consumer/pixma-g1730/main/product
-Maintenance Cartridges,MC-G05,Maintenance Cartridge,,965,MAXIFY GX1070; MAXIFY GX2070,https://in.canon/en/consumer/maxify-gx1070/main/product
+Maintenance Cartridges,MC-G05,Maintenance Cartridge,,965,MAXIFY GX1070,https://in.canon/en/consumer/maxify-gx1070/main/product
 Maintenance Cartridges,MC-G07,Maintenance Cartridge,,855,PIXMA G3780; PIXMA G4780,https://in.canon/en/consumer/pixma-g3780/main/product
 Print Heads,BH-7 (Black),Print Head,,1095,PIXMA G1010; PIXMA G2010; PIXMA G2012; PIXMA G3010; PIXMA G3012,https://in.canon/en/consumer/pixma-g1010/main/product
-Print Heads,BH-70 (Black),Print Head,,1595,PIXMA G1730; PIXMA G2730; PIXMA G2770; PIXMA G3730; PIXMA G3770; PIXMA G3780; PIXMA G4780; PIXMA G6070; PIXMA GM2070,https://in.canon/en/consumer/pixma-g1730/main/product
-Print Heads,BH-G2 (Black),Print Head,,1510,MAXIFY GX1070; MAXIFY GX2070,https://in.canon/en/consumer/maxify-gx1070/main/product
+Print Heads,BH-70 (Black),Print Head,,1595,PIXMA G1730; PIXMA G2730; PIXMA G2770; PIXMA G3730; PIXMA G3770; PIXMA G3780; PIXMA G4780; PIXMA G6070; PIXMA GM2070; PIXMA GM4070,https://in.canon/en/consumer/pixma-g1730/main/product
+Print Heads,BH-G2 (Black),Print Head,,1510,MAXIFY GX1070,https://in.canon/en/consumer/maxify-gx1070/main/product
 Print Heads,CH-7 (Colour),Print Head,,1195,PIXMA G1010; PIXMA G2010; PIXMA G2012; PIXMA G3010; PIXMA G3012,https://in.canon/en/consumer/pixma-g1010/main/product
 Print Heads,CH-70 (Colour),Print Head,,1495,PIXMA G1730; PIXMA G2730; PIXMA G2770; PIXMA G3730; PIXMA G3770; PIXMA G3780; PIXMA G4780; PIXMA G6070,https://in.canon/en/consumer/pixma-g1730/main/product
 Print Heads,CH-71L (Colour),Print Head,,1890,PIXMA G570; PIXMA G670,https://in.canon/en/consumer/pixma-g570/main/product
 Print Heads,CH-71R (Colour),Print Head,,1890,PIXMA G570; PIXMA G670,https://in.canon/en/consumer/pixma-g570/main/product
-Print Heads,CH-G2 (Colour),Print Head,,1635,MAXIFY GX1070; MAXIFY GX2070,https://in.canon/en/consumer/maxify-gx1070/main/product
+Print Heads,CH-G2 (Colour),Print Head,,1635,MAXIFY GX1070,https://in.canon/en/consumer/maxify-gx1070/main/product
 Print Heads,PF-06,Print Head,,Price on request,imagePROGRAF TM-5500; imagePROGRAF TM-5510; imagePROGRAF TM-5510M; imagePROGRAF TM-5600; imagePROGRAF TM-5610; imagePROGRAF TM-5610M; imagePROGRAF TM-5615; imagePROGRAF TX-5220; imagePROGRAF TX-5320; imagePROGRAF TX-5320 MFP Z36; imagePROGRAF TX-5420; imagePROGRAF TX-5420 MFP Z36; imagePROGRAF TZ-5320; imagePROGRAF TZ-5320 MFP Z36,https://in.canon/en/business/imageprograf-tm-5500/main/product
 Print Heads,PF-07,Print Head,,Price on request,imagePROGRAF GP-5300; imagePROGRAF GP-5200,https://in.canon/en/business/imageprograf-gp-5300/main/product
 Print Heads,PF-08,Print Head,,Price on request,imagePROGRAF TC-21; imagePROGRAF TC-21M,https://in.canon/en/business/imageprograf-tc-21/main/product
